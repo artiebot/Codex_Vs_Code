@@ -1,0 +1,71 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://skyfeeder.dev/schema/v1/cmd",
+  "title": "SkyFeeder Command v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "reqId", "type", "payload"],
+  "properties": {
+    "schema": { "const": "v1" },
+    "reqId": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_-]{4,64}$"
+    },
+    "type": {
+      "type": "string",
+      "enum": ["led", "camera"]
+    },
+    "payload": {
+      "type": "object"
+    },
+    "meta": {
+      "type": "object"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "type": { "const": "led" }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["pattern"],
+            "properties": {
+              "pattern": {
+                "type": "string",
+                "enum": ["heartbeat", "off", "blink"]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "type": { "const": "camera" }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["action"],
+            "properties": {
+              "action": {
+                "type": "string",
+                "enum": ["snap"]
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}

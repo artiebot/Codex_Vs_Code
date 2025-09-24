@@ -1,0 +1,19 @@
+﻿{
+  "expo": {
+    "name": "SkyFeeder",
+    "slug": "skyfeeder",
+    "version": "0.0.1",
+    "orientation": "portrait",
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#ffffff"
+      }
+    }
+  }
+}

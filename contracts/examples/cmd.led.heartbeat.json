@@ -1,0 +1,8 @@
+{
+  "schema": "v1",
+  "reqId": "REQ-20250920-001",
+  "type": "led",
+  "payload": {
+    "pattern": "heartbeat"
+  }
+}

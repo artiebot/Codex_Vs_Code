@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://skyfeeder.dev/schema/v1/status",
+  "title": "SkyFeeder Status v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "ts", "state"],
+  "properties": {
+    "schema": { "const": "v1" },
+    "ts": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "state": {
+      "type": "string",
+      "enum": ["online", "offline", "error"]
+    },
+    "reason": {
+      "type": "string"
+    },
+    "uptime_s": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "ip": {
+      "type": "string",
+      "format": "ipv4"
+    },
+    "fw": {
+      "type": "string"
+    },
+    "hw": {
+      "type": "string"
+    },
+    "rssi": {
+      "type": "integer",
+      "minimum": -130,
+      "maximum": 0
+    }
+  }
+}

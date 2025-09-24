@@ -1,0 +1,15 @@
+{
+  "schema": "v1",
+  "ts": "2025-09-20T21:32:00Z",
+  "rssi": -63,
+  "uptime_s": 120,
+  "power": {
+    "volts": 12.24,
+    "amps": 0.31,
+    "watts": 3.79,
+    "soc_pct": 78.4
+  },
+  "weight_g": 1234.5,
+  "motion": false,
+  "temperature_c": 24.6
+}

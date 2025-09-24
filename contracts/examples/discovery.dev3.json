@@ -1,0 +1,30 @@
+{
+  "schema": "v1",
+  "id": "dev3",
+  "fw": "skyfeeder-esp32-1.4.0",
+  "hw": "revC",
+  "mac": "24:6F:28:AA:BB:CC",
+  "ip": "10.0.0.53",
+  "capabilities": [
+    "led",
+    "camera",
+    "power",
+    "weight"
+  ],
+  "topics": {
+    "discovery": "skyfeeder/dev3/discovery",
+    "status": "skyfeeder/dev3/status",
+    "telemetry": "skyfeeder/dev3/telemetry",
+    "cmd": "skyfeeder/dev3/cmd",
+    "ack": "skyfeeder/dev3/ack"
+  },
+  "qos": {
+    "discovery": 1,
+    "status": 1,
+    "telemetry": 0,
+    "cmd": 1,
+    "ack": 1
+  },
+  "ts": "2025-09-20T21:30:00Z",
+  "notes": "Factory provisioned"
+}

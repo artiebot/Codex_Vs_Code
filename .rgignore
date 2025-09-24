@@ -1,0 +1,13 @@
+﻿venv/
+**/__pycache__/**
+**/*.pyc
+**/site-packages/**
+node_modules/
+build/
+dist/
+.git/
+.vscode/
+**/*.png
+**/*.jpg
+**/*.zip
+**/*.csv

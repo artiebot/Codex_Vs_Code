@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://skyfeeder.dev/schema/v1/telemetry",
+  "title": "SkyFeeder Telemetry v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "ts", "rssi", "uptime_s", "power", "weight_g"],
+  "properties": {
+    "schema": { "const": "v1" },
+    "ts": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "rssi": {
+      "type": "integer",
+      "minimum": -130,
+      "maximum": 0
+    },
+    "uptime_s": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "power": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["volts", "amps", "watts", "soc_pct"],
+      "properties": {
+        "volts": {
+          "type": "number"
+        },
+        "amps": {
+          "type": "number"
+        },
+        "watts": {
+          "type": "number"
+        },
+        "soc_pct": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100
+        }
+      }
+    },
+    "weight_g": {
+      "type": "number"
+    },
+    "motion": {
+      "type": "boolean"
+    },
+    "temperature_c": {
+      "type": "number"
+    },
+    "humidity_pct": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 100
+    }
+  }
+}

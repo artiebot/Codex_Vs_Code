@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://skyfeeder.dev/schema/v1/ack",
+  "title": "SkyFeeder Acknowledgement v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "reqId", "ok", "code", "msg"],
+  "properties": {
+    "schema": { "const": "v1" },
+    "reqId": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_-]{4,64}$"
+    },
+    "ok": {
+      "type": "boolean"
+    },
+    "code": {
+      "type": "string",
+      "minLength": 1
+    },
+    "msg": {
+      "type": "string",
+      "minLength": 1
+    },
+    "data": {
+      "type": "object"
+    },
+    "ts": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}

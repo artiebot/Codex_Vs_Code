@@ -1,0 +1,1 @@
+﻿{"device":"sf-dev01","count":4,"entries":[{"ts_ms":0,"level":"boot","tag":"boot","msg":"boot_reason=power_on"},{"ts_ms":0,"level":"info","tag":"provision","msg":"setup complete"},{"ts_ms":0,"level":"warn","tag":"power","msg":"low battery 15%"},{"ts_ms":0,"level":"error","tag":"camera","msg":"snap_failed"}]}

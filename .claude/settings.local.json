@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node tools/validate.js:*)",
+      "Bash(.venvScriptsactivate)",
+      "Bash(pip install:*)",
+      "Bash(\".venv\\Scripts\\python.exe\" publisher.py --dry-run --device-id sf-mock01)",
+      "Bash(timeout:*)",
+      "Bash(\".venv\\Scripts\\python.exe\" -c \"import publisher; import json; payload = publisher.discovery_payload(''sf-mock01''); print(json.dumps(payload, indent=2))\")",
+      "Bash(\".venv\\Scripts\\python.exe\" -c \"import publisher; import json; payload = publisher.status_payload(''online''); print(json.dumps(payload, indent=2))\")",
+      "Bash(\"C:\\Program Files\\GitHub CLI\\gh.exe\" repo clone artiebot/feeder-app \"D:\\OneDrive\\Etsy\\Feeder-Project\\SW\\feeder-project\\feeder-app-review\")",
+      "Read(D:\\OneDrive\\Etsy\\Feeder-Project\\SW\\feeder-project\\feeder-app-review/**)",
+      "Bash(npx react-native:*)",
+      "Bash(findstr:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

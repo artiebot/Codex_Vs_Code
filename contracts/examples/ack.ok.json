@@ -1,0 +1,11 @@
+{
+  "schema": "v1",
+  "reqId": "REQ-20250920-001",
+  "ok": true,
+  "code": "led.applied",
+  "msg": "LED pattern set to heartbeat",
+  "ts": "2025-09-20T21:32:03Z",
+  "data": {
+    "pattern": "heartbeat"
+  }
+}

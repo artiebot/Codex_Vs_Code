@@ -1,0 +1,118 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://skyfeeder.dev/schema/v1/discovery",
+  "title": "SkyFeeder Discovery v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "id",
+    "fw",
+    "hw",
+    "mac",
+    "ip",
+    "capabilities",
+    "topics",
+    "qos",
+    "ts"
+  ],
+  "properties": {
+    "schema": { "const": "v1" },
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9_-]{3,32}$"
+    },
+    "fw": {
+      "type": "string",
+      "minLength": 1
+    },
+    "hw": {
+      "type": "string",
+      "minLength": 1
+    },
+    "mac": {
+      "type": "string",
+      "pattern": "^([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}$"
+    },
+    "ip": {
+      "type": "string",
+      "format": "ipv4"
+    },
+    "capabilities": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "topics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["discovery", "status", "telemetry", "cmd", "ack"],
+      "properties": {
+        "discovery": {
+          "type": "string",
+          "pattern": "^skyfeeder/[A-Za-z0-9_-]+/discovery$"
+        },
+        "status": {
+          "type": "string",
+          "pattern": "^skyfeeder/[A-Za-z0-9_-]+/status$"
+        },
+        "telemetry": {
+          "type": "string",
+          "pattern": "^skyfeeder/[A-Za-z0-9_-]+/telemetry$"
+        },
+        "cmd": {
+          "type": "string",
+          "pattern": "^skyfeeder/[A-Za-z0-9_-]+/cmd(?:/.*)?$"
+        },
+        "ack": {
+          "type": "string",
+          "pattern": "^skyfeeder/[A-Za-z0-9_-]+/ack$"
+        }
+      }
+    },
+    "qos": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["discovery", "status", "telemetry", "cmd", "ack"],
+      "properties": {
+        "discovery": {
+          "type": "integer",
+          "enum": [1]
+        },
+        "status": {
+          "type": "integer",
+          "enum": [1]
+        },
+        "telemetry": {
+          "type": "integer",
+          "enum": [0, 1]
+        },
+        "cmd": {
+          "type": "integer",
+          "enum": [0, 1]
+        },
+        "ack": {
+          "type": "integer",
+          "enum": [0, 1]
+        }
+      }
+    },
+    "ts": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "fw_build": {
+      "type": "string"
+    },
+    "hw_rev": {
+      "type": "string"
+    }
+  }
+}
