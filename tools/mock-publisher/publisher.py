@@ -128,6 +128,8 @@ def discovery_payload(device_id: str, services: Iterable[str], topics: Dict[str,
             "telemetry": 0,
             "cmd": 1,
             "ack": 1,
+            "cmd_ota": 1,
+            "event_ota": 0,
             **({"cmd_logs": 1, "event_log": 0} if include_logs else {}),
         },
         "ts": utc_now(),
@@ -153,10 +155,11 @@ def telemetry_payload(base_weight: float, rssi: int, seq: int) -> Dict[str, Any]
     watts = 3.2 + math.sin(seq / 4.0) * 0.6
     amps = 0.28 + math.sin(seq / 5.0) * 0.04
     volts = watts / amps if amps else 12.0
-    return {
+    reported_rssi = max(-120, min(0, rssi + random.randint(-2, 2)))
+    payload = {
         "schema": "v1",
         "ts": utc_now(),
-        "rssi": rssi + random.randint(-2, 2),
+        "rssi": reported_rssi,
         "uptime_s": int(time.monotonic()),
         "power": {
             "volts": round(volts, 2),
@@ -168,12 +171,21 @@ def telemetry_payload(base_weight: float, rssi: int, seq: int) -> Dict[str, Any]
         "motion": random.random() < 0.05,
         "temperature_c": round(24.0 + math.sin(seq / 6.0) * 0.8, 1),
     }
+    payload["health"] = {
+        "uptime_ms": int(time.monotonic() * 1000),
+        "last_seen_ms": int(time.time() * 1000),
+        "telemetry_count": seq + 1,
+        "mqtt_retries": 0,
+        "rssi": reported_rssi,
+    }
+    return payload
 
 
-def publish_json(client: mqtt.Client, topic: str, payload: Dict[str, Any], *, retain: bool) -> None:
+def publish_json(client: mqtt.Client, topic: str, payload: Dict[str, Any], *, retain: bool, wait: bool = False) -> None:
     data = json.dumps(payload, separators=(",", ":"))
     result = client.publish(topic, data, qos=1 if retain else 0, retain=retain)
-    result.wait_for_publish()
+    if wait:
+        result.wait_for_publish()
     if result.rc != mqtt.MQTT_ERR_SUCCESS:
         raise RuntimeError(f"Publish to {topic} failed: {mqtt.error_string(result.rc)}")
 
@@ -186,56 +198,132 @@ def publish_ack(client: mqtt.Client, topic: str, payload: Dict[str, Any]) -> Non
     print(f"ACK publish queued (mid={result.mid})")
 
 
-def handle_ota_command(
-    client: mqtt.Client,
-    topics: Dict[str, str],
-    command: Dict[str, Any],
-    req_id: str,
-    *,
-    dry_run: bool,
-) -> None:
-    url = command.get("url") or command.get("image")
-    raw_size = command.get("size") or command.get("sizeBytes")
+def decode_json_payload(payload: bytes) -> Dict[str, Any]:
+    raw = payload.decode("utf-8", errors="replace")
+    raw = raw.lstrip("\ufeff")
+    try:
+        return json.loads(raw)
+    except json.JSONDecodeError as exc:
+        raise ValueError(f"JSON parse error: {exc}") from exc
+
+
+def normalize_ota_payload(data: Dict[str, Any]) -> Tuple[Optional[str], Optional[str], int, int]:
+    if not isinstance(data, dict):
+        raise ValueError("JSON object expected")
+    ota = data.get("ota")
+    payload = ota if isinstance(ota, dict) else data
+
+    req_id = data.get("reqId") or payload.get("reqId")
+    url = payload.get("url") or payload.get("image")
+
+    raw_size = payload.get("size") or payload.get("sizeBytes")
     try:
         size = int(raw_size)
     except (TypeError, ValueError):
-        size = 0
+        raise ValueError("missing or invalid size")
+    if size <= 0:
+        raise ValueError("missing or invalid size")
 
-    event_topic = topics["event_ota"]
+    chunk = payload.get("chunkBytes")
+    try:
+        chunk_bytes = int(chunk) if chunk is not None else 0
+    except (TypeError, ValueError):
+        raise ValueError("invalid chunkBytes")
 
-    def emit(status: str, progress: int, message: Optional[str] = None, crc: Optional[str] = None) -> None:
-        payload: Dict[str, Any] = {
-            "schema": "v1",
-            "reqId": req_id,
-            "status": status,
-            "progress": progress,
-        }
-        if size:
-            payload["size"] = size
-        if url:
-            payload["url"] = url
-        if message:
-            payload["msg"] = message
-        if crc:
-            payload["crc"] = crc
-        if dry_run:
-            print(f"[dry-run] OTA event -> {json.dumps(payload)}")
-        else:
-            publish_json(client, event_topic, payload, retain=False)
+    return req_id, url, size, chunk_bytes
 
-    if size <= 0 or not url:
-        emit("error", 0, "missing url or size")
-        log_buffer.append("warn", "ota", f"reject url={url} size={size}")
+
+def publish_ota_event(
+    client: mqtt.Client,
+    topics: Dict[str, str],
+    status: str,
+    *,
+    req_id: Optional[str] = None,
+    size: Optional[int] = None,
+    progress: Optional[int] = None,
+    crc: Optional[str] = None,
+    reason: Optional[str] = None,
+    detail: Optional[str] = None,
+    url: Optional[str] = None,
+    message: Optional[str] = None,
+    dry_run: bool = False,
+) -> None:
+    payload: Dict[str, Any] = {"schema": "v1", "status": status}
+    if req_id:
+        payload["reqId"] = req_id
+    if size is not None and size > 0:
+        payload["size"] = size
+    if progress is not None:
+        payload["progress"] = progress
+    if crc:
+        payload["crc"] = crc
+    if reason:
+        payload["reason"] = reason
+    if detail:
+        payload["detail"] = detail
+    if url:
+        payload["url"] = url
+    if message:
+        payload["msg"] = message
+
+    if dry_run:
+        print(f"[dry-run] OTA event -> {json.dumps(payload)}")
+    else:
+        publish_json(client, topics["event_ota"], payload, retain=False)
+
+
+def handle_ota_command_with_payload(
+    client: mqtt.Client,
+    topics: Dict[str, str],
+    payload_bytes: bytes,
+    *,
+    dry_run: bool,
+) -> None:
+    try:
+        data = decode_json_payload(payload_bytes)
+    except ValueError as exc:
+        publish_ota_event(
+            client,
+            topics,
+            "error",
+            reason="invalid payload",
+            detail=str(exc),
+            dry_run=dry_run,
+        )
+        log_buffer.append("warn", "ota", f"parse error: {exc}")
         return
 
-    chunk_bytes = command.get("chunkBytes")
     try:
-        chunk = int(chunk_bytes) if chunk_bytes else 1024
-    except (TypeError, ValueError):
-        chunk = 1024
-    chunk = max(64, min(chunk, 8 * 1024))
+        req_id, url, size, chunk = normalize_ota_payload(data)
+    except ValueError as exc:
+        publish_ota_event(
+            client,
+            topics,
+            "error",
+            req_id=data.get("reqId") if isinstance(data, dict) else None,
+            reason="invalid payload",
+            detail=str(exc),
+            dry_run=dry_run,
+        )
+        log_buffer.append("warn", "ota", f"reject {exc}")
+        return
 
-    emit("started", 0, "OTA command accepted")
+    if not req_id:
+        req_id = f"req-{int(time.time())}"
+
+    chunk_bytes = max(64, min(chunk if chunk > 0 else 1024, 8 * 1024))
+
+    publish_ota_event(
+        client,
+        topics,
+        "started",
+        req_id=req_id,
+        size=size,
+        progress=0,
+        url=url,
+        message="OTA command accepted",
+        dry_run=dry_run,
+    )
 
     progress_marks = [25, 50, 75]
     thresholds = []
@@ -249,37 +337,61 @@ def handle_ota_command(
     mark_index = 0
     crc = 0
     while processed < size:
-        step = min(chunk, size - processed)
+        step = min(chunk_bytes, size - processed)
         block = bytearray(pseudo_ota_byte(processed + i) for i in range(step))
         crc = binascii.crc32(block, crc)
         processed += step
         while mark_index < len(progress_marks) and processed >= thresholds[mark_index]:
             time.sleep(0.05)
-            emit("progress", progress_marks[mark_index])
+            publish_ota_event(
+                client,
+                topics,
+                "progress",
+                req_id=req_id,
+                size=size,
+                progress=progress_marks[mark_index],
+                url=url,
+                dry_run=dry_run,
+            )
             mark_index += 1
 
     time.sleep(0.05)
     crc &= 0xFFFFFFFF
-    emit("verified", 100, "CRC verified", f"{crc:08X}")
-    log_buffer.append("info", "ota", f"size={size} crc={crc:08X}")\ndef respond_to_command(
+    publish_ota_event(
+        client,
+        topics,
+        "verified",
+        req_id=req_id,
+        size=size,
+        progress=100,
+        crc=f"{crc:08X}",
+        url=url,
+        message="CRC verified",
+        dry_run=dry_run,
+    )
+    log_buffer.append("info", "ota", f"size={size} crc={crc:08X}")
+
+
+def respond_to_command(
     client: mqtt.Client,
     topics: Dict[str, str],
     topic: str,
-    payload_text: str,
+    payload: bytes,
     *,
     dry_run: bool,
 ) -> None:
     try:
-        command = json.loads(payload_text)
-    except json.JSONDecodeError as err:
+        command = decode_json_payload(payload)
+    except ValueError as err:
         print(f"Invalid command payload: {err}", file=sys.stderr)
+        return
+
+    if not isinstance(command, dict):
+        print("Unsupported command format (expected object)", file=sys.stderr)
         return
 
     req_id = command.get("reqId") or f"req-{int(time.time())}"
     cmd_type = command.get("type")
-    if topic == topics.get("cmd_ota") or cmd_type == "ota":
-        handle_ota_command(client, topics, command, req_id, dry_run=dry_run)
-        return
     ack_topic = topics["ack"]
 
     ack: Dict[str, Any] = {
@@ -310,7 +422,7 @@ def handle_ota_command(
         ack["code"] = "cmd.unsupported"
         ack["msg"] = f"Unsupported command type: {cmd_type}"
 
-    log_buffer.append("info", "cmd", f"cmd={cmd_type} req={req_id} ok={ack['ok']}")
+    log_buffer.append("info", "cmd", f"cmd={cmd_type} req={req_id} ok={ack.get('ok')}")
 
     if dry_run:
         print(f"[dry-run] Would ACK {cmd_type}: {json.dumps(ack)}")
@@ -320,8 +432,9 @@ def handle_ota_command(
     print(f"ACK sent for {cmd_type} ({req_id}) -> {ack_topic}")
 
 
-def mqtt_connect(args: argparse.Namespace, topics: Dict[str, str]) -> mqtt.Client:
-    client = mqtt.Client(client_id=f"mock-{args.device_id}", clean_session=False)
+def mqtt_connect(args: argparse.Namespace, topics: Dict[str, str], include_logs: bool) -> mqtt.Client:
+    # Use older API for compatibility
+    client = mqtt.Client(client_id=f"skyfeeder-mock-{args.device_id}", clean_session=True)
     client.username_pw_set(args.username, args.password)
 
     offline_status = status_payload("offline", reason="lost connection")
@@ -333,24 +446,38 @@ def mqtt_connect(args: argparse.Namespace, topics: Dict[str, str]) -> mqtt.Clien
     )
 
     def handle_connect(_client: mqtt.Client, _userdata: Any, _flags: Dict[str, Any], rc: int) -> None:
+        print(f"[mqtt] connected rc={rc}")
         if rc != 0:
             print(f"MQTT connect failed: {mqtt.connack_string(rc)}", file=sys.stderr)
-            sys.exit(1)
-        if args.dry_run:
-            print("[dry-run] Connected (simulated)")
-        else:
-            print("Connected")
+            return
+        subs = [
+            (topics["cmd"], 1),
+            (f"{topics['cmd']}/#", 1),
+            (topics["cmd_ota"], 1),
+        ]
+        if include_logs and "cmd_logs" in topics:
+            subs.append((topics["cmd_logs"], 1))
+        for sub_topic, qos in subs:
+            result, mid = _client.subscribe(sub_topic, qos=qos)
+            print(f"[mqtt] subscribe {sub_topic} qos={qos} -> {result}/{mid}")
 
     def handle_disconnect(_client: mqtt.Client, _userdata: Any, rc: int) -> None:
-        if rc != 0:
-            print(f"Unexpected disconnect: {mqtt.error_string(rc)}", file=sys.stderr)
+        print(f"[mqtt] disconnected rc={rc}")
 
     client.on_connect = handle_connect
     client.on_disconnect = handle_disconnect
 
-    if not args.dry_run:
-        client.connect(args.host, args.port, keepalive=60)
-        client.loop_start()
+    if args.dry_run:
+        return client
+
+    client.loop_start()
+    client.connect(args.host, args.port, keepalive=30)
+
+    wait_start = time.time()
+    while not client.is_connected():
+        if time.time() - wait_start > 5:
+            break
+        time.sleep(0.1)
 
     return client
 
@@ -374,9 +501,9 @@ def handle_log_command(client: mqtt.Client, topic: str, payload: bytes) -> None:
     clear = False
     if payload:
         try:
-            body = json.loads(payload.decode("utf-8"))
+            body = decode_json_payload(payload)
             clear = bool(body.get("clear", False))
-        except json.JSONDecodeError:
+        except ValueError:
             print("Invalid log command payload; assuming clear=false")
     response = log_buffer.dump(clear=clear)
     event_topic = topic.replace("cmd/logs", "event/log")
@@ -390,25 +517,25 @@ def run(args: argparse.Namespace) -> None:
     log_buffer.set_device(args.device_id)
     if include_logs:
         log_buffer.boot_marker()
-    client = mqtt_connect(args, topics)
+    client = mqtt_connect(args, topics, include_logs)
 
     if not args.dry_run:
         def on_message(_client: mqtt.Client, _userdata: Any, message: mqtt.MQTTMessage) -> None:
-            if not message.topic.startswith(topics["cmd"]):
-                return
-            # Skip log commands - they're handled by the specific log handler
+            print(f"[mqtt] RX {message.topic} ({len(message.payload)} bytes)")
             if include_logs and message.topic == topics.get("cmd_logs"):
                 return
-            payload_text = message.payload.decode("utf-8", errors="ignore")
-            print(f"Command received on {message.topic}: {payload_text}")
-            respond_to_command(client, topics, message.topic, payload_text, dry_run=args.dry_run)
+            if message.topic == topics.get("cmd_ota"):
+                handle_ota_command_with_payload(client, topics, message.payload, dry_run=args.dry_run)
+                return
+            if message.topic.startswith(topics["cmd"]):
+                respond_to_command(client, topics, message.topic, message.payload, dry_run=args.dry_run)
 
         client.on_message = on_message
-        client.subscribe(topics["cmd"], qos=1)
-        client.subscribe(f"{topics['cmd']}/#", qos=1)
         if include_logs and "cmd_logs" in topics:
-            client.message_callback_add(topics["cmd_logs"], lambda _client, _userdata, msg: handle_log_command(client, msg.topic, msg.payload))
-            client.subscribe(topics["cmd_logs"], qos=1)
+            client.message_callback_add(
+                topics["cmd_logs"],
+                lambda _client, _userdata, msg: handle_log_command(client, msg.topic, msg.payload),
+            )
         print(f"Listening for commands on {topics['cmd']}/#")
 
     try:
@@ -419,8 +546,8 @@ def run(args: argparse.Namespace) -> None:
             print("[dry-run] Would publish discovery", json.dumps(discovery, indent=2))
             print("[dry-run] Would publish status", json.dumps(status_online, indent=2))
         else:
-            publish_json(client, topics["discovery"], discovery, retain=True)
-            publish_json(client, topics["status"], status_online, retain=True)
+            publish_json(client, topics["discovery"], discovery, retain=True, wait=True)
+            publish_json(client, topics["status"], status_online, retain=True, wait=True)
             log_buffer.append("info", "status", "status=online")
             print(f"Published retained discovery + status for {args.device_id}")
 
