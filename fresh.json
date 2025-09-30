@@ -1,0 +1,1 @@
+{"schema":"v1","ts":"2025-09-28T01:57:27+00:00","rssi":-62,"uptime_s":1214726,"power":{"volts":8.46,"amps":0.309,"watts":2.62,"soc_pct":74.1},"weight_g":1232.39,"motion":false,"temperature_c":24.6,"health":{"uptime_ms":1214726906,"last_seen_ms":1759024647392,"telemetry_count":44,"mqtt_retries":0,"rssi":-62}}

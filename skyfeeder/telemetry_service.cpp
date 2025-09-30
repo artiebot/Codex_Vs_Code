@@ -4,6 +4,7 @@
 #include <WiFi.h>
 #include <climits>
 
+#include "boot_health.h"
 #include "health_service.h"
 #include "mqtt_client.h"
 #include "topics.h"
@@ -78,6 +79,11 @@ void Telemetry::loop() {
 
   const int16_t rssi = (WiFi.status() == WL_CONNECTED) ? WiFi.RSSI() : INT16_MIN;
   SF::HealthService::recordTelemetryPublish(now, rssi);
+  static bool bootReported = false;
+  if (!bootReported) {
+    SF::BootHealth::markHealthy();
+    bootReported = true;
+  }
 }
 
 }  // namespace SF

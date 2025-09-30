@@ -1,5 +1,7 @@
 #pragma once
 
+#define FW_VERSION  "1.4.0"
+
 // --- Provisioning defaults (tweak per deployment) ---
 #define WIFI_DEFAULT_SSID  "wififordays"
 #define WIFI_DEFAULT_PASS  "wififordayspassword1236"
@@ -7,7 +9,7 @@
 #define MQTT_DEFAULT_PORT  1883
 #define MQTT_DEFAULT_USER  "dev1"
 #define MQTT_DEFAULT_PASS  "dev1pass"
-#define DEVICE_ID_DEFAULT  "dev1"
+#define DEVICE_ID_DEFAULT  "sf-mock01"
 
 // --- Lighting & UX ---
 #define LED_PIN 2
@@ -78,4 +80,5 @@
 #ifndef CELL_COUNT
 #define CELL_COUNT SERIES_CELLS
 #endif
+
 

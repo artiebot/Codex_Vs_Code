@@ -127,13 +127,22 @@ void Provisioning::runtimeButtonCheck(){ int level=digitalRead(PROVISION_BUTTON_
 
 void Provisioning::loop(){ if(setup_mode_){ handleHttp(); return; } runtimeButtonCheck(); ensureMdns(); }
 
-void Provisioning::ensureMdns(){ if(!ready_||mdns_ready_) return; if(!MDNS.begin(deviceId())) return; MDNS.addService("skyfeeder","tcp",80); MDNS.addServiceTxt("skyfeeder","tcp","step","sf_step15C_telemetry_health"); mdns_ready_=true; }
+void Provisioning::ensureMdns(){ if(!ready_||mdns_ready_) return; if(!MDNS.begin(deviceId())) return; MDNS.addService("skyfeeder","tcp",80); MDNS.addServiceTxt("skyfeeder","tcp","step","sf_step15D_ota_safe_staging"); mdns_ready_=true; }
 
 void Provisioning::publishDiscovery(PubSubClient& client){
-  if(discovery_published_||!ready_) return;
+  Serial.println("DEBUG: publishDiscovery called");
+  if(discovery_published_||!ready_) {
+    Serial.print("DEBUG: Discovery skipped - published:");
+    Serial.print(discovery_published_);
+    Serial.print(" ready:");
+    Serial.println(ready_);
+    return;
+  }
+  Serial.println("DEBUG: Publishing discovery...");
   StaticJsonDocument<640> doc;
   doc["device_id"]=deviceId();
-  doc["step"]="sf_step15C_telemetry_health";
+  doc["fw_version"]=FW_VERSION;
+  doc["step"]="sf_step15D_ota_safe_staging";
   doc["services"][0]="weight";
   doc["services"][1]="motion";
   doc["services"][2]="visit";
@@ -156,14 +165,25 @@ void Provisioning::publishDiscovery(PubSubClient& client){
   char payload[640];
   size_t n=serializeJson(doc,payload,sizeof(payload));
   (void)n;
-  client.publish(Topics::discovery(), payload, true);
-  discovery_published_=true;
+  Serial.print("DEBUG: Publishing discovery to topic: ");
+  Serial.println(Topics::discovery());
+  Serial.print("DEBUG: Discovery payload: ");
+  Serial.println(payload);
+  bool published = client.publish(Topics::discovery(), payload, true);
+  Serial.print("DEBUG: Discovery publish result: ");
+  Serial.println(published ? "SUCCESS" : "FAILED");
+  if (published) {
+    discovery_published_=true;
+  } else {
+    Serial.println("ERROR: Discovery publish failed - will retry on next connection");
+  }
   SF::Log::info("prov", "discovery published with log topics");
 }
 
 void Provisioning::onMqttConnected(PubSubClient& client){ publishDiscovery(client); }
 
 } // namespace SF
+
 
 
 

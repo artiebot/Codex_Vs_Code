@@ -1,0 +1,16 @@
+﻿{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "SkyFeeder OTA Command v1",
+  "type": "object",
+  "required": ["version","url","size","sha256","channel","staged"],
+  "properties": {
+    "version": { "type": "string", "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(?:-[0-9A-Za-z.-]+)?(?:\\+[0-9A-Za-z.-]+)?$" },
+    "url":     { "type": "string", "format": "uri" },
+    "size":    { "type": "integer", "minimum": 1 },
+    "sha256":  { "type": "string", "pattern": "^[A-Fa-f0-9]{64}$" },
+    "channel": { "type": "string", "enum": ["alpha","beta","stable"] },
+    "staged":  { "type": "boolean" },
+    "force":   { "type": "boolean" }
+  },
+  "additionalProperties": false
+}

@@ -11,7 +11,21 @@
       "Bash(\"C:\\Program Files\\GitHub CLI\\gh.exe\" repo clone artiebot/feeder-app \"D:\\OneDrive\\Etsy\\Feeder-Project\\SW\\feeder-project\\feeder-app-review\")",
       "Read(D:\\OneDrive\\Etsy\\Feeder-Project\\SW\\feeder-project\\feeder-app-review/**)",
       "Bash(npx react-native:*)",
-      "Bash(findstr:*)"
+      "Bash(findstr:*)",
+      "Bash(git push:*)",
+      "Bash(python:*)",
+      "Bash(mosquitto_pub:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(mosquitto_sub:*)",
+      "Bash(powershell:*)",
+      "Bash(arduino-cli compile:*)",
+      "Bash(\"C:\\Users\\ardav\\AppData\\Local\\Arduino15\\packages\\esp32\\tools\\xtensa-esp-elf-gcc\\esp-12.2.0_20230208\\bin\\xtensa-esp32-elf-g++\" --version)",
+      "Bash(grep:*)",
+      "Read(//c/Users/ardav/AppData/Local/arduino/sketches/**)",
+      "Bash(copy:*)",
+      "Bash(where arduino-cli)",
+      "Bash(git ls-tree:*)"
     ],
     "deny": [],
     "ask": []

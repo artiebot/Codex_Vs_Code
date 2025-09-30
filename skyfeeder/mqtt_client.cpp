@@ -6,6 +6,7 @@
 #include "health_service.h"
 #include "log_service.h"
 #include "ota_service.h"
+#include "ota_manager.h"
 #include "provisioning.h"
 #include "telemetry_service.h"
 #include "topics.h"
@@ -39,6 +40,7 @@ bool Mqtt::ensureMqtt() {
 
   const auto& cfg = SF::provisioning.config();
   client.setServer(cfg.mqtt_host, cfg.mqtt_port);
+  client.setBufferSize(1024);  // Increase buffer for discovery payload
   client.setKeepAlive(10);
   client.setCallback(handleMqttMessage);
 
@@ -49,6 +51,7 @@ bool Mqtt::ensureMqtt() {
     SF_registerCommandSubscriptions(client);
     SF::LogService::begin(client);
     SF::OtaService::begin(client);
+    SF::OtaManager::onMqttConnected(client);
     SF::provisioning.onMqttConnected(client);
   } else {
     SF::HealthService::recordMqttRetry();
@@ -74,3 +77,5 @@ void Mqtt::loop() {
 }
 
 }  // namespace SF
+
+

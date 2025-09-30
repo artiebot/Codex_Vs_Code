@@ -5,8 +5,7 @@
 [x] 14G App Alpha: Telemetry
 [x] 15A Logging & Diagnostics
 [ ] 15B OTA Command Stub
-[ ] 15C Telemetry Health/Alarms
-[ ] 16A Security Hardening (Backend slice: per-device creds, ACLs, TLS endpoints)
+[x] 15C Telemetry Health/Alarms`r`n[x] 15D OTA Safe Staging`r`n[ ] 16A Security Hardening (Backend slice: per-device creds, ACLs, TLS endpoints)
 
 # Phase 2 - App polish & UX
 [ ] 14I Session & Auth (login/roles)
@@ -22,3 +21,4 @@
 # Phase 5 - Manufacturing & Ops
 [ ] 17 Manufacturing Mode & Factory Jig
 [ ] RC / Final QA (docs + smoke tests)
+
