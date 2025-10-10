@@ -2,6 +2,8 @@
 #include <PubSubClient.h>
 #include <ArduinoJson.h>
 #include "VideoStream.h"
+#include "StreamIO.h"
+#include "RTSP.h"
 #if defined(__has_include)
 #  if __has_include("freertos/FreeRTOS.h")
 #include "freertos/FreeRTOS.h"
@@ -35,7 +37,7 @@ String topicStatus;
 
 // Camera configuration
 #define CAM_CHANNEL 0
-VideoSetting camCfg(VIDEO_VGA, CAM_FPS, VIDEO_JPEG, 1);
+VideoSetting camCfg(VIDEO_VGA, CAM_FPS, VIDEO_H264_JPEG, 1);
 bool camActive = false;
 
 // HTTP server
@@ -68,6 +70,10 @@ TaskHandle_t mqttTaskHandle = nullptr;
 SemaphoreHandle_t frameMutex = nullptr;
 SemaphoreHandle_t streamMutex = nullptr;
 SemaphoreHandle_t messageMutex = nullptr;
+StreamIO* rtspStream = nullptr;
+RTSP rtsp;
+bool rtspStreaming = false;
+uint16_t rtspPort = 0;
 
 void mqttLoopTask(void* param);
 void initSynchronization();
@@ -78,6 +84,8 @@ void unlockStreamState();
 bool lockMessageBuffer(TickType_t wait);
 void unlockMessageBuffer();
 bool isStreamActive();
+void startRtsp();
+void stopRtsp();
 
 void processMessage();
 bool reconnectMqtt();
@@ -154,6 +162,42 @@ bool isStreamActive() {
   return true;
 }
 
+void startRtsp() {
+  if (rtspStreaming) return;
+  if (!rtspStream) {
+    rtspStream = new StreamIO(1, 1);
+  }
+
+  rtsp.configVideo(camCfg);
+  rtsp.begin();
+  rtspStream->registerInput(Camera.getStream(CAM_CHANNEL));
+  rtspStream->registerOutput(rtsp);
+  if (rtspStream->begin() != 0) {
+    Serial.println("[rtsp] ERROR: StreamIO begin failed");
+    rtsp.end();
+    return;
+  }
+
+  rtspPort = rtsp.getPort();
+  rtspStreaming = true;
+  Serial.print("[rtsp] streaming ready on rtsp://");
+  Serial.print(ipToString(WiFi.localIP()));
+  Serial.print(":");
+  Serial.print(rtspPort);
+  Serial.println("/live");
+}
+
+void stopRtsp() {
+  if (!rtspStreaming) return;
+  if (rtspStream) {
+    rtspStream->end();
+  }
+  rtsp.end();
+  rtspStreaming = false;
+  rtspPort = 0;
+  Serial.println("[rtsp] stopped");
+}
+
 void mqttLoopTask(void* param) {
   (void)param;
   Serial.println("[mqtt] worker task started");
@@ -171,9 +215,10 @@ String ipToString(const IPAddress& ip) {
 
 void ensureCamera() {
   if (camActive) return;
-  camCfg.setBitrate(1500 * 1024);  // 1.5 Mbps - balanced quality/speed
+  camCfg.setBitrate(2 * 1024 * 1024);  // 2 Mbps for RTSP + JPEG snapshots
   Camera.configVideoChannel(CAM_CHANNEL, camCfg);
   Camera.videoInit();
+  startRtsp();
   Camera.channelBegin(CAM_CHANNEL);
   camActive = true;
   Serial.println("[cam] started");
@@ -181,6 +226,7 @@ void ensureCamera() {
 
 void stopCamera() {
   if (!camActive) return;
+  stopRtsp();
   Camera.channelEnd(CAM_CHANNEL);
   Camera.videoDeinit();
   camActive = false;
@@ -466,6 +512,11 @@ void handleHttpStatus(WiFiClient& client) {
   doc["snap_count"] = snapCount;
   doc["last_snap_size"] = (uint32_t)lastFrameLen;
   doc["last_snap_ts"] = (uint32_t)lastSnapTs;
+  doc["rtsp_active"] = rtspStreaming;
+  doc["rtsp_port"] = (uint16_t)rtspPort;
+  if (rtspStreaming) {
+    doc["rtsp_url"] = String("rtsp://") + ipToString(WiFi.localIP()) + ":" + String(rtspPort) + "/live";
+  }
 
   char json[384];
   serializeJson(doc, json, sizeof(json));
@@ -685,6 +736,16 @@ void handleHttpDefault(WiFiClient& client) {
   client.println("<p><a href='/stream'>MJPEG Stream</a></p>");
   client.println("<p><a href='/test-snap'>Trigger Snap</a></p>");
   client.println("<p><a href='/snapshot.jpg'>Latest Snapshot</a></p>");
+  client.print("<p>RTSP: ");
+  if (rtspStreaming) {
+    client.print("rtsp://");
+    client.print(ipToString(WiFi.localIP()));
+    client.print(":");
+    client.print(rtspPort);
+    client.println("/live</p>");
+  } else {
+    client.println("inactive</p>");
+  }
   client.println("</body></html>");
 }
 
