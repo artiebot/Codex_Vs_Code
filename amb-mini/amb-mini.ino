@@ -54,6 +54,7 @@ WiFiClient streamClient;
 bool streamActive = false;
 uint32_t streamFrameCount = 0;
 unsigned long lastStreamFrameTs = 0;
+const uint32_t STREAM_FRAME_LIMIT = 0;  // 0 disables session auto-termination
 
 // Snapshot buffer & counters
 uint8_t* lastFrame = nullptr;
@@ -622,7 +623,7 @@ void serviceStream() {
 
   streamFrameCount++;
   lastStreamFrameTs = millis();
-  if (streamFrameCount >= 600) {
+  if (STREAM_FRAME_LIMIT > 0 && streamFrameCount >= STREAM_FRAME_LIMIT) {
     stopStreamSessionLocked("frame limit");
   }
   unlockStreamState();
