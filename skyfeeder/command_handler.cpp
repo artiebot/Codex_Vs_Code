@@ -87,13 +87,50 @@ void copyString(char* dst, size_t len, const char* src) {
 char gMiniState[16] = "";
 char gMiniIp[32] = "";
 char gMiniRtsp[96] = "";
+bool gMiniActive = false;
+bool gMiniSettled = false;
+bool gSleepInFlight = false;
+bool gSnapshotPending = false;
+unsigned long gMiniLastStatusMs = 0;
+unsigned long gMiniLastActivityMs = 0;
 
-void onMiniStatus(const char* state, const char* ip, const char* rtsp) {
+struct SnapshotRecord {
+  bool ready = false;
+  bool ok = false;
+  uint32_t bytes = 0;
+};
+
+SnapshotRecord gSnapshotResult;
+
+constexpr unsigned long kMiniIdleSleepMs = 15000;
+constexpr unsigned long kMiniWakeTimeoutMs = 15000;
+constexpr unsigned long kMiniSettleTimeoutMs = 1500;
+constexpr unsigned long kMiniSnapshotTimeoutMs = 5000;
+
+void markMiniActivity() { gMiniLastActivityMs = millis(); }
+
+void onMiniStatus(const char* state, const char* ip, const char* rtsp, bool settled) {
   copyString(gMiniState, sizeof(gMiniState), state);
   copyString(gMiniIp, sizeof(gMiniIp), ip);
   copyString(gMiniRtsp, sizeof(gMiniRtsp), rtsp);
-  SF::Log::info("mini", "state=%s ip=%s", gMiniState, gMiniIp);
+  gMiniSettled = settled;
+  gMiniLastStatusMs = millis();
+
+  if (std::strcmp(gMiniState, "active") == 0) {
+    gMiniActive = true;
+    gSleepInFlight = false;
+    if (settled) {
+      markMiniActivity();
+    }
+  } else if (std::strcmp(gMiniState, "sleep_deep") == 0) {
+    gMiniActive = false;
+    gMiniSettled = false;
+    gSleepInFlight = false;
+  }
+
+  SF::Log::info("mini", "state=%s settled=%s ip=%s", gMiniState, settled ? "true" : "false", gMiniIp);
   Serial.print("[mini] state="); Serial.print(gMiniState);
+  Serial.print(" settled="); Serial.print(settled ? "true" : "false");
   Serial.print(" ip="); Serial.print(gMiniIp);
   Serial.print(" rtsp=");
   Serial.println(gMiniRtsp[0] ? gMiniRtsp : "(none)");
@@ -103,6 +140,11 @@ void onMiniSnapshot(bool ok, uint32_t bytes, const char* sha, const char* path, 
   publishSnapshotEvent(ok, bytes, sha, path, trigger);
   Serial.print("[mini] snapshot ok="); Serial.print(ok ? "true" : "false");
   Serial.print(" bytes="); Serial.println(bytes);
+  gSnapshotResult.ready = true;
+  gSnapshotResult.ok = ok;
+  gSnapshotResult.bytes = bytes;
+  markMiniActivity();
+  gSnapshotPending = false;
 }
 
 void onMiniWifi(bool ok, const char* reason, const char* op, const char* token) {
@@ -134,6 +176,98 @@ struct MiniCallbackRegistrar {
     SF::Mini_setWifiCallback(onMiniWifi);
   }
 } miniCallbackRegistrar;
+
+void pumpMiniWhileWaiting() {
+  SF::Mini_loop();
+  delay(10);
+}
+
+bool waitForMiniState(const char* desired, unsigned long timeoutMs) {
+  unsigned long start = millis();
+  while (millis() - start < timeoutMs) {
+    if (std::strcmp(gMiniState, desired) == 0) {
+      return true;
+    }
+    pumpMiniWhileWaiting();
+  }
+  return std::strcmp(gMiniState, desired) == 0;
+}
+
+bool waitForMiniSettled(unsigned long timeoutMs) {
+  unsigned long start = millis();
+  while (millis() - start < timeoutMs) {
+    if (gMiniSettled) {
+      return true;
+    }
+    pumpMiniWhileWaiting();
+  }
+  return gMiniSettled;
+}
+
+bool waitForSnapshotResult(unsigned long timeoutMs, SnapshotRecord& out) {
+  unsigned long start = millis();
+  while (millis() - start < timeoutMs) {
+    if (gSnapshotResult.ready) {
+      out = gSnapshotResult;
+      gSnapshotResult.ready = false;
+      return true;
+    }
+    pumpMiniWhileWaiting();
+  }
+  if (gSnapshotResult.ready) {
+    out = gSnapshotResult;
+    gSnapshotResult.ready = false;
+    return true;
+  }
+  return false;
+}
+
+bool runSnapshotSequence(const char*& codeOut) {
+  Serial.println("[cmd/cam] Snapshot sequence start");
+  markMiniActivity();
+  SF::Mini_wakePulse();
+
+  if (!waitForMiniState("active", kMiniWakeTimeoutMs)) {
+    codeOut = "WAKE_TIMEOUT";
+    Serial.println("[cmd/cam] Snapshot wake timeout");
+    return false;
+  }
+
+  if (!waitForMiniSettled(kMiniSettleTimeoutMs)) {
+    codeOut = "SETTLE_TIMEOUT";
+    Serial.println("[cmd/cam] Snapshot settle timeout");
+    return false;
+  }
+
+  gSnapshotPending = true;
+  gSnapshotResult.ready = false;
+  if (!SF::Mini_requestSnapshot()) {
+    gSnapshotPending = false;
+    codeOut = "UART_WRITE";
+    Serial.println("[cmd/cam] Snapshot UART write failed");
+    return false;
+  }
+
+  SnapshotRecord result;
+  if (!waitForSnapshotResult(kMiniSnapshotTimeoutMs, result)) {
+    gSnapshotPending = false;
+    codeOut = "SNAP_TIMEOUT";
+    Serial.println("[cmd/cam] Snapshot result timeout");
+    return false;
+  }
+
+  gSnapshotPending = false;
+  if (!result.ok) {
+    codeOut = "SNAP_FAIL";
+    Serial.println("[cmd/cam] Snapshot reported failure");
+    return false;
+  }
+
+  codeOut = "OK";
+  markMiniActivity();
+  Serial.println("[cmd/cam] Snapshot sequence success");
+  return true;
+}
 
 void handleLed(byte* payload, unsigned int len) {
   StaticJsonDocument<256> doc;
@@ -217,52 +351,55 @@ void handleCamera(byte* payload, unsigned int len) {
 }
 
 void handleMiniCam(byte* payload, unsigned int len) {
-  // DEBUG: Log raw MQTT payload
-  Serial.print("[cmd/cam] Raw payload (");
-  Serial.print(len);
-  Serial.print(" bytes): '");
-  for (unsigned int i = 0; i < len; i++) {
-    Serial.print((char)payload[i]);
-  }
-  Serial.println("'");
-  Serial.print("[cmd/cam] Hex dump: ");
-  for (unsigned int i = 0; i < len; i++) {
-    Serial.printf("%02X ", payload[i]);
-  }
-  Serial.println();
-
   StaticJsonDocument<256> doc;
   auto err = deserializeJson(doc, payload, len);
   if (err) {
-    Serial.print("[cmd/cam] JSON parse error: ");
-    Serial.println(err.c_str());
+    SF::Log::warn("cmd/cam", "json parse error: %s", err.c_str());
     publishCamAck(false, "BAD_PAYLOAD", err.c_str(), "");
     return;
   }
 
   const char* op = doc["op"] | "";
-  Serial.print("[cmd/cam] Parsed op field: '");
-  Serial.print(op ? op : "(null)");
-  Serial.println("'");
-
   if (!op || !op[0]) {
-    Serial.println("[cmd/cam] ERROR: op field is empty or missing!");
+    SF::Log::warn("cmd/cam", "missing op field");
     publishCamAck(false, "BAD_PAYLOAD", "missing op", "");
     return;
   }
 
+  SF::Log::info("cmd/cam", "op=%s len=%u", op, static_cast<unsigned>(len));
+  Serial.print("[cmd/cam] op="); Serial.println(op);
+
   const char* tokenField = doc["token"] | "";
   const char* token = (tokenField && tokenField[0]) ? tokenField : nullptr;
 
+  if (std::strcmp(op, "snapshot") == 0) {
+    const char* code = "OK";
+    bool ok = runSnapshotSequence(code);
+    const char* msg = ok ? nullptr : code;
+    publishCamAck(ok, code, msg, op, token);
+    return;
+  }
+
+  if (std::strcmp(op, "sleep_deep") == 0 || std::strcmp(op, "sleep") == 0) {
+    bool ok = SF::Mini_sendSleepDeep();
+    if (ok) {
+      gSleepInFlight = true;
+      gMiniSettled = false;
+      markMiniActivity();
+    }
+    publishCamAck(ok, ok ? "OK" : "UART_WRITE", ok ? nullptr : "sleep_deep_failed", "sleep_deep", token);
+    return;
+  }
+
+  if (std::strcmp(op, "wake") == 0) {
+    SF::Mini_wakePulse();
+    publishCamAck(true, "OK", nullptr, op, token);
+    return;
+  }
+
   bool queued = false;
   const char* ackToken = nullptr;
-  if (std::strcmp(op, "wake") == 0) {
-    queued = SF::Mini_sendWake();
-  } else if (std::strcmp(op, "sleep") == 0) {
-    queued = SF::Mini_sendSleep();
-  } else if (std::strcmp(op, "snapshot") == 0) {
-    queued = SF::Mini_requestSnapshot();
-  } else if (std::strcmp(op, "status") == 0) {
+  if (std::strcmp(op, "status") == 0) {
     queued = SF::Mini_requestStatus();
   } else if (std::strcmp(op, "stage_wifi") == 0) {
     const char* ssid = doc["ssid"] | "";
@@ -280,7 +417,7 @@ void handleMiniCam(byte* payload, unsigned int len) {
     ackToken = token;
     queued = SF::Mini_abortWifi(token);
   } else {
-    publishCamAck(false, "BAD_PAYLOAD", "unsupported op", op);
+    publishCamAck(false, "BAD_PAYLOAD", "unsupported op", op, token);
     return;
   }
 
@@ -313,4 +450,26 @@ void SF_onMqttMessage(char* topic, byte* payload, unsigned int len) {
   } else if (std::strcmp(topic, SF::Topics::cmdCam()) == 0) {
     handleMiniCam(payload, len);
   }
+}
+
+void SF_commandHandlerLoop() {
+  const unsigned long now = millis();
+  if (gMiniActive && gMiniSettled && !gSnapshotPending && !gSleepInFlight) {
+    if (now - gMiniLastActivityMs > kMiniIdleSleepMs) {
+      if (SF::Mini_sendSleepDeep()) {
+        gSleepInFlight = true;
+        gMiniSettled = false;
+        markMiniActivity();
+        SF::Log::info("mini", "idle -> sleep_deep");
+      }
+    }
+  }
+}
+
+const char* SF_miniState() {
+  return gMiniState;
+}
+
+bool SF_miniSettled() {
+  return gMiniSettled;
 }
