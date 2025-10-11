@@ -20,6 +20,19 @@
 #include "semphr.h"
 #endif
 
+#ifndef MINI_MQTT
+#define MINI_MQTT 0
+#endif
+
+#ifndef CAM_FPS
+#define CAM_FPS 30
+#endif
+
+// UART Configuration:
+// Serial3 uses PE1 (TX) / PE2 (RX) - connected to ESP32
+// Serial is USB debug console
+#define MINI_UART Serial3
+
 // ---------- WIFI / MQTT CONFIG ----------
 char WIFI_SSID[] = "wififordays";
 char WIFI_PASS[] = "wififordayspassword1236";
@@ -27,27 +40,30 @@ static const char* MQTT_HOST = "10.0.0.4";
 static const uint16_t MQTT_PORT = 1883;
 static const char* MQTT_USER = "dev1";
 static const char* MQTT_PASS = "dev1pass";
-static const char* DEVICE_ID = "sf-mock01";
+static const char* DEVICE_ID = "dev1";
 // ----------------------------------------
 
+#if MINI_MQTT
 // MQTT topics derived from device id
 String topicCmdCamera;
 String topicEvtSnapshot;
 String topicStatus;
+#endif
 
 // Camera configuration
 #define CAM_CHANNEL 0
 VideoSetting camCfg(VIDEO_VGA, CAM_FPS, VIDEO_H264_JPEG, 1);
 bool camActive = false;
 
-// HTTP server
-WiFiServer httpServer(80);
+// HTTP server (non-blocking)
+WiFiServer httpServer(80, TCP_MODE, NON_BLOCKING_MODE);
 
+#if MINI_MQTT
 // MQTT client
 WiFiClient wifiClient;
 PubSubClient mqtt(wifiClient);
-
 unsigned long lastReconnect = 0;
+#endif
 
 // MJPEG stream session state
 WiFiClient streamClient;
@@ -62,19 +78,26 @@ size_t   lastFrameLen = 0;
 unsigned long lastSnapTs = 0;
 uint32_t snapCount = 0;
 
+#if MINI_MQTT
 // Message processing buffer
 byte msgBuffer[256];
 volatile unsigned int msgLen = 0;
 volatile bool msgReceived = false;
 volatile bool processingMessage = false;
+#endif
 TaskHandle_t mqttTaskHandle = nullptr;
 SemaphoreHandle_t frameMutex = nullptr;
 SemaphoreHandle_t streamMutex = nullptr;
+#if MINI_MQTT
 SemaphoreHandle_t messageMutex = nullptr;
+#endif
 StreamIO* rtspStream = nullptr;
 RTSP rtsp;
 bool rtspStreaming = false;
 uint16_t rtspPort = 0;
+unsigned long lastCameraStart = 0;
+char serialCmdBuf[160];
+size_t serialCmdLen = 0;
 
 void mqttLoopTask(void* param);
 void initSynchronization();
@@ -82,15 +105,26 @@ bool lockFrameBuffer(TickType_t wait);
 void unlockFrameBuffer();
 bool lockStreamState(TickType_t wait);
 void unlockStreamState();
-bool lockMessageBuffer(TickType_t wait);
-void unlockMessageBuffer();
 bool isStreamActive();
 void startRtsp();
 void stopRtsp();
+void ensureCamera();
+void stopCamera();
+bool captureStill();
+String ipToString(const IPAddress& ip);
+void sendStatusSerial();
+void sendSerialError(const char* msg);
+void processSerialLine(const char* line);
+void handleSerialInput();
 
+#if MINI_MQTT
 void processMessage();
 bool reconnectMqtt();
+bool lockMessageBuffer(TickType_t wait);
+void unlockMessageBuffer();
+#endif
 
+#if MINI_MQTT
 void pumpMqtt() {
   if (!mqtt.connected()) {
     reconnectMqtt();
@@ -99,6 +133,9 @@ void pumpMqtt() {
   mqtt.loop();
   processMessage();
 }
+#else
+inline void pumpMqtt() {}
+#endif
 
 void initSynchronization() {
   if (!frameMutex) {
@@ -107,12 +144,14 @@ void initSynchronization() {
       Serial.println("[sync] ERROR: frame mutex alloc failed");
     }
   }
+#if MINI_MQTT
   if (!messageMutex) {
     messageMutex = xSemaphoreCreateMutex();
     if (!messageMutex) {
       Serial.println("[sync] ERROR: message mutex alloc failed");
     }
   }
+#endif
   if (!streamMutex) {
     streamMutex = xSemaphoreCreateMutex();
     if (!streamMutex) {
@@ -141,6 +180,7 @@ void unlockStreamState() {
   xSemaphoreGive(streamMutex);
 }
 
+#if MINI_MQTT
 bool lockMessageBuffer(TickType_t wait) {
   if (!messageMutex) return false;
   return xSemaphoreTake(messageMutex, wait) == pdTRUE;
@@ -150,6 +190,7 @@ void unlockMessageBuffer() {
   if (!messageMutex) return;
   xSemaphoreGive(messageMutex);
 }
+#endif
 
 bool isStreamActive() {
   if (!streamMutex) {
@@ -199,6 +240,147 @@ void stopRtsp() {
   Serial.println("[rtsp] stopped");
 }
 
+void sendSerialError(const char* msg) {
+  StaticJsonDocument<128> doc;
+  doc["mini"] = "error";
+  doc["msg"] = msg ? msg : "error";
+  serializeJson(doc, MINI_UART);
+  MINI_UART.println();
+  serializeJson(doc, Serial);
+  Serial.println();
+}
+
+void sendStatusSerial() {
+  StaticJsonDocument<192> doc;
+  doc["mini"] = "status";
+  doc["state"] = camActive ? "ready" : "sleeping";
+  if (WiFi.status() == WL_CONNECTED) {
+    String ip = ipToString(WiFi.localIP());
+    doc["ip"] = ip;
+    if (rtspStreaming) {
+      char url[64];
+      snprintf(url, sizeof(url), "rtsp://%s:%u/live", ip.c_str(), (unsigned)rtspPort ? (unsigned)rtspPort : 554);
+      doc["rtsp"] = url;
+    } else {
+      doc["rtsp"] = "";
+    }
+  } else {
+    doc["ip"] = "";
+    doc["rtsp"] = "";
+  }
+  serializeJson(doc, MINI_UART);
+  MINI_UART.println();
+  serializeJson(doc, Serial);
+  Serial.println();
+}
+
+void emitSnapshotSerial(bool ok, size_t bytes, const char* trigger) {
+  StaticJsonDocument<192> doc;
+  doc["mini"] = "snapshot";
+  doc["ok"] = ok;
+  doc["bytes"] = static_cast<uint32_t>(bytes);
+  doc["sha256"] = "";
+  doc["path"] = ok ? "/snapshot.jpg" : "";
+  if (trigger && trigger[0]) {
+    doc["trigger"] = trigger;
+  }
+  serializeJson(doc, MINI_UART);
+  MINI_UART.println();
+  serializeJson(doc, Serial);
+  Serial.println();
+}
+
+void emitWifiTestSerial(bool ok, const char* reason) {
+  StaticJsonDocument<160> doc;
+  doc["mini"] = "wifi_test";
+  doc["ok"] = ok;
+  doc["reason"] = reason ? reason : "";
+  serializeJson(doc, MINI_UART);
+  MINI_UART.println();
+  serializeJson(doc, Serial);
+  Serial.println();
+}
+
+void processSerialLine(const char* line) {
+  if (!line || !line[0]) return;
+  StaticJsonDocument<160> doc;
+  auto err = deserializeJson(doc, line);
+  if (err) {
+    sendSerialError("bad_json");
+    return;
+  }
+  JsonVariantConst opVar = doc["op"];
+  if (!opVar.is<const char*>()) {
+    sendSerialError("no_op");
+    return;
+  }
+  const char* op = opVar.as<const char*>();
+  if (strcmp(op, "wake") == 0) {
+    ensureCamera();
+    return;
+  }
+  if (strcmp(op, "sleep") == 0) {
+    stopCamera();
+    return;
+  }
+  if (strcmp(op, "snapshot") == 0) {
+    bool ok = captureStill();
+    if (ok) {
+      snapCount++;
+      emitSnapshotSerial(true, lastFrameLen, "cmd");
+    } else {
+      emitSnapshotSerial(false, 0, "cmd");
+    }
+    return;
+  }
+  if (strcmp(op, "stage_wifi") == 0) {
+    emitWifiTestSerial(false, "unsupported");
+    return;
+  }
+  if (strcmp(op, "commit_wifi") == 0) {
+    emitWifiTestSerial(false, "unsupported");
+    return;
+  }
+  if (strcmp(op, "abort_wifi") == 0) {
+    emitWifiTestSerial(false, "unsupported");
+    return;
+  }
+  if (strcmp(op, "status") == 0) {
+    sendStatusSerial();
+    return;
+  }
+  sendSerialError("unknown_op");
+}
+
+void handleSerialInput() {
+  while (MINI_UART.available()) {
+    char c = static_cast<char>(MINI_UART.read());
+    Serial.print("[uart] RX byte: 0x");
+    Serial.print((byte)c, HEX);
+    Serial.print(" '");
+    Serial.print(c);
+    Serial.println("'");
+
+    if (c == '\r') continue;
+    if (c == '\n') {
+      if (serialCmdLen > 0) {
+        serialCmdBuf[serialCmdLen] = '\0';
+        Serial.print("[uart] RX complete line: ");
+        Serial.println(serialCmdBuf);
+        processSerialLine(serialCmdBuf);
+        serialCmdLen = 0;
+      }
+    } else {
+      if (serialCmdLen + 1 < sizeof(serialCmdBuf)) {
+        serialCmdBuf[serialCmdLen++] = c;
+      } else {
+        Serial.println("[uart] ERROR: RX buffer overflow, resetting");
+        serialCmdLen = 0;
+      }
+    }
+  }
+}
+
 void mqttLoopTask(void* param) {
   (void)param;
   Serial.println("[mqtt] worker task started");
@@ -223,6 +405,8 @@ void ensureCamera() {
   Camera.channelBegin(CAM_CHANNEL);
   camActive = true;
   Serial.println("[cam] started");
+  lastCameraStart = millis();
+  sendStatusSerial();
 }
 
 void stopCamera() {
@@ -232,11 +416,20 @@ void stopCamera() {
   Camera.videoDeinit();
   camActive = false;
   Serial.println("[cam] stopped");
+  lastCameraStart = 0;
+  sendStatusSerial();
 }
 
 bool captureStill() {
   ensureCamera();
   if (!camActive) return false;
+  if (lastCameraStart != 0) {
+    const unsigned long warmupMs = 800;
+    unsigned long elapsed = millis() - lastCameraStart;
+    if (elapsed < warmupMs) {
+      vTaskDelay(pdMS_TO_TICKS(warmupMs - elapsed));
+    }
+  }
 
   uint32_t addr = 0;
   uint32_t len = 0;
@@ -275,12 +468,17 @@ bool captureStill() {
   return true;
 }
 
+#if MINI_MQTT
 bool reconnectMqtt();
 bool ensureMqttConnected() {
   if (mqtt.connected()) return true;
   return reconnectMqtt();
 }
+#else
+inline bool ensureMqttConnected() { return false; }
+#endif
 
+#if MINI_MQTT
 void publishSnapshot() {
   if (!lockFrameBuffer(pdMS_TO_TICKS(200))) {
     Serial.println("[mqtt] publish snapshot -> skipped (frame mutex timeout)");
@@ -328,7 +526,9 @@ void publishSnapshot() {
     snapCount++;
   }
 }
+#endif
 
+#if MINI_MQTT
 void messageReceived(char* topic, byte* payload, unsigned int length) {
   Serial.println("");
   Serial.println("==========================================");
@@ -503,11 +703,17 @@ bool reconnectMqtt() {
   mqtt.publish(topicStatus.c_str(), "online", false);
   return true;
 }
+#endif
 
 void handleHttpStatus(WiFiClient& client) {
   StaticJsonDocument<384> doc;
   doc["online"] = true;
-  doc["mqtt_connected"] = mqtt.connected();
+  doc["mqtt_connected"] =
+#if MINI_MQTT
+      mqtt.connected();
+#else
+      false;
+#endif
   doc["camera_active"] = camActive;
   doc["uptime_ms"] = (uint32_t)millis();
   doc["snap_count"] = snapCount;
@@ -516,7 +722,9 @@ void handleHttpStatus(WiFiClient& client) {
   doc["rtsp_active"] = rtspStreaming;
   doc["rtsp_port"] = (uint16_t)rtspPort;
   if (rtspStreaming) {
-    doc["rtsp_url"] = String("rtsp://") + ipToString(WiFi.localIP()) + ":" + String(rtspPort) + "/live";
+    doc["rtsp_url"] = String("rtsp://") + ipToString(WiFi.localIP()) + "/live";
+  } else {
+    doc["rtsp_url"] = "";
   }
 
   char json[384];
@@ -671,45 +879,19 @@ bool handleHttpStream(WiFiClient& client) {
 
 void handleHttpTestSnap(WiFiClient& client) {
   Serial.println("[http] test-snap triggered");
-  const char* testCmd = "{\"action\":\"snap\"}";
-  size_t testLen = strlen(testCmd);
-  if (testLen >= sizeof(msgBuffer)) {
-    client.println("HTTP/1.1 500 Internal Server Error");
-    client.println("Connection: close");
-    client.println();
-    client.println("Command buffer overflow");
-    return;
-  }
-
-  if (!lockMessageBuffer(pdMS_TO_TICKS(200))) {
-    client.println("HTTP/1.1 503 Service Unavailable");
-    client.println("Connection: close");
-    client.println();
-    client.println("Message handler busy");
-    return;
-  }
-
-  memcpy(msgBuffer, testCmd, testLen);
-  msgLen = testLen;
-  msgReceived = true;
-  unlockMessageBuffer();
-
-  unsigned long start = millis();
-  uint32_t initialSnaps = snapCount;
-  bool completed = false;
-  while (millis() - start < 5000) {
-    if (!msgReceived && !processingMessage && snapCount > initialSnaps) {
-      completed = true;
-      break;
-    }
-    delay(10);
+  bool ok = captureStill();
+  if (ok) {
+    snapCount++;
+    emitSnapshotSerial(true, lastFrameLen, "http");
+  } else {
+    emitSnapshotSerial(false, 0, "http");
   }
 
   client.println("HTTP/1.1 200 OK");
   client.println("Content-Type: text/plain");
   client.println("Connection: close");
   client.println();
-  if (completed) {
+  if (ok) {
     client.println("snap triggered");
   } else {
     client.println("snap queued");
@@ -730,8 +912,12 @@ void handleHttpDefault(WiFiClient& client) {
   client.print(ipToString(WiFi.localIP()));
   client.println("</p>");
   client.print("<p>MQTT: ");
+#if MINI_MQTT
   client.print(mqtt.connected() ? "connected" : "disconnected");
   client.print(" (" ); client.print(MQTT_HOST); client.print(":"); client.print(MQTT_PORT); client.println(")</p>");
+#else
+  client.println("disabled</p>");
+#endif
   client.println("<hr>");
   client.println("<p><a href='/status'>JSON Status</a></p>");
   client.println("<p><a href='/stream'>MJPEG Stream</a></p>");
@@ -741,8 +927,6 @@ void handleHttpDefault(WiFiClient& client) {
   if (rtspStreaming) {
     client.print("rtsp://");
     client.print(ipToString(WiFi.localIP()));
-    client.print(":");
-    client.print(rtspPort);
     client.println("/live</p>");
   } else {
     client.println("inactive</p>");
@@ -752,20 +936,29 @@ void handleHttpDefault(WiFiClient& client) {
 
 void setup() {
   Serial.begin(115200);
+  MINI_UART.begin(115200);
   delay(1000);
   Serial.println("\n[boot] AMB82 MQTT Camera Bridge");
+  Serial.println("[uart] Serial3 initialized on PE1(TX)/PE2(RX) @ 115200 baud");
+
+  // Send test message to ESP32 via Serial3
+  MINI_UART.println("{\"mini\":\"boot\",\"msg\":\"AMB82 Serial3 TX test\"}");
+  Serial.println("[uart] TX test message sent via Serial3");
+
   initSynchronization();
 
+#if MINI_MQTT
   topicCmdCamera = String("skyfeeder/") + DEVICE_ID + "/amb/camera/cmd";
   topicEvtSnapshot = String("skyfeeder/") + DEVICE_ID + "/amb/camera/event/snapshot";
   topicStatus = String("skyfeeder/") + DEVICE_ID + "/amb/status";
   Serial.print("[mqtt] cmd topic: "); Serial.println(topicCmdCamera);
   Serial.print("[mqtt] evt topic: "); Serial.println(topicEvtSnapshot);
+#endif
 
   Serial.print("[wifi] connecting to "); Serial.println(WIFI_SSID);
   WiFi.begin(WIFI_SSID, WIFI_PASS);
   int attempts = 0;
-  while (WiFi.status() != WL_CONNECTED && attempts < 30) {
+  while (WiFi.status() != WL_CONNECTED && attempts < 60) {
     delay(500);
     Serial.print('.');
     attempts++;
@@ -781,20 +974,77 @@ void setup() {
   // Required for PubSubClient to work correctly on Realtek RTL8735B
   // Without this, MQTT will disconnect every few seconds (state -3)
   Serial.println("[wifi] setting non-blocking mode...");
+#if MINI_MQTT
   wifiClient.setNonBlockingMode();
+#endif
 
   ensureCamera();
   httpServer.begin();
-  Serial.println("[http] server listening on 80");
+  Serial.println("[http] server listening on 80 (non-blocking)");
+#if MINI_MQTT
   reconnectMqtt();
   if (xTaskCreate(mqttLoopTask, "mqttLoop", 4096, nullptr, 2, &mqttTaskHandle) != pdPASS) {
     Serial.println("[mqtt] ERROR: worker task start failed");
     mqttTaskHandle = nullptr;
   }
+#endif
+
+  Serial.println("=== SETUP COMPLETE - SENDING TEST MESSAGE ===");
+  MINI_UART.println("{\"mini\":\"boot\",\"msg\":\"AMB82 ready\"}");
+  Serial.println("[uart] Sent boot message to ESP32 via Serial3");
+
+  sendStatusSerial();
+
+  Serial.println("=== ENTERING MAIN LOOP ===");
 }
 
 void loop() {
+  static unsigned long lastUartCheck = 0;
+  static int loopCount = 0;
+  static unsigned long loopIterations = 0;
+  static unsigned long lastPingTime = 0;
+
+  loopIterations++;
+
+  // Send ping to ESP32 every 3 seconds to test TX
+  if (!camActive) {
+    lastPingTime = millis();
+  } else if (millis() - lastPingTime > 3000) {
+    lastPingTime = millis();
+    MINI_UART.print("{\"mini\":\"ping\",\"count\":");
+    MINI_UART.print(loopCount);
+    MINI_UART.println("}");
+    Serial.print("[uart] Sent ping #");
+    Serial.println(loopCount);
+  }
+
+  // Debug: Check Serial3 status every 2 seconds
+  if (millis() - lastUartCheck > 2000) {
+    lastUartCheck = millis();
+    loopCount++;
+    Serial.print("[loop] #");
+    Serial.print(loopCount);
+    Serial.print(" iterations=");
+    Serial.print(loopIterations);
+    Serial.print(" Serial3.avail=");
+    Serial.print(MINI_UART.available());
+    Serial.print(" heap=");
+    Serial.println(xPortGetFreeHeapSize());
+  }
+
+  handleSerialInput();
+
+  if ((loopIterations % 10000) == 0) {
+    Serial.print("[loop] After handleSerialInput, iteration ");
+    Serial.println(loopIterations);
+  }
+
   serviceStream();
+
+  if ((loopIterations % 10000) == 0) {
+    Serial.print("[loop] After serviceStream, iteration ");
+    Serial.println(loopIterations);
+  }
 
   if (isStreamActive()) {
     delay(1);
@@ -802,6 +1052,7 @@ void loop() {
   }
 
   if (WiFi.status() != WL_CONNECTED) {
+    Serial.println("[loop] WiFi disconnected, reconnecting...");
     delay(1000);
     WiFi.begin(WIFI_SSID, WIFI_PASS);
     return;
@@ -811,14 +1062,14 @@ void loop() {
   if (client) {
     bool keepAlive = false;
     String request;
-    unsigned long timeout = millis() + 1000;
+    unsigned long timeout = millis() + 100;  // Reduced timeout to 100ms
     while (client.connected() && millis() < timeout) {
       if (client.available()) {
         char c = client.read();
         request += c;
         if (request.endsWith("\r\n\r\n")) break;
       }
-      delay(1);
+      yield();  // Let other tasks run
     }
 
     if (request.indexOf("/status") >= 0) {
@@ -839,6 +1090,18 @@ void loop() {
 
   delay(1);
 }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

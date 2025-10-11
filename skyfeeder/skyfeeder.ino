@@ -11,6 +11,7 @@
 #include "ws2812_service.h"
 #include "led_ux.h"
 #include "camera_service_esp.h"
+#include "mini_link.h"
 #include "provisioning.h"
 #include "ota_service.h"
 #include "ota_manager.h"
@@ -65,6 +66,11 @@ void setup() {
   SF::visit.begin();
   Serial.println("Visit service initialized!");
 
+  Serial.println("Initializing AMB mini link...");
+  SF::miniLink.begin();
+  SF::miniLink.requestStatus();
+  Serial.println("AMB mini link initialized!");
+
   Serial.println("Initializing camera service...");
   SF::cameraEsp.begin();
   Serial.println("Camera service initialized!");
@@ -106,6 +112,7 @@ void loop() {
   SF::motion.loop();
   SF::visit.loop();
   SF::cameraEsp.loop();
+  SF::miniLink.loop();
   SF::ledUx.loop();
   SF::ws2812.update();
 

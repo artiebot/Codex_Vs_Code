@@ -1,0 +1,3 @@
+# Run before test
+# mosquitto_sub -h 10.0.0.4 -u dev1 -P dev1pass -v -t 'skyfeeder/sf-mock01/#'
+# Redirect output to this file during validation.

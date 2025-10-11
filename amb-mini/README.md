@@ -97,6 +97,22 @@ Get the device IP from serial monitor after boot, then access:
 - `http://{device-ip}/test-snap` - Trigger snapshot via HTTP
 - `rtsp://{device-ip}:554/live` - H.264 RTSP stream (preferred for production)
 
+### UART Control (ESP32 Link)
+
+The ESP32 host communicates with the AMB Mini over a newline-delimited JSON stream on the debug UART:
+
+- Wake: `{"op":"wake"}` → ensures camera + RTSP pipeline are running.
+- Sleep: `{"op":"sleep"}` → stops streaming and powers down the camera.
+- Status: `{"op":"status"}` → requests the current state without changing anything.
+
+Each command yields a status frame such as:
+
+```json
+{"type":"status","state":"awake","cam_active":true,"rtsp":true,"snap_count":3,"uptime_ms":123456}
+```
+
+When RTSP is active the JSON also includes `rtsp_url` so downstream hosts can latch onto the H.264 stream.
+
 Example (assuming device IP is 10.0.0.100):
 ```bash
 # Get status

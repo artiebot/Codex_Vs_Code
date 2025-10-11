@@ -19,6 +19,7 @@ const char* cmdAny();
 const char* cmdLed();
 const char* cmdCalibrate();
 const char* cmdCamera();
+const char* cmdCam();
 const char* cmdLogs();
 const char* cmdOta();
 }

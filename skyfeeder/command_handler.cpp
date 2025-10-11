@@ -9,9 +9,12 @@
 #include "weight_service.h"
 #include "led_ux.h"
 #include "camera_service_esp.h"
+#include "mini_link.h"
 #include "config.h"
 #include "log_service.h"
+#include "logging.h"
 #include "ota_service.h"
+#include <ctime>
 
 namespace {
 void publishAck(const char* cmd, bool ok, const char* msg = nullptr) {
@@ -26,6 +29,94 @@ void publishAck(const char* cmd, bool ok, const char* msg = nullptr) {
   (void)n;
   SF::mqtt.raw().publish(SF::Topics::ack(), buf, false);
 }
+
+uint32_t unixNow() {
+  time_t now = time(nullptr);
+  if (now <= 0) {
+    return static_cast<uint32_t>(millis() / 1000);
+  }
+  return static_cast<uint32_t>(now);
+}
+
+void publishCamAck(bool ok, const char* code, const char* msg, const char* op) {
+  StaticJsonDocument<192> doc;
+  doc["ok"] = ok;
+  doc["code"] = code ? code : "";
+  doc["cmd"] = "cam";
+  doc["op"] = op ? op : "";
+  if (msg && msg[0]) {
+    doc["msg"] = msg;
+  }
+  doc["ts"] = unixNow();
+
+  char buf[192];
+  size_t n = serializeJson(doc, buf, sizeof(buf));
+  (void)n;
+  SF::mqtt.raw().publish(SF::Topics::eventAck(), buf, false);
+}
+
+void publishSnapshotEvent(bool ok, uint32_t bytes, const char* sha, const char* path, const char* trigger) {
+  StaticJsonDocument<224> doc;
+  doc["ok"] = ok;
+  doc["bytes"] = bytes;
+  doc["sha256"] = sha ? sha : "";
+  doc["url"] = "";
+  doc["source"] = "mini";
+  doc["trigger"] = (trigger && trigger[0]) ? trigger : "cmd";
+  doc["ts"] = unixNow();
+
+  char buf[224];
+  size_t n = serializeJson(doc, buf, sizeof(buf));
+  (void)n;
+  SF::mqtt.raw().publish(SF::Topics::eventCameraSnapshot(), buf, false);
+}
+
+void copyString(char* dst, size_t len, const char* src) {
+  if (!dst || len == 0) return;
+  if (!src) src = "";
+  std::strncpy(dst, src, len);
+  dst[len - 1] = '\0';
+}
+
+char gMiniState[16] = "";
+char gMiniIp[32] = "";
+char gMiniRtsp[96] = "";
+
+void onMiniStatus(const char* state, const char* ip, const char* rtsp) {
+  copyString(gMiniState, sizeof(gMiniState), state);
+  copyString(gMiniIp, sizeof(gMiniIp), ip);
+  copyString(gMiniRtsp, sizeof(gMiniRtsp), rtsp);
+  SF::Log::info("mini", "state=%s ip=%s", gMiniState, gMiniIp);
+  Serial.print("[mini] state="); Serial.print(gMiniState);
+  Serial.print(" ip="); Serial.print(gMiniIp);
+  Serial.print(" rtsp=");
+  Serial.println(gMiniRtsp[0] ? gMiniRtsp : "(none)");
+}
+
+void onMiniSnapshot(bool ok, uint32_t bytes, const char* sha, const char* path, const char* trigger) {
+  publishSnapshotEvent(ok, bytes, sha, path, trigger);
+  Serial.print("[mini] snapshot ok="); Serial.print(ok ? "true" : "false");
+  Serial.print(" bytes="); Serial.println(bytes);
+}
+
+void onMiniWifi(bool ok, const char* reason) {
+  if (ok) {
+    SF::Log::info("mini", "wifi test ok");
+    Serial.println("[mini] wifi test ok");
+  } else {
+    SF::Log::warn("mini", "wifi test fail: %s", reason ? reason : "");
+    Serial.print("[mini] wifi test fail: ");
+    Serial.println(reason ? reason : "");
+  }
+}
+
+struct MiniCallbackRegistrar {
+  MiniCallbackRegistrar() {
+    SF::Mini_setStatusCallback(onMiniStatus);
+    SF::Mini_setSnapshotCallback(onMiniSnapshot);
+    SF::Mini_setWifiCallback(onMiniWifi);
+  }
+} miniCallbackRegistrar;
 
 void handleLed(byte* payload, unsigned int len) {
   StaticJsonDocument<256> doc;
@@ -107,12 +198,49 @@ void handleCamera(byte* payload, unsigned int len) {
   (void)n;
   SF::mqtt.raw().publish(SF::Topics::ack(), buf, false);
 }
+
+void handleMiniCam(byte* payload, unsigned int len) {
+  StaticJsonDocument<160> doc;
+  auto err = deserializeJson(doc, payload, len);
+  if (err) {
+    publishCamAck(false, "BAD_PAYLOAD", err.c_str(), "");
+    return;
+  }
+
+  const char* op = doc["op"] | "";
+  if (!op || !op[0]) {
+    publishCamAck(false, "BAD_PAYLOAD", "missing op", "");
+    return;
+  }
+
+  bool queued = false;
+  if (std::strcmp(op, "wake") == 0) {
+    queued = SF::Mini_sendWake();
+  } else if (std::strcmp(op, "sleep") == 0) {
+    queued = SF::Mini_sendSleep();
+  } else if (std::strcmp(op, "snapshot") == 0) {
+    queued = SF::Mini_requestSnapshot();
+  } else if (std::strcmp(op, "status") == 0) {
+    queued = SF::Mini_requestStatus();
+  } else {
+    publishCamAck(false, "BAD_PAYLOAD", "unsupported op", op);
+    return;
+  }
+
+  if (!queued) {
+    publishCamAck(false, "UART_WRITE", "", op);
+    return;
+  }
+
+  publishCamAck(true, "SENT", nullptr, op);
+}
 }  // namespace
 
 void SF_registerCommandSubscriptions(PubSubClient& client) {
   client.subscribe(SF::Topics::cmdLed(), 1);
   client.subscribe(SF::Topics::cmdCalibrate(), 1);
   client.subscribe(SF::Topics::cmdCamera(), 1);
+  client.subscribe(SF::Topics::cmdCam(), 1);
 }
 
 void SF_onMqttMessage(char* topic, byte* payload, unsigned int len) {
@@ -125,5 +253,7 @@ void SF_onMqttMessage(char* topic, byte* payload, unsigned int len) {
     handleCalibrate(payload, len);
   } else if (std::strcmp(topic, SF::Topics::cmdCamera()) == 0) {
     handleCamera(payload, len);
+  } else if (std::strcmp(topic, SF::Topics::cmdCam()) == 0) {
+    handleMiniCam(payload, len);
   }
 }

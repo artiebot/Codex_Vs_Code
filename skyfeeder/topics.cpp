@@ -22,6 +22,7 @@ std::string topicCmdAny;
 std::string topicCmdLed;
 std::string topicCmdCalibrate;
 std::string topicCmdCamera;
+std::string topicCmdCam;
 std::string topicCmdLogs;
 std::string topicCmdOta;
 
@@ -52,6 +53,7 @@ void init(const char* id) {
   topicCmdLed = makeTopic("cmd/led");
   topicCmdCalibrate = makeTopic("cmd/calibrate");
   topicCmdCamera = makeTopic("cmd/camera");
+  topicCmdCam = makeTopic("cmd/cam");
   topicCmdLogs = makeTopic("cmd/logs");
   topicCmdOta = makeTopic("cmd/ota");
 }
@@ -71,6 +73,7 @@ const char* cmdAny() { return topicCmdAny.c_str(); }
 const char* cmdLed() { return topicCmdLed.c_str(); }
 const char* cmdCalibrate() { return topicCmdCalibrate.c_str(); }
 const char* cmdCamera() { return topicCmdCamera.c_str(); }
+const char* cmdCam() { return topicCmdCam.c_str(); }
 const char* cmdLogs() { return topicCmdLogs.c_str(); }
 const char* cmdOta() { return topicCmdOta.c_str(); }
 

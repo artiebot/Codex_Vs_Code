@@ -1,0 +1,2 @@
+{"mini":"status","state":"ready","ip":"10.0.0.198","rtsp":"rtsp://10.0.0.198/live"}
+{"mini":"snapshot","ok":true,"bytes":16384,"sha256":"","path":"/snapshot.jpg","trigger":"cmd"}

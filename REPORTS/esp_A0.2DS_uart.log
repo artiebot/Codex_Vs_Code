@@ -1,0 +1,2 @@
+# Capture ESP32 UART console (TX/RX log) while issuing wake/snapshot/sleep.
+# Example: platformio device monitor > REPORTS/validation_A0.2_uart.log
