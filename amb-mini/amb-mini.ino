@@ -1,6 +1,10 @@
 #include <WiFi.h>
 #include <PubSubClient.h>
+#ifndef ARDUINOJSON_DEPRECATED
+#define ARDUINOJSON_DEPRECATED(msg)
+#endif
 #include <ArduinoJson.h>
+#include <cstring>
 #include "VideoStream.h"
 #include "StreamIO.h"
 #include "RTSP.h"
@@ -33,15 +37,40 @@
 // Serial is USB debug console
 #define MINI_UART Serial3
 
+#ifndef WIFI_SSID_MAX
+constexpr size_t WIFI_SSID_MAX = 32;
+#endif
+#ifndef WIFI_PASS_MAX
+constexpr size_t WIFI_PASS_MAX = 63;
+#endif
+constexpr size_t WIFI_STAGE_TOKEN_MAX = 32;
+constexpr unsigned long WIFI_STAGE_TEST_TIMEOUT_MS = 15000;
+constexpr unsigned long WIFI_STAGE_RESTORE_TIMEOUT_MS = 8000;
+
 // ---------- WIFI / MQTT CONFIG ----------
-char WIFI_SSID[] = "wififordays";
-char WIFI_PASS[] = "wififordayspassword1236";
+char WIFI_SSID[WIFI_SSID_MAX + 1] = "wififordays";
+char WIFI_PASS[WIFI_PASS_MAX + 1] = "wififordayspassword1236";
 static const char* MQTT_HOST = "10.0.0.4";
 static const uint16_t MQTT_PORT = 1883;
 static const char* MQTT_USER = "dev1";
 static const char* MQTT_PASS = "dev1pass";
 static const char* DEVICE_ID = "dev1";
 // ----------------------------------------
+
+struct WifiCredentials {
+  char ssid[WIFI_SSID_MAX + 1];
+  char pass[WIFI_PASS_MAX + 1];
+};
+
+struct WifiStageState {
+  bool pending = false;
+  bool verified = false;
+  WifiCredentials creds{};
+  char token[WIFI_STAGE_TOKEN_MAX + 1] = "";
+};
+
+WifiStageState wifiStage;
+bool wifiStageTesting = false;
 
 #if MINI_MQTT
 // MQTT topics derived from device id
@@ -114,6 +143,15 @@ bool captureStill();
 String ipToString(const IPAddress& ip);
 void sendStatusSerial();
 void sendSerialError(const char* msg);
+void emitWifiTestSerial(const char* op, bool ok, const char* reason, const char* token);
+void copySafeString(char* dst, size_t len, const char* src);
+void loadActiveCredentials(WifiCredentials& out);
+void applyCredentialsToActive(const WifiCredentials& creds);
+bool connectWithCredentials(WifiCredentials creds, unsigned long timeoutMs);
+void clearWifiStage();
+bool handleStageWifi(const JsonDocument& doc);
+bool handleCommitWifi(const JsonDocument& doc);
+bool handleAbortWifi(const JsonDocument& doc);
 void processSerialLine(const char* line);
 void handleSerialInput();
 
@@ -290,20 +328,164 @@ void emitSnapshotSerial(bool ok, size_t bytes, const char* trigger) {
   Serial.println();
 }
 
-void emitWifiTestSerial(bool ok, const char* reason) {
-  StaticJsonDocument<160> doc;
+void emitWifiTestSerial(const char* op, bool ok, const char* reason, const char* token) {
+  StaticJsonDocument<192> doc;
   doc["mini"] = "wifi_test";
   doc["ok"] = ok;
   doc["reason"] = reason ? reason : "";
+  if (op && op[0]) {
+    doc["op"] = op;
+  }
+  if (token && token[0]) {
+    doc["token"] = token;
+  }
   serializeJson(doc, MINI_UART);
   MINI_UART.println();
   serializeJson(doc, Serial);
   Serial.println();
 }
 
+void copySafeString(char* dst, size_t len, const char* src) {
+  if (!dst || len == 0) return;
+  if (!src) src = "";
+  std::strncpy(dst, src, len - 1);
+  dst[len - 1] = '\0';
+}
+
+void loadActiveCredentials(WifiCredentials& out) {
+  copySafeString(out.ssid, sizeof(out.ssid), WIFI_SSID);
+  copySafeString(out.pass, sizeof(out.pass), WIFI_PASS);
+}
+
+void applyCredentialsToActive(const WifiCredentials& creds) {
+  copySafeString(WIFI_SSID, sizeof(WIFI_SSID), creds.ssid);
+  copySafeString(WIFI_PASS, sizeof(WIFI_PASS), creds.pass);
+}
+
+void clearWifiStage() {
+  wifiStage.pending = false;
+  wifiStage.verified = false;
+  wifiStage.creds = WifiCredentials{};
+  wifiStage.token[0] = '\0';
+}
+
+bool connectWithCredentials(WifiCredentials creds, unsigned long timeoutMs) {
+  if (!creds.ssid[0]) return false;
+  WiFi.disconnect();
+  delay(50);
+  WiFi.begin(creds.ssid, creds.pass);
+  unsigned long start = millis();
+  while ((millis() - start) < timeoutMs) {
+    if (WiFi.status() == WL_CONNECTED) {
+      return true;
+    }
+    delay(200);
+    yield();
+  }
+  return WiFi.status() == WL_CONNECTED;
+}
+
+bool handleStageWifi(const JsonDocument& doc) {
+  const char* ssid = doc["ssid"] | "";
+  const char* psk = doc["psk"] | "";
+  const char* token = doc["token"] | "";
+
+  if (!ssid || !ssid[0]) {
+    emitWifiTestSerial("stage_wifi", false, "missing_ssid", token);
+    return false;
+  }
+  if (std::strlen(ssid) > WIFI_SSID_MAX) {
+    emitWifiTestSerial("stage_wifi", false, "ssid_len", token);
+    return false;
+  }
+  if (std::strlen(psk) > WIFI_PASS_MAX) {
+    emitWifiTestSerial("stage_wifi", false, "psk_len", token);
+    return false;
+  }
+  if (wifiStageTesting) {
+    emitWifiTestSerial("stage_wifi", false, "busy", token);
+    return false;
+  }
+
+  WifiCredentials candidate{};
+  copySafeString(candidate.ssid, sizeof(candidate.ssid), ssid);
+  copySafeString(candidate.pass, sizeof(candidate.pass), psk);
+
+  WifiCredentials original{};
+  loadActiveCredentials(original);
+
+  wifiStageTesting = true;
+  bool testOk = connectWithCredentials(candidate, WIFI_STAGE_TEST_TIMEOUT_MS);
+  bool restored = connectWithCredentials(original, WIFI_STAGE_RESTORE_TIMEOUT_MS);
+  wifiStageTesting = false;
+
+  if (!testOk) {
+    emitWifiTestSerial("stage_wifi", false, "test_fail", token);
+    return false;
+  }
+  if (!restored) {
+    emitWifiTestSerial("stage_wifi", false, "restore_fail", token);
+    return false;
+  }
+
+  wifiStage.pending = true;
+  wifiStage.verified = true;
+  wifiStage.creds = candidate;
+  copySafeString(wifiStage.token, sizeof(wifiStage.token), token);
+  emitWifiTestSerial("stage_wifi", true, "staged", token);
+  return true;
+}
+
+bool handleCommitWifi(const JsonDocument& doc) {
+  const char* token = doc["token"] | "";
+  if (!wifiStage.pending) {
+    emitWifiTestSerial("commit_wifi", false, "no_stage", token);
+    return false;
+  }
+  if (wifiStage.token[0] && token && token[0] && std::strcmp(token, wifiStage.token) != 0) {
+    emitWifiTestSerial("commit_wifi", false, "token_mismatch", token);
+    return false;
+  }
+
+  WifiCredentials candidate = wifiStage.creds;
+  WifiCredentials previous{};
+  loadActiveCredentials(previous);
+
+  wifiStageTesting = true;
+  bool applied = connectWithCredentials(candidate, WIFI_STAGE_TEST_TIMEOUT_MS);
+  if (!applied) {
+    connectWithCredentials(previous, WIFI_STAGE_RESTORE_TIMEOUT_MS);
+    wifiStageTesting = false;
+    emitWifiTestSerial("commit_wifi", false, "apply_fail", token);
+    return false;
+  }
+  wifiStageTesting = false;
+
+  applyCredentialsToActive(candidate);
+  clearWifiStage();
+  emitWifiTestSerial("commit_wifi", true, "committed", token);
+  sendStatusSerial();
+  return true;
+}
+
+bool handleAbortWifi(const JsonDocument& doc) {
+  const char* token = doc["token"] | "";
+  if (!wifiStage.pending) {
+    emitWifiTestSerial("abort_wifi", true, "no_stage", token);
+    return true;
+  }
+  if (wifiStage.token[0] && token && token[0] && std::strcmp(token, wifiStage.token) != 0) {
+    emitWifiTestSerial("abort_wifi", false, "token_mismatch", token);
+    return false;
+  }
+  clearWifiStage();
+  emitWifiTestSerial("abort_wifi", true, "aborted", token);
+  return true;
+}
+
 void processSerialLine(const char* line) {
   if (!line || !line[0]) return;
-  StaticJsonDocument<160> doc;
+  StaticJsonDocument<256> doc;
   auto err = deserializeJson(doc, line);
   if (err) {
     sendSerialError("bad_json");
@@ -334,15 +516,15 @@ void processSerialLine(const char* line) {
     return;
   }
   if (strcmp(op, "stage_wifi") == 0) {
-    emitWifiTestSerial(false, "unsupported");
+    handleStageWifi(doc);
     return;
   }
   if (strcmp(op, "commit_wifi") == 0) {
-    emitWifiTestSerial(false, "unsupported");
+    handleCommitWifi(doc);
     return;
   }
   if (strcmp(op, "abort_wifi") == 0) {
-    emitWifiTestSerial(false, "unsupported");
+    handleAbortWifi(doc);
     return;
   }
   if (strcmp(op, "status") == 0) {
@@ -1052,6 +1234,10 @@ void loop() {
   }
 
   if (WiFi.status() != WL_CONNECTED) {
+    if (wifiStageTesting) {
+      delay(50);
+      return;
+    }
     Serial.println("[loop] WiFi disconnected, reconnecting...");
     delay(1000);
     WiFi.begin(WIFI_SSID, WIFI_PASS);

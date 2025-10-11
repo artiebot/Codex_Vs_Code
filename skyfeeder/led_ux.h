@@ -1,5 +1,8 @@
 #pragma once
 #include <Arduino.h>
+#ifndef ARDUINOJSON_DEPRECATED
+#define ARDUINOJSON_DEPRECATED(msg)
+#endif
 #include <ArduinoJson.h>
 #include "ws2812_service.h"
 namespace SF {

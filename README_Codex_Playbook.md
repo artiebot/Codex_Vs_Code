@@ -1,19 +1,20 @@
-# SkyFeeder Execution Playbook  
-*(Codex ↔ Claude shared context — keep current as the project evolves)*
+﻿# SkyFeeder Execution Playbook  
+*(Codex + Claude shared context - keep current as the project evolves)*
 
 ---
 
-## 0. Project Snapshot (2025-10-10)
+## 0. Project Snapshot (2025-10-11)
 
 - **Goal:** Field 10 smart feeders (ESP32 controller + AMB82 Mini camera) with OTA update path, then harden to production.
-- **Active Phase:** **A0.3** (UART Wi-Fi provisioning stage/commit) — **A0.2 completed 2025-10-10**.
+- **Active Phase:** **A1.1** (RTSP -> HLS bridge) — **A0.3 completed 2025-10-11**.
 - **Device Identity:** `dev1` (hostnames, MQTT topics, helper scripts).
-- **Recent changes (2025-10-10):**
-  - AMB Mini now enforces an 800 ms warm-up before delivering a snapshot after wake (`lastCameraStart` tracking).
+- **Recent changes (2025-10-11):**
+  - AMB Mini now enforces an 800 ms warm-up before delivering a snapshot after wake (`lastCameraStart` tracking).
   - Ping heartbeats pause when the camera is in `sleep` (power-friendly behavior).
   - ESP32 bridge accepts `{"op":"status"}` and returns a `status` ACK.
   - PowerShell tools (`tools/cam-*.ps1`, `mqtt-cam-control.ps1`) emit pure ASCII JSON via `mosquitto_pub -f`.
   - MQTT discovery payload advertises `skyfeeder/dev1/...` topics.
+  - A0.3 validation completed: Wi-Fi `stage_wifi` / `commit_wifi` flow exercised (fail + pass) with token-tagged feedback; artifacts in `REPORTS/validation_A0.3_wifi_stage_commit.log`.
 
 ---
 
@@ -23,21 +24,21 @@
 |------------------------|-------------------------------------------------------------------------------|
 | Identity               | Single MQTT identity (ESP32). Mini **never** runs MQTT.                      |
 | Control plane          | UART JSON on AMB Serial3 (PE1=TX, PE2=RX), wake GPIO from ESP32.              |
-| Data plane             | RTSP (`rtsp://<mini-ip>/live`) → HLS bridge → iOS app AVPlayer.              |
+| Data plane             | RTSP (`rtsp://<mini-ip>/live`) + HLS bridge + iOS app AVPlayer.              |
 | Snapshots / events     | MQTT metadata only (`event/camera/snapshot` + URL). No image bytes.          |
-| OTA                    | MQTT command → ESP32 fetches HTTPS binary. Phase B adds TLS + signatures.    |
+| OTA                    | MQTT command + ESP32 fetches HTTPS binary. Phase B adds TLS + signatures.    |
 | Mini power             | Deep sleep whenever idle. ESP32 wakes on PIR / weight triggers.              |
 | Deprecated forever     | Mini MQTT client, MQTT image payloads, HTTP control of Mini, dual identities.|
 
 ---
 
-## 2. Phase Roadmap (A0.2 → B7)
+## 2. Phase Roadmap (A0.2 -> B7)
 
 | Phase | Scope (abridged) | DoD & Artifacts | Status |
 |-------|------------------|-----------------|--------|
-| **A0.2** | UART bridge w/ deep sleep, MQTT cmd→ack, settle window ≥800 ms | `REPORTS/mini_A0.2DS_boot_status.txt`, `esp_A0.2DS_uart.log`, `esp_A0.2DS_mqtt.log`, `esp_A0.2DS_summary.md` | **Done (2025-10-10)** — wake→snapshot→sleep artifacts captured |
-| A0.3 | UART Wi-Fi stage/commit | `REPORTS/validation_A0.3_wifi_stage_commit.log` | Pending |
-| A1.1 | RTSP→HLS bridge (Docker) | `REPORTS/validation_A1.1.txt` | Pending |
+| **A0.2** | UART bridge w/ deep sleep, MQTT cmd+ack, settle window ~800 ms | `REPORTS/mini_A0.2DS_boot_status.txt`, `esp_A0.2DS_uart.log`, `esp_A0.2DS_mqtt.log`, `esp_A0.2DS_summary.md` | **Done (2025-10-10)** — wake->snapshot->sleep artifacts captured |
+| **A0.3** | UART Wi-Fi stage/commit | `REPORTS/validation_A0.3_wifi_stage_commit.log` | **Done (2025-10-11)** — stage fail/pass + commit logs captured |
+| A1.1 | RTSP->HLS bridge (Docker) | `REPORTS/validation_A1.1.txt` | Active |
 | A1.2 | Discovery v0.2 (HLS + broker_ws) | `REPORTS/validation_A1.2.json`, `..._schema.txt` | Pending |
 | A2.0 | App bootstrap + connectivity | Five artifacts listed in master plan | Pending |
 | A2.1 | App video (HLS) | `REPORTS/validation_A2.1.txt` + user confirm | Pending |
@@ -53,15 +54,16 @@
 
 ### AMB82 Mini (`amb-mini/amb-mini.ino`)
 - UART: `#define MINI_UART Serial3` @115200 on PE1/PE2.
-- `ensureCamera()` records `lastCameraStart`; `captureStill()` delays up to 800 ms post-wake.
+- `ensureCamera()` records `lastCameraStart`; `captureStill()` delays up to 800 ms post-wake.
 - `stopCamera()` clears `lastCameraStart`.
 - Ping heartbeat now gated by `camActive` (no pings during sleep).
 - UART parser validates `op` type (prevents false `no_op` errors).
 - Sleep command stops RTSP, updates status to `"sleeping"`. Wake command restarts pipeline.
+- Wi-Fi staging commands validate SSID/PSK, run a connection smoke test, and emit tokenized `wifi_test` frames (stage/commit/abort).
 
 ### ESP32 (`skyfeeder`)
 - `config.h` default device id: `dev1`.
-- `command_handler.cpp` handles `wake`, `sleep`, `snapshot`, **and `status`** (new).
+- `command_handler.cpp` handles `wake`, `sleep`, `snapshot`, `status`, and now proxies Wi-Fi stage/commit/abort ops with token-aware ACKs.
 - Discovery payload identifies `dev1` with topic map (`status`, `ack`, `event/#` paths).
 
 ### PowerShell tools (`tools/`)
@@ -95,7 +97,7 @@ Start-Sleep -Seconds 5
 .\cam-sleep.ps1                        # sleep
 ```
 
-4. **Timing summary** (`wake` to ready, settle, total) → `REPORTS/esp_A0.2DS_summary.md`.
+4. **Timing summary** (`wake` to ready, settle, total ) — `REPORTS/esp_A0.2DS_summary.md`.
 
 Scripts to assist:
 ```powershell
@@ -113,10 +115,11 @@ Start-Sleep -Seconds 5
 ## 5. Outstanding Questions / TODO
 
 1. **Deep-sleep activation** — add Mini VOE deep-sleep call + ESP32 wake pulse (next sub-task inside A0.2/A0.3 overlap).
-2. **Snapshot warm-up** — monitor in field that 800 ms remains sufficient; adjust if low-light requires longer.
+2. **Snapshot warm-up** — monitor in field that 800 ms remains sufficient; adjust if low-light requires longer.
 3. **Status command meaning** — decide payload schema (currently just triggers Mini to emit standard status JSON).
 4. **Power budget** — quantify current draw in sleep vs active (data needed before field deployment).
 5. **Docs** — reports/legacy docs still mention `sf-mock01`; update when convenient.
+6. **A1.1 prep** — design RTSP ingest -> HLS bridge (FFmpeg/Nginx), define validation checklist, and draft container layout before implementation.
 
 ---
 
@@ -124,10 +127,10 @@ Start-Sleep -Seconds 5
 
 | Date | Finding | Impact |
 |------|---------|--------|
-| 2025-10-10 | PowerShell JSON must be ASCII (UTF‑16 BOM caused ArduinoJson `InvalidInput`). | Updated scripts to write temp ASCII (`mosquitto_pub -f`). |
-| 2025-10-10 | A0.2 bench validation (wake → snapshot → sleep) | Verified pipeline with new scripts; artifacts recorded for regression. |
+| 2025-10-10 | PowerShell JSON must be ASCII (UTF-16 BOM caused ArduinoJson `InvalidInput`). | Updated scripts to write temp ASCII (`mosquitto_pub -f`). |
+| 2025-10-10 | A0.2 bench validation (wake -> snapshot -> sleep) | Verified pipeline with new scripts; artifacts recorded for regression. |
 | 2025-10-10 | `doc["op"] | nullptr` can yield false null; need explicit type check. | AMB UART handler now validates variant type, eliminating `no_op` errors. |
-| 2025-10-10 | Immediate snapshot post-wake yields black frame; camera needs warm-up. | Added 800 ms settle delay before capture. |
+| 2025-10-10 | Immediate snapshot post-wake yields black frame; camera needs warm-up. | Added 800 ms settle delay before capture. |
 | 2025-10-10 | Ping heartbeat should stop in sleep to meet power goals. | Loop now suppresses pings when `camActive == false`. |
 
 Keep appending to this table whenever we resolve tricky issues.
@@ -136,7 +139,7 @@ Keep appending to this table whenever we resolve tricky issues.
 
 ## 7. Working Agreement Recap
 
-1. **Plan → compare → decide** for each major change. Note alternatives in chat.
+1. **Plan -> compare -> decide** for each major change. Note alternatives in chat.
 2. **Self-validate** before asking user for physical verification.
 3. **Artifacts** go under `REPORTS/` with agreed filenames.
 4. **Architecture doc** (`ARCHITECTURE.md`) stays accurate.
@@ -172,4 +175,20 @@ Remove-Item payload.json
 3. Start on A0.3 (Wi-Fi provisioning) once DoD for A0.2 is satisfied.
 
 Keep this file updated as we progress—especially the Key Findings and Outstanding TODO lists. This ensures a fresh chat can pick up the thread immediately.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

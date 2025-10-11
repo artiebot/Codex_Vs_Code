@@ -1,5 +1,8 @@
 #include "telemetry_service.h"
 
+#ifndef ARDUINOJSON_DEPRECATED
+#define ARDUINOJSON_DEPRECATED(msg)
+#endif
 #include <ArduinoJson.h>
 #include <WiFi.h>
 #include <climits>

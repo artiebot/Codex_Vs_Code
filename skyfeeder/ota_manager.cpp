@@ -1,5 +1,8 @@
 #include "ota_manager.h"
 
+#ifndef ARDUINOJSON_DEPRECATED
+#define ARDUINOJSON_DEPRECATED(msg)
+#endif
 #include <ArduinoJson.h>
 #include <HTTPClient.h>
 #include <Update.h>
@@ -341,8 +344,12 @@ bool processCommand(PubSubClient& client, ArduinoJson::JsonObjectConst cmd, char
   SF::Log::info("ota", "download start %s", parsed.version);
 
   if (!downloadAndStage(parsed, client, error, errorLen)) {
-
+    // Clear any partial pending state on failure
+    gState.pending[0] = '\0';
+    gState.pendingChannel[0] = '\0';
+    saveState();
     SF::Log::warn("ota", "download failed %s reason=%s", parsed.version, error);
+    publishEvent(client, "error", parsed.version, error, nullptr, nullptr, parsed.channel);
     return false;
   }
 
@@ -357,10 +364,15 @@ bool processCommand(PubSubClient& client, ArduinoJson::JsonObjectConst cmd, char
 
   publishEvent(client, "apply_pending", parsed.version, nullptr, nullptr, nullptr, parsed.channel);
   SF::Log::info("ota", "staged %s (staged=%s)", parsed.version, parsed.staged ? "true" : "false");
-  if (!parsed.staged) {
+
+  // Auto-reboot after staged OTA (5 second delay for message delivery)
+  if (parsed.staged) {
+    SF::Log::info("ota", "rebooting in 5 seconds to apply update");
+    delay(5000);
+  } else {
     delay(100);
-    ESP.restart();
   }
+  ESP.restart();
   return true;
 }
 

@@ -1,5 +1,8 @@
 #include "provisioning.h"
 #include "config.h"
+#ifndef ARDUINOJSON_DEPRECATED
+#define ARDUINOJSON_DEPRECATED(msg)
+#endif
 #include <ArduinoJson.h>
 #include <PubSubClient.h>
 #include <WiFi.h>

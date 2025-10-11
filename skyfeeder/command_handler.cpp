@@ -1,3 +1,6 @@
+#ifndef ARDUINOJSON_DEPRECATED
+#define ARDUINOJSON_DEPRECATED(msg)
+#endif
 #include <ArduinoJson.h>
 #include <cstring>
 
@@ -38,7 +41,7 @@ uint32_t unixNow() {
   return static_cast<uint32_t>(now);
 }
 
-void publishCamAck(bool ok, const char* code, const char* msg, const char* op) {
+void publishCamAck(bool ok, const char* code, const char* msg, const char* op, const char* token = nullptr) {
   StaticJsonDocument<192> doc;
   doc["ok"] = ok;
   doc["code"] = code ? code : "";
@@ -46,6 +49,9 @@ void publishCamAck(bool ok, const char* code, const char* msg, const char* op) {
   doc["op"] = op ? op : "";
   if (msg && msg[0]) {
     doc["msg"] = msg;
+  }
+  if (token && token[0]) {
+    doc["token"] = token;
   }
   doc["ts"] = unixNow();
 
@@ -99,15 +105,26 @@ void onMiniSnapshot(bool ok, uint32_t bytes, const char* sha, const char* path, 
   Serial.print(" bytes="); Serial.println(bytes);
 }
 
-void onMiniWifi(bool ok, const char* reason) {
+void onMiniWifi(bool ok, const char* reason, const char* op, const char* token) {
+  const char* code = (reason && reason[0]) ? reason : (ok ? "ok" : "fail");
+  const char* ackOp = (op && op[0]) ? op : "wifi_test";
+  publishCamAck(ok, code, nullptr, ackOp, (token && token[0]) ? token : nullptr);
   if (ok) {
-    SF::Log::info("mini", "wifi test ok");
-    Serial.println("[mini] wifi test ok");
+    SF::Log::info("mini", "wifi test ok (op=%s)", ackOp);
+    Serial.print("[mini] wifi test ok");
   } else {
-    SF::Log::warn("mini", "wifi test fail: %s", reason ? reason : "");
+    SF::Log::warn("mini", "wifi test fail: %s (op=%s)", reason ? reason : "", ackOp);
     Serial.print("[mini] wifi test fail: ");
-    Serial.println(reason ? reason : "");
   }
+  if (token && token[0]) {
+    Serial.print(" token=");
+    Serial.print(token);
+  }
+  if (reason && reason[0]) {
+    Serial.print(" reason=");
+    Serial.print(reason);
+  }
+  Serial.println();
 }
 
 struct MiniCallbackRegistrar {
@@ -200,20 +217,45 @@ void handleCamera(byte* payload, unsigned int len) {
 }
 
 void handleMiniCam(byte* payload, unsigned int len) {
-  StaticJsonDocument<160> doc;
+  // DEBUG: Log raw MQTT payload
+  Serial.print("[cmd/cam] Raw payload (");
+  Serial.print(len);
+  Serial.print(" bytes): '");
+  for (unsigned int i = 0; i < len; i++) {
+    Serial.print((char)payload[i]);
+  }
+  Serial.println("'");
+  Serial.print("[cmd/cam] Hex dump: ");
+  for (unsigned int i = 0; i < len; i++) {
+    Serial.printf("%02X ", payload[i]);
+  }
+  Serial.println();
+
+  StaticJsonDocument<256> doc;
   auto err = deserializeJson(doc, payload, len);
   if (err) {
+    Serial.print("[cmd/cam] JSON parse error: ");
+    Serial.println(err.c_str());
     publishCamAck(false, "BAD_PAYLOAD", err.c_str(), "");
     return;
   }
 
   const char* op = doc["op"] | "";
+  Serial.print("[cmd/cam] Parsed op field: '");
+  Serial.print(op ? op : "(null)");
+  Serial.println("'");
+
   if (!op || !op[0]) {
+    Serial.println("[cmd/cam] ERROR: op field is empty or missing!");
     publishCamAck(false, "BAD_PAYLOAD", "missing op", "");
     return;
   }
 
+  const char* tokenField = doc["token"] | "";
+  const char* token = (tokenField && tokenField[0]) ? tokenField : nullptr;
+
   bool queued = false;
+  const char* ackToken = nullptr;
   if (std::strcmp(op, "wake") == 0) {
     queued = SF::Mini_sendWake();
   } else if (std::strcmp(op, "sleep") == 0) {
@@ -222,17 +264,32 @@ void handleMiniCam(byte* payload, unsigned int len) {
     queued = SF::Mini_requestSnapshot();
   } else if (std::strcmp(op, "status") == 0) {
     queued = SF::Mini_requestStatus();
+  } else if (std::strcmp(op, "stage_wifi") == 0) {
+    const char* ssid = doc["ssid"] | "";
+    const char* psk = doc["psk"] | "";
+    if (!ssid || !ssid[0]) {
+      publishCamAck(false, "BAD_PAYLOAD", "missing ssid", op, token);
+      return;
+    }
+    ackToken = token;
+    queued = SF::Mini_stageWifi(ssid, psk ? psk : "", token);
+  } else if (std::strcmp(op, "commit_wifi") == 0) {
+    ackToken = token;
+    queued = SF::Mini_commitWifi(token);
+  } else if (std::strcmp(op, "abort_wifi") == 0) {
+    ackToken = token;
+    queued = SF::Mini_abortWifi(token);
   } else {
     publishCamAck(false, "BAD_PAYLOAD", "unsupported op", op);
     return;
   }
 
   if (!queued) {
-    publishCamAck(false, "UART_WRITE", "", op);
+    publishCamAck(false, "UART_WRITE", "", op, ackToken);
     return;
   }
 
-  publishCamAck(true, "SENT", nullptr, op);
+  publishCamAck(true, "SENT", nullptr, op, ackToken);
 }
 }  // namespace
 

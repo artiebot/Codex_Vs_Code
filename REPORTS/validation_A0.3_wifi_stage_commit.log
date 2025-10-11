@@ -1,0 +1,97 @@
+﻿# A0.3 Validation – Wi-Fi Stage/Commit
+
+**Bench date:** 2025-10-11  
+**Device ID:** `dev1`  
+**Mini firmware:** `amb-mini/amb-mini.ino` (A0.3 UART staging build)  
+**ESP32 firmware:** `skyfeeder` (commit `HEAD` at validation time)  
+**Token used:** `test-token-001`
+
+---
+
+## 1. Negative Test – Invalid Credentials (expect `test_fail`)
+
+**Command**
+```powershell
+mosquitto_pub -h 10.0.0.4 -u dev1 -P dev1pass `
+  -t skyfeeder/dev1/cmd/cam `
+  -m '{"op":"stage_wifi","ssid":"testing","psk":"wrongpass","token":"test-token-001"}'
+```
+
+**MQTT ACKs (skyfeeder/dev1/event/ack)**
+```
+{"ok":true,"code":"SENT","cmd":"cam","op":"stage_wifi","token":"test-token-001"}
+{"ok":false,"code":"test_fail","cmd":"cam","op":"stage_wifi","token":"test-token-001"}
+```
+
+**Mini UART log**
+```
+[Driver]: set ssid [testing]
+(1) Scan: 1, Auth: 0, Assoc: 0, 4way: 0, connect: 0, reason: 65533
+auto reconnect ...
+there is ongoing wifi connect!(2) Scan: 1, Auth: 0, Assoc: 0, 4way: 0, connect: 0, reason: 65533
+{"mini":"wifi_test","ok":false,"reason":"test_fail","op":"stage_wifi","token":"test-token-001"}
+[loop] WiFi disconnected, reconnecting...
+```
+
+**Result:** `test_fail` returned as expected. Original production SSID automatically restored after test.
+
+---
+
+## 2. Positive Test – Valid Credentials (expect `staged`)
+
+**Command**
+```powershell
+mosquitto_pub -h 10.0.0.4 -u dev1 -P dev1pass `
+  -t skyfeeder/dev1/cmd/cam `
+  -m '{"op":"stage_wifi","ssid":"<prod-ssid>","psk":"<prod-pass>","token":"test-token-001"}'
+```
+
+**MQTT ACKs**
+```
+{"ok":true,"code":"SENT","cmd":"cam","op":"stage_wifi","token":"test-token-001"}
+{"ok":true,"code":"staged","cmd":"cam","op":"stage_wifi","token":"test-token-001"}
+```
+
+**Mini UART log (extract)**
+```
+{"mini":"wifi_test","ok":true,"reason":"staged","op":"stage_wifi","token":"test-token-001"}
+```
+
+**Result:** Staging succeeded; credentials verified and Mini rolled back to prior Wi-Fi profile.
+
+---
+
+## 3. Commit Staged Credentials (expect `committed`)
+
+**Command**
+```powershell
+mosquitto_pub -h 10.0.0.4 -u dev1 -P dev1pass `
+  -t skyfeeder/dev1/cmd/cam `
+  -m '{"op":"commit_wifi","token":"test-token-001"}'
+```
+
+**MQTT ACKs**
+```
+{"ok":true,"code":"SENT","cmd":"cam","op":"commit_wifi","token":"test-token-001"}
+{"ok":true,"code":"committed","cmd":"cam","op":"commit_wifi","token":"test-token-001"}
+```
+
+**Mini UART log (extract)**
+```
+{"mini":"wifi_test","ok":true,"reason":"committed","op":"commit_wifi","token":"test-token-001"}
+{"mini":"status","state":"ready","ip":"<new-ip>","rtsp":"rtsp://<new-ip>/live"}
+```
+
+**Result:** Credentials applied permanently and Mini reported ready state on the new network.
+
+---
+
+## 4. Notes & Observations
+- Realtek Wi-Fi driver prints reconnect chatter (`reason: 65533`, `auto reconnect ...`) during negative tests; acceptable and documented here.
+- Token echoed end-to-end (UART + MQTT) allowing the ESP32 bridge to correlate responses.
+- After commit, Mini auto-reconnected to the staged SSID and published a fresh status frame; ESP32 translated to MQTT ACK with `code":"committed"`.
+
+**Conclusion:** A0.3 DoD satisfied. Artifacts captured for stage/commit path (negative + positive cases). Ready to proceed to A1.1 (RTSP->HLS bridge).
+
+
+

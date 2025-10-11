@@ -1,5 +1,8 @@
 #include "ota_service.h"
 
+#ifndef ARDUINOJSON_DEPRECATED
+#define ARDUINOJSON_DEPRECATED(msg)
+#endif
 #include <ArduinoJson.h>
 #include <cstring>
 #include <cstdio>

@@ -1,29 +1,131 @@
 #include "mini_link.h"
 
+#ifndef ARDUINOJSON_DEPRECATED
+#define ARDUINOJSON_DEPRECATED(msg)
+#endif
+#include <ArduinoJson.h>
 #include <cstring>
 
 #include "logging.h"
 #include "pins_board.h"
 
 namespace {
-constexpr unsigned long STATUS_STALE_MS = 15000;
+constexpr size_t kRxBuf = 256;
+constexpr size_t kLogCapacity = 24;
+
+HardwareSerial* miniSerial = nullptr;
+char rxBuffer[kRxBuf];
+size_t rxLen = 0;
+
+struct LogEntry {
+  unsigned long ts;
+  char dir;
+  String line;
+};
+LogEntry logRing[kLogCapacity];
+size_t logCount = 0;
+size_t logHead = 0;
+
+SF::MiniStatusCallback statusCb = nullptr;
+SF::MiniSnapshotCallback snapshotCb = nullptr;
+SF::MiniWifiCallback wifiCb = nullptr;
+
+void pushLog(char dir, const char* line) {
+  if (!line) line = "";
+  logRing[logHead] = {millis(), dir, String(line)};
+  logHead = (logHead + 1) % kLogCapacity;
+  if (logCount < kLogCapacity) ++logCount;
+}
+
+bool writeLine(const JsonDocument& doc) {
+  if (!miniSerial) return false;
+  String out;
+  serializeJson(doc, out);
+  pushLog('>', out.c_str());
+  Serial.print("[mini] >> ");
+  Serial.println(out);
+  miniSerial->println(out);
+  return true;
+}
+
+void handleStatus(const JsonDocument& doc) {
+  const char* state = doc["state"] | "";
+  const char* ip = doc["ip"] | "";
+  const char* rtsp = doc["rtsp"] | "";
+  if (statusCb) statusCb(state, ip, rtsp);
+}
+
+void handleSnapshot(const JsonDocument& doc) {
+  bool ok = doc["ok"].as<bool>();
+  uint32_t bytes = doc["bytes"].as<uint32_t>();
+  const char* sha = doc["sha256"] | "";
+  const char* path = doc["path"] | "";
+  const char* trigger = doc["trigger"] | "";
+  if (snapshotCb) snapshotCb(ok, bytes, sha, path, trigger);
+}
+
+void handleWifiTest(const JsonDocument& doc) {
+  bool ok = doc["ok"].as<bool>();
+  const char* reason = doc["reason"] | "";
+  const char* op = doc["op"] | "";
+  const char* token = doc["token"] | "";
+  if (wifiCb) wifiCb(ok, reason, op, token);
+}
+
+void processLine(const char* line) {
+  if (!line || !line[0]) return;
+  pushLog('<', line);
+  Serial.print("[mini] << ");
+  Serial.println(line);
+  StaticJsonDocument<256> doc;
+  auto err = deserializeJson(doc, line);
+  if (err) {
+    SF::Log::warn("mini", "bad json: %s", err.c_str());
+    return;
+  }
+  const char* type = doc["mini"] | "";
+  if (strcmp(type, "status") == 0) {
+    handleStatus(doc);
+  } else if (strcmp(type, "snapshot") == 0) {
+    handleSnapshot(doc);
+  } else if (strcmp(type, "wifi_test") == 0) {
+    handleWifiTest(doc);
+  } else if (strcmp(type, "error") == 0) {
+    const char* msg = doc["msg"] | "";
+    SF::Log::warn("mini", "error: %s", msg);
+  } else {
+    SF::Log::info("mini", "unhandled frame: %s", type);
+  }
+}
+
+bool queueOp(const char* op) {
+  if (!miniSerial || !op) return false;
+  StaticJsonDocument<96> doc;
+  doc["op"] = op;
+  return writeLine(doc);
+}
+
+bool queueWifiOp(const char* op, const char* ssid = nullptr, const char* psk = nullptr, const char* token = nullptr) {
+  if (!miniSerial || !op) return false;
+  StaticJsonDocument<192> doc;
+  doc["op"] = op;
+  if (ssid && ssid[0]) doc["ssid"] = ssid;
+  if (psk && psk[0]) doc["psk"] = psk;
+  if (token && token[0]) doc["token"] = token;
+  return writeLine(doc);
+}
+
 }  // namespace
 
 namespace SF {
 
-MiniLink miniLink;
-
-void MiniLink::begin(unsigned long baud) {
-  serial_ = &Pins::miniSerial();
-  serial_->begin(baud, SERIAL_8N1, Pins::MiniUartRx, Pins::MiniUartTx);
-  rxLen_ = 0;
-  state_[0] = '\0';
-  lastReason_[0] = '\0';
-  lastStatusRaw_[0] = '\0';
-  lastStatusMs_ = 0;
-  awaitingStatus_ = false;
-  lastTxMs_ = 0;
-
+void Mini_begin(unsigned long baud) {
+  miniSerial = &Pins::miniSerial();
+  miniSerial->begin(baud, SERIAL_8N1, Pins::MiniUartRx, Pins::MiniUartTx);
+  rxLen = 0;
+  logCount = 0;
+  logHead = 0;
+  pushLog('=', "open");
   if (Pins::MiniPowerEnable >= 0) {
     pinMode(Pins::MiniPowerEnable, OUTPUT);
     digitalWrite(Pins::MiniPowerEnable, HIGH);
@@ -32,158 +134,81 @@ void MiniLink::begin(unsigned long baud) {
     pinMode(Pins::MiniWake, OUTPUT);
     digitalWrite(Pins::MiniWake, HIGH);
   }
-
-  SF::Log::info("mini", "UART link ready (rx=%d tx=%d)", Pins::MiniUartRx, Pins::MiniUartTx);
 }
 
-bool MiniLink::sendOp(const char* op) {
-  if (!serial_ || !op || !op[0]) return false;
-
-  StaticJsonDocument<96> doc;
-  doc["op"] = op;
-  char buf[96];
-  size_t n = serializeJson(doc, buf, sizeof(buf));
-  if (n == 0 || n >= sizeof(buf) - 1) return false;
-
-  buf[n] = '\0';
-  Serial.print(F("[mini] >> "));
-  Serial.println(buf);
-  serial_->write(reinterpret_cast<const uint8_t*>(buf), n);
-  serial_->write('\n');
-  awaitingStatus_ = true;
-  lastTxMs_ = millis();
-  return true;
+void Mini_loop() {
+  if (!miniSerial) return;
+  while (miniSerial->available()) {
+    char c = static_cast<char>(miniSerial->read());
+    if (c == '\r') continue;
+    if (c == '\n') {
+      if (rxLen > 0) {
+        rxBuffer[rxLen] = '\0';
+        processLine(rxBuffer);
+        rxLen = 0;
+      }
+    } else {
+      if (rxLen + 1 < kRxBuf) {
+        rxBuffer[rxLen++] = c;
+      } else {
+        rxLen = 0;
+      }
+    }
+  }
 }
 
-bool MiniLink::sendWake() {
+bool Mini_sendWake() {
   if (Pins::MiniWake >= 0) {
     digitalWrite(Pins::MiniWake, HIGH);
   }
-  return sendOp("wake");
+  return queueOp("wake");
 }
 
-bool MiniLink::sendSleep() {
-  bool ok = sendOp("sleep");
+bool Mini_sendSleep() {
+  bool ok = queueOp("sleep");
   if (Pins::MiniWake >= 0) {
     digitalWrite(Pins::MiniWake, LOW);
   }
   return ok;
 }
 
-bool MiniLink::requestStatus() {
-  return sendOp("status");
+bool Mini_requestStatus() {
+  return queueOp("status");
 }
 
-void MiniLink::loop() {
-  if (!serial_) return;
-  while (serial_->available()) {
-    int c = serial_->read();
-    if (c < 0) {
-      break;
-    }
-    char ch = static_cast<char>(c);
-    if (ch == '\r') continue;
-    if (ch == '\n') {
-      if (rxLen_ == 0) continue;
-      rxBuf_[rxLen_] = '\0';
-      processLine(rxBuf_);
-      rxLen_ = 0;
-    } else {
-      if (rxLen_ + 1 < sizeof(rxBuf_)) {
-        rxBuf_[rxLen_++] = ch;
-      } else {
-        rxLen_ = 0;
-      }
-    }
-  }
-
-  if (awaitingStatus_ && (millis() - lastTxMs_) > STATUS_STALE_MS) {
-    awaitingStatus_ = false;
-    SF::Log::warn("mini", "Timeout waiting for status");
-  }
+bool Mini_requestSnapshot() {
+  return queueOp("snapshot");
 }
 
-bool MiniLink::hasRecentStatus(unsigned long maxAgeMs) const {
-  if (lastStatusMs_ == 0) return false;
-  return millis() - lastStatusMs_ <= maxAgeMs;
+bool Mini_stageWifi(const char* ssid, const char* psk, const char* token) {
+  return queueWifiOp("stage_wifi", ssid, psk, token);
 }
 
-void MiniLink::processLine(const char* line) {
-  if (!line || !line[0]) return;
-  Serial.print(F("[mini] << "));
-  Serial.println(line);
-
-  StaticJsonDocument<192> doc;
-  auto err = deserializeJson(doc, line);
-  if (err) {
-    SF::Log::warn("mini", "Bad JSON from mini (%s)", err.c_str());
-    return;
-  }
-
-  const char* type = doc["type"] | "";
-  if (std::strcmp(type, "status") == 0) {
-    const char* state = doc["state"] | "unknown";
-    const char* reason = doc["reason"] | "";
-    updateState(state, reason);
-
-    lastStatusMs_ = millis();
-    awaitingStatus_ = false;
-    strlcpy(lastStatusRaw_, line, sizeof(lastStatusRaw_));
-  } else if (std::strcmp(type, "log") == 0) {
-    const char* level = doc["level"] | "info";
-    const char* msg = doc["msg"] | "";
-    SF::Log::info("mini", "[%s] %s", level, msg);
-  } else if (std::strcmp(type, "error") == 0) {
-    const char* msg = doc["msg"] | "mini_error";
-    SF::Log::warn("mini", "Error from mini: %s", msg);
-  }
+bool Mini_commitWifi(const char* token) {
+  return queueWifiOp("commit_wifi", nullptr, nullptr, token);
 }
 
-void MiniLink::updateState(const char* state, const char* reason) {
-  if (!state) state = "unknown";
-  strlcpy(state_, state, sizeof(state_));
-  if (reason && reason[0]) {
-    strlcpy(lastReason_, reason, sizeof(lastReason_));
-  } else {
-    lastReason_[0] = '\0';
-  }
-  SF::Log::info("mini", "state=%s reason=%s", state_, lastReason_);
+bool Mini_abortWifi(const char* token) {
+  return queueWifiOp("abort_wifi", nullptr, nullptr, token);
 }
 
-void MiniLink::writeErr(char* err, size_t errLen, const char* msg) {
-  if (!err || errLen == 0) return;
-  if (!msg) msg = "mini_err";
-  strlcpy(err, msg, errLen);
-}
+void Mini_setStatusCallback(MiniStatusCallback cb) { statusCb = cb; }
+void Mini_setSnapshotCallback(MiniSnapshotCallback cb) { snapshotCb = cb; }
+void Mini_setWifiCallback(MiniWifiCallback cb) { wifiCb = cb; }
 
-bool MiniLink::handleCommand(JsonVariantConst cmd, char* err, size_t errLen) {
-  if (err && errLen > 0) err[0] = '\0';
-  const char* op = nullptr;
-  if (cmd.is<const char*>()) {
-    op = cmd.as<const char*>();
-  } else if (cmd.containsKey("op")) {
-    op = cmd["op"].as<const char*>();
-  } else if (cmd.containsKey("action")) {
-    op = cmd["action"].as<const char*>();
+void Mini_logTo(Stream& out) {
+  out.println(F("-- mini link log --"));
+  size_t idx = logCount < kLogCapacity ? 0 : logHead;
+  for (size_t i = 0; i < logCount; ++i) {
+    size_t slot = (idx + i) % kLogCapacity;
+    const auto& entry = logRing[slot];
+    out.print('[');
+    out.print(entry.ts);
+    out.print("] ");
+    out.print(entry.dir);
+    out.print(' ');
+    out.println(entry.line);
   }
-
-  if (!op) {
-    writeErr(err, errLen, "no_op");
-    return false;
-  }
-
-  if (std::strcmp(op, "wake") == 0) {
-    return sendWake();
-  }
-  if (std::strcmp(op, "sleep") == 0) {
-    return sendSleep();
-  }
-  if (std::strcmp(op, "status") == 0) {
-    return requestStatus();
-  }
-
-  writeErr(err, errLen, "bad_op");
-  return false;
 }
 
 }  // namespace SF

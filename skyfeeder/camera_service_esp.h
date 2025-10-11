@@ -1,5 +1,8 @@
 #pragma once
 #include <Arduino.h>
+#ifndef ARDUINOJSON_DEPRECATED
+#define ARDUINOJSON_DEPRECATED(msg)
+#endif
 #include <ArduinoJson.h>
 namespace SF {
 class CameraServiceEsp{
