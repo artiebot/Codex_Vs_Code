@@ -1,0 +1,16 @@
+{
+  "deviceId": "dev1",
+  "date": "2025-10-19",
+  "generatedTs": 1760901632182,
+  "events": [
+    {
+      "id": "tK0Vje7q",
+      "ts": 1760901632199,
+      "key": "2025-10-19T19-18-56-858Z-qyc2vu.jpg",
+      "kind": "photos",
+      "bytes": 23,
+      "sha256": "114603ddf691748794dc641b56395487467ed9e45220dbdd38cd7face40df92a"
+    }
+  ],
+  "updatedTs": 1760901632199
+}

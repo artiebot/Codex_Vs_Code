@@ -1,0 +1,7 @@
+time="2025-10-19T12:22:58-07:00" level=warning msg="D:\\OneDrive\\Etsy\\Feeder-Project\\SW\\feeder-project\\ESP32\\Codex_Vs_Code\\ops\\local\\docker-compose.yml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion"
+NAME                    IMAGE                COMMAND                  SERVICE       CREATED          STATUS                      PORTS
+skyfeeder-minio         minio/minio:latest   "/usr/bin/docker-ent…"   minio         56 minutes ago   Up 56 minutes               0.0.0.0:9200->9000/tcp, [::]:9200->9000/tcp, 0.0.0.0:9201->9001/tcp, [::]:9201->9001/tcp
+skyfeeder-minio-init    minio/mc:latest      "/bin/sh /init/init.…"   minio-init    56 minutes ago   Exited (0) 53 minutes ago   
+skyfeeder-ota-server    local-ota-server     "docker-entrypoint.s…"   ota-server    56 minutes ago   Up 56 minutes               0.0.0.0:9180->8090/tcp, [::]:9180->8090/tcp
+skyfeeder-presign-api   local-presign-api    "docker-entrypoint.s…"   presign-api   49 minutes ago   Up 49 minutes               0.0.0.0:8080->8080/tcp, [::]:8080->8080/tcp
+skyfeeder-ws-relay      local-ws-relay       "docker-entrypoint.s…"   ws-relay      56 minutes ago   Up 56 minutes               0.0.0.0:8081->8081/tcp, [::]:8081->8081/tcp
