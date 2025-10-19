@@ -1,0 +1,83 @@
+version: "3.9"
+
+services:
+  minio:
+    image: minio/minio:latest
+    container_name: skyfeeder-minio
+    restart: unless-stopped
+    ports:
+      - "9200:9000"
+      - "9201:9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}
+    command: server /data --console-address ":9001"
+    volumes:
+      - ./data/minio:/data
+
+  minio-init:
+    image: minio/mc:latest
+    container_name: skyfeeder-minio-init
+    depends_on:
+      - minio
+    environment:
+      MC_HOST_minio: http://${MINIO_ROOT_USER:-minioadmin}:${MINIO_ROOT_PASSWORD:-minioadmin}@minio:9000
+    entrypoint: ["/bin/sh", "/init/init.sh"]
+    volumes:
+      - ./minio/init.sh:/init/init.sh:ro
+      - ./minio/bootstrap:/init/bootstrap:ro
+
+  presign-api:
+    build:
+      context: ./presign-api
+    container_name: skyfeeder-presign-api
+    depends_on:
+      - minio
+    restart: unless-stopped
+    environment:
+      NODE_ENV: development
+      PORT: 8080
+      S3_ENDPOINT: http://minio:9000
+      S3_REGION: us-east-1
+      S3_BUCKET_PHOTOS: photos
+      S3_BUCKET_CLIPS: clips
+      S3_BUCKET_INDICES: photos
+      S3_ACCESS_KEY: minioadmin
+      S3_SECRET_KEY: minioadmin
+      JWT_SECRET: dev-only
+      PUBLIC_BASE: http://localhost:8080
+      WS_PUBLIC_BASE: http://localhost:8081
+      OTA_BASE: http://localhost:9180
+      S3_PHOTOS_BASE: http://localhost:9200/photos
+      S3_CLIPS_BASE: http://localhost:9200/clips
+    ports:
+      - "8080:8080"
+
+  ws-relay:
+    build:
+      context: ./ws-relay
+    container_name: skyfeeder-ws-relay
+    restart: unless-stopped
+    environment:
+      NODE_ENV: development
+      PORT: 8081
+      JWT_SECRET: ${JWT_SECRET:-dev-only}
+    ports:
+      - "8081:8081"
+
+  ota-server:
+    build:
+      context: ./ota-server
+    container_name: skyfeeder-ota-server
+    restart: unless-stopped
+    environment:
+      NODE_ENV: development
+      PORT: 8090
+    ports:
+      - "9180:8090"
+    volumes:
+      - ./ota-server/public:/usr/src/app/public:ro
+
+networks:
+  default:
+    name: skyfeeder-local
