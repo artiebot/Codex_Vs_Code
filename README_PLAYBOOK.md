@@ -33,6 +33,51 @@ _Last updated: 2025-10-20_
 
 ---
 
+## PENDING HARDWARE VALIDATIONS
+
+**⚠️ DO NOT REMOVE THIS SECTION - even if phase order changes, this tracks validations that require physical hardware or extended testing.**
+
+The following validation items were skipped during simulation/software-only testing and require hardware or manual validation before field deployment:
+
+### A1.3 - iOS Gallery Validation (Pending Manual Testing)
+**What was validated:** WebSocket upload-status telemetry flow end-to-end (8 events, reconnect handling, latency metrics)
+**What was NOT validated:**
+- [ ] iOS LOCAL gallery build shows uploads correctly
+- [ ] "Save to Photos" functionality works
+- [ ] Badge counts update correctly
+- [ ] Success tile displays properly
+- [ ] Gallery UI matches design specs
+
+**Required for:** User acceptance testing, iOS app validation
+**Artifacts expected:** `REPORTS/A1.3/ios_run_notes.md` (checklist), `REPORTS/A1.3/gallery_recording.mp4` (screen recording)
+**Status:** WebSocket telemetry fully validated and working; iOS app testing can be done independently
+
+---
+
+### A1.4 - Hardware Soak Test + Power Measurements (Pending 24h+ Test)
+**What was validated:** Fault injection and retry logic via simulation (40% fail rate, 3/3 uploads successful, WebSocket reconnect)
+**What was NOT validated:**
+- [ ] 24-hour continuous operation soak test
+- [ ] Power consumption measurements (<200 mAh per event target)
+- [ ] Long-term success rate tracking (>= 85% target)
+- [ ] Real-world network flakiness (Wi-Fi/cellular)
+- [ ] Boot cycle stability over extended runtime
+- [ ] Memory leak detection over 24h+
+
+**Required for:** Field deployment readiness, power budget validation
+**Artifacts expected:** `REPORTS/A1.4/power.csv` (INA260 measurements), `REPORTS/A1.4/power_summary.md` (analysis)
+**Status:** Simulation testing proves retry logic works correctly; hardware validation needed for production readiness
+
+---
+
+**How to use this section:**
+1. Before marking any phase as "fully complete", check this section for pending validations
+2. When hardware becomes available, reference this section to know what tests to run
+3. Update checkboxes as validations are completed
+4. Add new items here if future phases have hardware-dependent validations
+
+---
+
 ## 1. Local Stack Overview & Bring-Up
 
 Directory structure (partial):
