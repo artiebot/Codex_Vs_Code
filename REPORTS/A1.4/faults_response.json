@@ -1,0 +1,6 @@
+{
+    "deviceId":  "dev1",
+    "failPutRate":  0.4,
+    "httpCode":  500,
+    "untilTs":  1760902317
+}
