@@ -1,0 +1,31 @@
+version: "3.9"
+
+services:
+  ffmpeg:
+    image: jrottenberg/ffmpeg:6.0-alpine
+    init: true
+    restart: unless-stopped
+    environment:
+      RTSP_URL: ${RTSP_URL:-rtsp://10.0.0.198/live}
+      HLS_STREAM_NAME: ${HLS_STREAM_NAME:-mini}
+      HLS_SEGMENT_SECONDS: ${HLS_SEGMENT_SECONDS:-2}
+      HLS_WINDOW: ${HLS_WINDOW:-6}
+    volumes:
+      - ./output:/hls
+      - ./ffmpeg/entrypoint.sh:/entrypoint.sh:ro
+    entrypoint: ["/bin/sh", "/entrypoint.sh"]
+
+  nginx:
+    image: nginx:1.27-alpine
+    restart: unless-stopped
+    ports:
+      - "${HLS_HTTP_PORT:-8080}:80"
+    volumes:
+      - ./output:/usr/share/nginx/html/hls:ro
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1/healthz"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+

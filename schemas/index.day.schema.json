@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://skyfeeder.io/schemas/index.day.json",
+  "title": "SkyFeeder Day Event Index",
+  "type": "object",
+  "required": ["device_id", "date", "events"],
+  "properties": {
+    "device_id": { "type": "string" },
+    "date": { "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}$" },
+    "generated_ts": { "type": "integer", "minimum": 0 },
+    "events": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "event_id",
+          "ts",
+          "policy",
+          "thumb",
+          "clip",
+          "sensors"
+        ],
+        "properties": {
+          "event_id": { "type": "string" },
+          "ts": { "type": "integer", "minimum": 0 },
+          "local_time": { "type": "string" },
+          "policy": { "type": "string", "enum": ["immediate", "on_first_view"] },
+          "thumb": {
+            "type": "object",
+            "required": ["url", "bytes"],
+            "properties": {
+              "url": { "type": "string", "format": "uri" },
+              "bytes": { "type": "integer", "minimum": 1 },
+              "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+            },
+            "additionalProperties": false
+          },
+          "clip": {
+            "type": "object",
+            "required": ["available"],
+            "properties": {
+              "available": { "type": "boolean" },
+              "url": { "type": "string", "format": "uri" },
+              "bytes": { "type": "integer", "minimum": 0 },
+              "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+            },
+            "additionalProperties": false
+          },
+          "sensors": {
+            "type": "array",
+            "items": { "type": "string" },
+            "uniqueItems": true
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

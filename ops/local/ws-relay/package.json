@@ -1,0 +1,21 @@
+{
+  "name": "skyfeeder-ws-relay",
+  "version": "0.1.0",
+  "description": "Local WebSocket relay for SkyFeeder Option A MVP",
+  "main": "src/index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "NODE_ENV=development nodemon src/index.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "jsonwebtoken": "^9.0.2",
+    "morgan": "^1.10.0",
+    "ws": "^8.17.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.3"
+  }
+}

@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://skyfeeder.io/schemas/discovery.v0.2.json",
+  "title": "SkyFeeder Discovery v0.2",
+  "type": "object",
+  "required": ["video", "cap", "camera_state", "channel", "step"],
+  "properties": {
+    "video": {
+      "type": "object",
+      "required": ["thumb_base", "clip_base", "retention", "live"],
+      "properties": {
+        "thumb_base": { "type": "string", "format": "uri" },
+        "clip_base": { "type": "string", "format": "uri" },
+        "retention": {
+          "type": "object",
+          "required": ["photos_days", "clips_days"],
+          "properties": {
+            "photos_days": { "type": "integer", "minimum": 1 },
+            "clips_days": { "type": "integer", "minimum": 1 }
+          },
+          "additionalProperties": false
+        },
+        "live": {
+          "type": "object",
+          "required": ["status", "plan"],
+          "properties": {
+            "status": { "type": "string", "enum": ["not_available", "planned", "beta", "ready"] },
+            "plan": { "type": "string" }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "broker_ws": { "type": "string" },
+    "cap": {
+      "type": "array",
+      "items": { "type": "string" },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "camera_state": { "type": "string" },
+    "channel": { "type": "string" },
+    "step": { "type": "string", "pattern": "^A1\\.[0-9]+-VOD$" },
+    "timestamp_ms": { "type": "integer", "minimum": 0 }
+  },
+  "additionalProperties": true
+}

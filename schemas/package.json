@@ -1,0 +1,13 @@
+{
+  "name": "skyfeeder-schemas",
+  "private": true,
+  "version": "0.1.0",
+  "description": "JSON Schemas and validators for SkyFeeder Option A artifacts",
+  "scripts": {
+    "test": "ajv compile -s meta.schema.json -s discovery.v0.2.schema.json -s index.day.schema.json"
+  },
+  "devDependencies": {
+    "ajv": "^8.17.1",
+    "ajv-cli": "^5.0.0"
+  }
+}

@@ -1,0 +1,61 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://skyfeeder.io/schemas/meta.json",
+  "title": "SkyFeeder Event Metadata",
+  "type": "object",
+  "required": [
+    "event_id",
+    "ts",
+    "dur_s",
+    "policy",
+    "thumb",
+    "clip",
+    "sensors",
+    "sha256_thumb",
+    "sha256_clip",
+    "retry_count"
+  ],
+  "properties": {
+    "event_id": {
+      "type": "string",
+      "pattern": "^evt-[0-9TZ:-]+-[a-zA-Z0-9]+$"
+    },
+    "ts": { "type": "integer", "minimum": 0 },
+    "dur_s": { "type": "number", "minimum": 0 },
+    "policy": { "type": "string", "enum": ["immediate", "on_first_view"] },
+    "thumb": {
+      "type": "object",
+      "required": ["w", "h", "bytes"],
+      "properties": {
+        "w": { "type": "integer", "minimum": 1 },
+        "h": { "type": "integer", "minimum": 1 },
+        "bytes": { "type": "integer", "minimum": 1 }
+      },
+      "additionalProperties": false
+    },
+    "clip": {
+      "type": "object",
+      "required": ["codec", "w", "h", "fps", "kbps", "gop_s", "bytes"],
+      "properties": {
+        "codec": { "type": "string", "const": "h264" },
+        "w": { "type": "integer", "minimum": 1 },
+        "h": { "type": "integer", "minimum": 1 },
+        "fps": { "type": "number", "exclusiveMinimum": 0 },
+        "kbps": { "type": "integer", "minimum": 1 },
+        "gop_s": { "type": "number", "minimum": 0 },
+        "bytes": { "type": "integer", "minimum": 1 }
+      },
+      "additionalProperties": false
+    },
+    "sensors": {
+      "type": "array",
+      "items": { "type": "string" },
+      "uniqueItems": true
+    },
+    "sha256_thumb": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "sha256_clip": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "retry_count": { "type": "integer", "minimum": 0 },
+    "notes": { "type": "string" }
+  },
+  "additionalProperties": false
+}

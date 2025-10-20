@@ -1,0 +1,3 @@
+# Local stack artifacts
+ops/local/presign-api/.env
+ops/local/data/minio/

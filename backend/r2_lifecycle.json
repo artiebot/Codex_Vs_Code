@@ -1,0 +1,34 @@
+{
+  "Rules": [
+    {
+      "ID": "skyfeeder-photos-30d",
+      "Status": "Enabled",
+      "Filter": {
+        "And": {
+          "Prefix": "u/",
+          "Tags": [
+            { "Key": "type", "Value": "photo" }
+          ]
+        }
+      },
+      "Expiration": { "Days": 30 },
+      "NoncurrentVersionExpiration": { "NoncurrentDays": 30 },
+      "AbortIncompleteMultipartUpload": { "DaysAfterInitiation": 7 }
+    },
+    {
+      "ID": "skyfeeder-clips-7d",
+      "Status": "Enabled",
+      "Filter": {
+        "And": {
+          "Prefix": "u/",
+          "Tags": [
+            { "Key": "type", "Value": "clip" }
+          ]
+        }
+      },
+      "Expiration": { "Days": 7 },
+      "NoncurrentVersionExpiration": { "NoncurrentDays": 7 },
+      "AbortIncompleteMultipartUpload": { "DaysAfterInitiation": 7 }
+    }
+  ]
+}
