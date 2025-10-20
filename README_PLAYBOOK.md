@@ -1,6 +1,6 @@
 # SkyFeeder Execution Playbook (Local-First Option A)
 
-_Last updated: 2025-10-19_
+_Last updated: 2025-10-20_
 
 ---
 
@@ -12,7 +12,7 @@ _Last updated: 2025-10-19_
 - Storage: MinIO buckets `photos/<deviceId>/...` (30-day retention + day indices) and `clips/<deviceId>/...` (1-day retention). Day index JSON files live inside `photos/<deviceId>/indices/`.
 - OTA: ESP32/Mini fetch firmware from `OTA_BASE` (`http://<LAN-IP>:9180/fw/...`), verify sha256/signature, and roll back on failed boots.
 - Auth: Local stack trusts any deviceId (dev-only). Real JWT validation begins at Cloud gate CF-1.
-- Active focus: **A1.1 - Local Stack Validation (Owner: Codex)**. OTA A/B smoke (A0.4) is still outstanding.
+- Active focus: **A1.3 - WS End-to-End + Gallery (Owner: Codex)** following A1.2 websocket resilience sign-off.
 
 ### Phase Status
 
@@ -20,9 +20,9 @@ _Last updated: 2025-10-19_
 |-------|--------|-------|-------|
 | A0.2-DS | [x] complete | Codex | Deep sleep + UART control validated. |
 | A0.3 | [x] complete | Codex | UART Wi-Fi provisioning complete. |
-| A0.4 | [ ] pending | Codex | OTA A/B smoke + rollback logs required. |
-| **A1.1** | [~] in progress | Codex | Local stack validation + artifact capture. |
-| A1.2 | [ ] pending | Codex | Discovery v0.2 + WS resilience. |
+| A0.4 | [x] complete | Codex | OTA A/B smoke, rollback, and SHA validation artifacts captured. |
+| **A1.1** | [x] complete | Codex | Local stack validation + artifact capture. |
+| A1.2 | [x] complete | Codex | Discovery v0.2 + WS resilience validated with queue/replay metrics. |
 | A1.3 | [ ] pending | Codex | iOS LOCAL gallery (Save to Photos, badges). |
 | A1.4 | [ ] pending | Codex | Reliability & power soak (local stack). |
 | B-series | [ ] planned | Codex | App “Button-Up” milestones (B1-B6). |
@@ -179,16 +179,23 @@ Goal: Prove the local backend works end-to-end and capture artifacts in `REPORTS
 
 Exit criteria: ✅ All checkboxes complete with artifacts committed to `/REPORTS/A1.1/`.
 
-### A1.2 - Discovery v0.2 + WS Resilience (local)
+### A1.2 - Discovery v0.2 + WS Resilience (local) ✅ COMPLETE (2025-10-19)
 
-- Device (or simulator) uploads via presign; day index updates reliably.  
-  Artifacts: `/REPORTS/A1.2/device_log.txt`, `/REPORTS/A1.2/index.json`
-- WS resilience: forced disconnects trigger reconnect/backoff and queued telemetry.  
-  Artifacts: `/REPORTS/A1.2/ws_reconnect.log`, `/REPORTS/A1.2/notifications.md`
-- Notification latency histogram / success metrics for local testing.  
-  Artifact: `/REPORTS/A1.2/latency_hist.json`
+**Status:** Upload flow + WS resilience validated with simulation harness
 
-Exit: Discovery payloads accurate, reconnection stable, metrics recorded.
+- [x] Device (or simulator) uploads via presign; day index updates reliably.
+  Artifacts: `/REPORTS/A1.2/device_log.txt` (presign PUT + upload), `/REPORTS/A1.2/index.json` (day index snapshot)
+- [x] WS resilience: forced disconnects trigger reconnect/backoff and queued telemetry via `tools/ws-resilience-test.js`.
+  Artifacts: `/REPORTS/A1.2/ws_reconnect.log` (4s drop + 4 queued events), `/REPORTS/A1.2/notifications.md` (executive summary)
+- [x] Notification latency histogram / success metrics for local testing.
+  Artifact: `/REPORTS/A1.2/latency_hist.json` (min 2ms, P50 5ms, P95 3.3s during replay)
+
+**Results:**
+- Upload flow: presign PUT → MinIO upload → day index fetch working end-to-end
+- WS resilience: 4-second disconnect handled, 4 events queued and replayed successfully
+- Latency metrics: P50 5ms, P95 3.3s (during queue replay)
+
+Exit: ✅ Discovery payloads accurate, reconnection stable, metrics recorded in `/REPORTS/A1.2/`.
 
 ### A1.3 - WS End-to-End + Gallery
 
@@ -315,11 +322,10 @@ Limit to read-only audit; no code changes.
 
 ## 9. Immediate Focus Recap
 
-1. Finish A1.1 checklist and stash artifacts.  
-2. Run OTA A/B smoke (A0.4) and capture required logs.  
-3. Complete Mini HTTPS uploader + ESP32 WS telemetry loop.  
-4. Spin up reporting scripts (latency, upload success, power, WS metrics).  
-5. Prepare for B-series provisioning/dashboard work once A1.x phases are green.
+1. Wire `event.upload_status` through ws-relay and capture dual-client logs (A1.3).  
+2. Stand up LOCAL gallery build (Save to Photos, badges, success tile) per A1.3 deliverables.  
+3. Extend reporting scripts for soak metrics ahead of A1.4 (latency, upload success, power, WS reconnect).  
+4. Stage reliability/fault-injection scenarios for A1.4 (retry queue metrics, MinIO lifecycle sanity).  
+5. Outline B-series provisioning/dashboard polish once A1.x gates remain green.
 
 Stay aligned with this playbook; update sections as phases advance.
-

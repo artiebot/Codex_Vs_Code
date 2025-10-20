@@ -1,0 +1,63 @@
+# A1.2 Device Upload Validation
+
+Start: 2025-10-19T18:33:20.1535470-07:00
+
+
+## docker compose ps
+
+NAME                    IMAGE                COMMAND                  SERVICE       CREATED       STATUS       PORTS
+skyfeeder-minio         minio/minio:latest   "/usr/bin/docker-ent???"   minio         7 hours ago   Up 7 hours   0.0.0.0:9200->9000/tcp, [::]:9200->9000/tcp, 0.0.0.0:9201->9001/tcp, [::]:9201->9001/tcp
+skyfeeder-ota-server    local-ota-server     "docker-entrypoint.s???"   ota-server    7 hours ago   Up 7 hours   0.0.0.0:9180->8090/tcp, [::]:9180->8090/tcp
+skyfeeder-presign-api   local-presign-api    "docker-entrypoint.s???"   presign-api   7 hours ago   Up 7 hours   0.0.0.0:8080->8080/tcp, [::]:8080->8080/tcp
+skyfeeder-ws-relay      local-ws-relay       "docker-entrypoint.s???"   ws-relay      7 hours ago   Up 7 hours   0.0.0.0:8081->8081/tcp, [::]:8081->8081/tcp
+
+## POST /v1/presign/put
+Payload:
+{
+    "contentType":  "image/jpeg",
+    "deviceId":  "dev1",
+    "kind":  "photos"
+}
+
+{
+    "uploadUrl":  "http://localhost:8080/fput/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkZXZpY2VJZCI6ImRldjEiLCJrZXkiOiJkZXYxLzIwMjUtMTAtMjBUMDEtMzMtNTEtMDQ3Wi1RV2M1ZFkuanBnIiwiY29udGVudFR5cGUiOiJpbWFnZS9qcGVnIiwia2luZCI6InBob3RvcyIsImlhdCI6MTc2MDkyNDAzMSwiZXhwIjoxNzYwOTI0OTMxfQ.Y_kJKhOE6TTB9F8OMXIGBdr_8IL-2XDLclcSFm46rYo",
+    "method":  "PUT",
+    "headers":  {
+                    "Content-Type":  "image/jpeg",
+                    "Authorization":  "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkZXZpY2VJZCI6ImRldjEiLCJrZXkiOiJkZXYxLzIwMjUtMTAtMjBUMDEtMzMtNTEtMDQ3Wi1RV2M1ZFkuanBnIiwiY29udGVudFR5cGUiOiJpbWFnZS9qcGVnIiwia2luZCI6InBob3RvcyIsImlhdCI6MTc2MDkyNDAzMSwiZXhwIjoxNzYwOTI0OTMxfQ.Y_kJKhOE6TTB9F8OMXIGBdr_8IL-2XDLclcSFm46rYo"
+                },
+    "key":  "dev1/2025-10-20T01-33-51-047Z-QWc5dY.jpg",
+    "expiresIn":  900
+}
+
+## PUT upload
+Target: 
+
+Upload completed at 2025-10-19T18:34:01.4976499-07:00
+
+## PUT upload
+Target: http://localhost:8080/fput/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkZXZpY2VJZCI6ImRldjEiLCJrZXkiOiJkZXYxLzIwMjUtMTAtMjBUMDEtMzMtNTEtMDQ3Wi1RV2M1ZFkuanBnIiwiY29udGVudFR5cGUiOiJpbWFnZS9qcGVnIiwia2luZCI6InBob3RvcyIsImlhdCI6MTc2MDkyNDAzMSwiZXhwIjoxNzYwOTI0OTMxfQ.Y_kJKhOE6TTB9F8OMXIGBdr_8IL-2XDLclcSFm46rYo
+
+Upload completed at 2025-10-19T18:34:16.3443701-07:00
+
+## Fetch day index
+URL: http://localhost:9200/photos/dev1/indices/day-2025-10-19.json
+
+
+Completed: 2025-10-19T18:34:26.3718084-07:00
+
+
+## GET presign for index
+URL: http://localhost:8080/v1/presign/get?deviceId=dev1&kind=photos&objectKey=dev1/indices/day-2025-10-19.json
+
+{
+    "downloadUrl":  "http://minio:9000/photos/dev1/indices/day-2025-10-19.json?X-Amz-Algorithm=AWS4-HMAC-SHA256\u0026X-Amz-Content-Sha256=UNSIGNED-PAYLOAD\u0026X-Amz-Credential=minioadmin%2F20251020%2Fus-east-1%2Fs3%2Faws4_request\u0026X-Amz-Date=20251020T013438Z\u0026X-Amz-Expires=900\u0026X-Amz-Signature=dcf2939de4e8d73a2f30a1b9bcd9678ee8eb6b1aaf4b8031bf96063da2a5c3b4\u0026X-Amz-SignedHeaders=host\u0026x-amz-checksum-mode=ENABLED\u0026x-id=GetObject",
+    "expiresIn":  900,
+    "key":  "dev1/indices/day-2025-10-19.json",
+    "kind":  "photos"
+}
+Saved index to REPORTS/A1.2/index.json
+Adjusted download URL: http://localhost:9200/photos/dev1/indices/day-2025-10-19.json?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=minioadmin%2F20251020%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20251020T013438Z&X-Amz-Expires=900&X-Amz-Signature=dcf2939de4e8d73a2f30a1b9bcd9678ee8eb6b1aaf4b8031bf96063da2a5c3b4&X-Amz-SignedHeaders=host&x-amz-checksum-mode=ENABLED&x-id=GetObject
+Saved index to REPORTS/A1.2/index.json
+Attempting docker exec cat /data/photos/dev1/indices/day-2025-10-19.json
+Fetched index via presigned URL with Host header

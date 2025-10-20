@@ -1,0 +1,88 @@
+{
+  "deviceId": "dev1",
+  "eventCount": 8,
+  "reconnectAttempts": 1,
+  "offlineWindows": [
+    {
+      "startTs": 1760924246683,
+      "endTs": 1760924250708,
+      "durationMs": 4025
+    }
+  ],
+  "events": [
+    {
+      "eventId": "evt-1760924244396-1",
+      "sentTs": 1760924244396,
+      "recvTs": 1760924244401,
+      "latencyMs": 5,
+      "attempt": 1,
+      "replay": false
+    },
+    {
+      "eventId": "evt-1760924245403-2",
+      "sentTs": 1760924245404,
+      "recvTs": 1760924245406,
+      "latencyMs": 2,
+      "attempt": 1,
+      "replay": false
+    },
+    {
+      "eventId": "evt-1760924246417-3",
+      "sentTs": 1760924246417,
+      "recvTs": 1760924246419,
+      "latencyMs": 2,
+      "attempt": 1,
+      "replay": false
+    },
+    {
+      "eventId": "evt-1760924247425-4",
+      "sentTs": 1760924247425,
+      "recvTs": 1760924250711,
+      "latencyMs": 3286,
+      "attempt": 2,
+      "replay": true
+    },
+    {
+      "eventId": "evt-1760924248436-5",
+      "sentTs": 1760924248436,
+      "recvTs": 1760924250711,
+      "latencyMs": 2275,
+      "attempt": 2,
+      "replay": true
+    },
+    {
+      "eventId": "evt-1760924249441-6",
+      "sentTs": 1760924249441,
+      "recvTs": 1760924250719,
+      "latencyMs": 1278,
+      "attempt": 2,
+      "replay": true
+    },
+    {
+      "eventId": "evt-1760924250452-7",
+      "sentTs": 1760924250452,
+      "recvTs": 1760924250754,
+      "latencyMs": 302,
+      "attempt": 2,
+      "replay": true
+    },
+    {
+      "eventId": "evt-1760924251460-8",
+      "sentTs": 1760924251460,
+      "recvTs": 1760924251462,
+      "latencyMs": 2,
+      "attempt": 1,
+      "replay": false
+    }
+  ],
+  "summary": {
+    "totalEvents": 8,
+    "queuedEvents": 4,
+    "latency": {
+      "min": 2,
+      "max": 3286,
+      "p50": 5,
+      "p95": 3286
+    }
+  }
+}

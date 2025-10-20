@@ -1,0 +1,30 @@
+2025-10-20T01:37:23.313Z Starting WebSocket resilience test...
+2025-10-20T01:37:23.406Z App socket connected.
+2025-10-20T01:37:23.409Z App received system message after connect.
+2025-10-20T01:37:23.411Z Device socket connected.
+2025-10-20T01:37:24.400Z Sent event evt-1760924244396-1 (attempt 1)
+2025-10-20T01:37:24.402Z App received evt-1760924244396-1 (latency 5.0 ms, attempt 1)
+2025-10-20T01:37:25.404Z Sent event evt-1760924245403-2 (attempt 1)
+2025-10-20T01:37:25.406Z App received evt-1760924245403-2 (latency 2.0 ms, attempt 1)
+2025-10-20T01:37:26.417Z Sent event evt-1760924246417-3 (attempt 1)
+2025-10-20T01:37:26.419Z App received evt-1760924246417-3 (latency 2.0 ms, attempt 1)
+2025-10-20T01:37:26.683Z Simulating transport drop for device connection...
+2025-10-20T01:37:26.689Z Device socket closed (code=4000 reason=simulated-drop)
+2025-10-20T01:37:27.425Z Device offline, queued event evt-1760924247425-4
+2025-10-20T01:37:28.436Z Device offline, queued event evt-1760924248436-5
+2025-10-20T01:37:29.441Z Device offline, queued event evt-1760924249441-6
+2025-10-20T01:37:30.452Z Device offline, queued event evt-1760924250452-7
+2025-10-20T01:37:30.700Z Attempting device reconnect...
+2025-10-20T01:37:30.708Z Device socket connected.
+2025-10-20T01:37:30.708Z Offline window duration 4025 ms
+2025-10-20T01:37:30.708Z Flushing 4 queued events after reconnect.
+2025-10-20T01:37:30.708Z Sent event evt-1760924247425-4 (attempt 2, replay)
+2025-10-20T01:37:30.709Z Sent event evt-1760924248436-5 (attempt 2, replay)
+2025-10-20T01:37:30.709Z Sent event evt-1760924249441-6 (attempt 2, replay)
+2025-10-20T01:37:30.710Z Sent event evt-1760924250452-7 (attempt 2, replay)
+2025-10-20T01:37:30.711Z App received evt-1760924247425-4 (latency 3286.0 ms, attempt 2)
+2025-10-20T01:37:30.711Z App received evt-1760924248436-5 (latency 2275.0 ms, attempt 2)
+2025-10-20T01:37:30.719Z App received evt-1760924249441-6 (latency 1278.0 ms, attempt 2)
+2025-10-20T01:37:30.754Z App received evt-1760924250452-7 (latency 302.0 ms, attempt 2)
+2025-10-20T01:37:31.460Z Sent event evt-1760924251460-8 (attempt 1)
+2025-10-20T01:37:31.462Z App received evt-1760924251460-8 (latency 2.0 ms, attempt 1)
