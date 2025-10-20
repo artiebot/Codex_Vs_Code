@@ -18,6 +18,7 @@ import signal
 import sys
 import threading
 import time
+import uuid
 from collections import deque
 from datetime import datetime, timezone
 from typing import Any, Dict, Iterable, List, Optional, Tuple
@@ -86,6 +87,7 @@ def build_topics(device_id: str, include_logs: bool) -> Dict[str, str]:
         "discovery": f"{base}/discovery",
         "status": f"{base}/status",
         "telemetry": f"{base}/telemetry",
+        "upload_status": f"{base}/event/upload_status",
         "cmd": f"{base}/cmd",
         "ack": f"{base}/ack",
         "cmd_ota": f"{base}/cmd/ota",
@@ -105,6 +107,7 @@ def discovery_payload(device_id: str, services: Iterable[str], topics: Dict[str,
         "discovery": topics["discovery"],
         "status": topics["status"],
         "telemetry": topics["telemetry"],
+        "event_upload_status": topics["upload_status"],
         "cmd": topics["cmd"],
         "ack": topics["ack"],
         "cmd_ota": topics["cmd_ota"],
@@ -130,6 +133,7 @@ def discovery_payload(device_id: str, services: Iterable[str], topics: Dict[str,
             "ack": 1,
             "cmd_ota": 1,
             "event_ota": 0,
+            "event_upload_status": 0,
             **({"cmd_logs": 1, "event_log": 0} if include_logs else {}),
         },
         "ts": utc_now(),
@@ -178,6 +182,42 @@ def telemetry_payload(base_weight: float, rssi: int, seq: int) -> Dict[str, Any]
         "mqtt_retries": 0,
         "rssi": reported_rssi,
     }
+    return payload
+
+
+def upload_status_payload(
+    device_id: str,
+    event_id: str,
+    status: str,
+    *,
+    attempt: int,
+    object_key: Optional[str] = None,
+    progress_pct: Optional[float] = None,
+    bytes_sent: Optional[int] = None,
+    next_retry_sec: Optional[int] = None,
+    latency_ms: Optional[int] = None,
+    queued_ms: Optional[int] = None,
+) -> Dict[str, Any]:
+    payload: Dict[str, Any] = {
+        "schema": "v1",
+        "ts": utc_now(),
+        "device_id": device_id,
+        "event_id": event_id,
+        "status": status,
+        "attempt": attempt,
+    }
+    if object_key:
+        payload["object_key"] = object_key
+    if progress_pct is not None:
+        payload["progress_pct"] = round(progress_pct, 1)
+    if bytes_sent is not None:
+        payload["bytes_sent"] = int(bytes_sent)
+    if next_retry_sec is not None:
+        payload["next_retry_sec"] = next_retry_sec
+    if latency_ms is not None:
+        payload["latency_ms"] = latency_ms
+    if queued_ms is not None:
+        payload["queued_ms"] = queued_ms
     return payload
 
 
@@ -270,6 +310,68 @@ def publish_ota_event(
         print(f"[dry-run] OTA event -> {json.dumps(payload)}")
     else:
         publish_json(client, topics["event_ota"], payload, retain=False)
+
+
+def emit_upload_status_sequence(
+    client: mqtt.Client,
+    topics: Dict[str, str],
+    *,
+    device_id: str,
+    object_key: str,
+    total_bytes: int = 1_200_000,
+) -> None:
+    event_id = f"{device_id}-upload-{uuid.uuid4().hex[:8]}"
+    print(f"Simulating upload status for {event_id} -> {topics['upload_status']}")
+    stages = [
+        upload_status_payload(
+            device_id=device_id,
+            event_id=event_id,
+            status="queued",
+            attempt=1,
+            object_key=object_key,
+            queued_ms=int(time.monotonic() * 1000),
+        ),
+        upload_status_payload(
+            device_id=device_id,
+            event_id=event_id,
+            status="uploading",
+            attempt=1,
+            object_key=object_key,
+            progress_pct=38.0,
+            bytes_sent=int(total_bytes * 0.38),
+        ),
+        upload_status_payload(
+            device_id=device_id,
+            event_id=event_id,
+            status="retry_scheduled",
+            attempt=1,
+            object_key=object_key,
+            next_retry_sec=60,
+            bytes_sent=int(total_bytes * 0.38),
+        ),
+        upload_status_payload(
+            device_id=device_id,
+            event_id=event_id,
+            status="uploading",
+            attempt=2,
+            object_key=object_key,
+            progress_pct=78.0,
+            bytes_sent=int(total_bytes * 0.78),
+        ),
+        upload_status_payload(
+            device_id=device_id,
+            event_id=event_id,
+            status="success",
+            attempt=2,
+            object_key=object_key,
+            bytes_sent=total_bytes,
+            latency_ms=1850,
+        ),
+    ]
+    for stage in stages:
+        publish_json(client, topics["upload_status"], stage, retain=False)
+        print(f"  -> {stage['status']} (attempt {stage['attempt']})")
+        time.sleep(0.25)
 
 
 def handle_ota_command_with_payload(
@@ -553,6 +655,7 @@ def run(args: argparse.Namespace) -> None:
 
         tick = 0
         base_weight = args.base_weight
+        next_upload_ts = time.time() + args.upload_status_interval if args.upload_status_demo else float('inf')
         while running:
             payload = telemetry_payload(base_weight, args.rssi, tick)
             if args.dry_run:
@@ -562,6 +665,10 @@ def run(args: argparse.Namespace) -> None:
                 if tick % 4 == 0:
                     log_buffer.append("info", "telemetry", f"power={payload['power']['watts']}W weight={payload['weight_g']}g")
                 print(f"Telemetry {tick + 1} sent -> {topics['telemetry']}")
+                if args.upload_status_demo and time.time() >= next_upload_ts:
+                    demo_key = args.upload_object_key or f"{args.device_id}/uploads/demo-{int(time.time())}.jpg"
+                    emit_upload_status_sequence(client, topics, device_id=args.device_id, object_key=demo_key)
+                    next_upload_ts = time.time() + args.upload_status_interval
             tick += 1
             time.sleep(args.interval)
     except KeyboardInterrupt:
@@ -585,6 +692,9 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--base-weight", type=float, default=1234.0, help="Base weight in grams for telemetry")
     parser.add_argument("--rssi", type=int, default=-62, help="RSSI value to report")
     parser.add_argument("--services", default=None, help="Comma-separated services to advertise (e.g. logs,telemetry)")
+    parser.add_argument("--upload-status-demo", action="store_true", help="Emit event.upload_status sequence periodically")
+    parser.add_argument("--upload-status-interval", type=int, default=45, help="Seconds between upload status demos")
+    parser.add_argument("--upload-object-key", default=None, help="Object key to reference in upload_status demo")
     parser.add_argument("--enable-logs", action="store_true", help="Ensure logging service is advertised")
     parser.add_argument("--dry-run", action="store_true", help="Print payloads instead of publishing")
     return parser.parse_args()
