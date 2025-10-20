@@ -1,0 +1,1 @@
+Verifying OTA upgrade success... sleep 5 curl -s http://localhost:9180/v1/ota/status cat REPORTS/A0.4/ota_status_after_b.json

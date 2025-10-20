@@ -9,7 +9,7 @@
 #define MQTT_DEFAULT_PORT  1883
 #define MQTT_DEFAULT_USER  "dev1"
 #define MQTT_DEFAULT_PASS  "dev1pass"
-#define DEVICE_ID_DEFAULT  "sf-mock01"
+#define DEVICE_ID_DEFAULT  "dev1"
 
 // --- Lighting & UX ---
 #define LED_PIN 2
@@ -56,9 +56,32 @@
 #define PROVISION_HOLD_MS    4000
 
 // --- Visit detection ---
-#define VISIT_WEIGHT_THRESHOLD_G 25.0f
-#define VISIT_MOTION_WINDOW_MS   2000
-#define VISIT_IDLE_TIMEOUT_MS    5000
+#define VISIT_EMA_ALPHA                0.15f
+#define VISIT_BASELINE_ALPHA           0.001f
+#define VISIT_BASELINE_EPS_G           2.0f
+#define VISIT_BASELINE_STABLE_MS       3000
+#define VISIT_STABLE_WINDOW_MS         150
+#define VISIT_STABLE_SPREAD_G          1.0f
+#define VISIT_ENTER_DELTA_G            12.0f
+#define VISIT_ENTER_DURATION_MS        200
+#define VISIT_EXIT_DELTA_G             6.0f
+#define VISIT_EXIT_DURATION_MS         500
+#define VISIT_MAX_DURATION_MS          30000
+
+#define PIR_EVENT_MAX_WEIGHT_DELTA_G   250.0f
+#define PIR_EVENT_EVAL_DELAY_MS        500
+#define PIR_EVENT_COOLDOWN_MS          10000
+#define PIR_EVENT_SNAPSHOT_COUNT       10
+#define PIR_EVENT_VIDEO_SECONDS        5
+
+#define MINI_BOOT_TIMEOUT_MS           3000
+#define MINI_READY_TIMEOUT_MS          12000
+#define MINI_READY_SETTLE_MS           1000
+
+// Legacy aliases (temporary)
+#define VISIT_WEIGHT_THRESHOLD_G VISIT_ENTER_DELTA_G
+#define VISIT_MOTION_WINDOW_MS   VISIT_ENTER_DURATION_MS
+#define VISIT_IDLE_TIMEOUT_MS    VISIT_MAX_DURATION_MS
 
 // --- Power model ---
 #define SERIES_CELLS 1
@@ -80,5 +103,7 @@
 #ifndef CELL_COUNT
 #define CELL_COUNT SERIES_CELLS
 #endif
+
+
 
 

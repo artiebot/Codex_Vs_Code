@@ -1,0 +1,15 @@
+{
+    "ok":  true,
+    "firmwareStatus":  [
+                           [
+                               "dev1",
+                               {
+                                   "version":  "1.4.0",
+                                   "slot":  null,
+                                   "bootCount":  1,
+                                   "status":  "boot",
+                                   "updatedTs":  1760901798193
+                               }
+                           ]
+                       ]
+}

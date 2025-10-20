@@ -1,0 +1,1 @@
+Device is running v1.4.2 (confirmed via serial) echo Waiting 30 seconds for OTA heartbeat... sleep 30 curl -s http://localhost:9180/v1/ota/status

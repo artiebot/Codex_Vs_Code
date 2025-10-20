@@ -1,0 +1,109 @@
+2025-10-19T22:54:06Z ets Jul 29 2019 12:21:46
+2025-10-19T22:54:06Z 
+2025-10-19T22:54:06Z rst:0x1 (POWERON_RESET),boot:0x13 (SPI_FAST_FLASH_BOOT)
+2025-10-19T22:54:06Z configsip: 0, SPIWP:0xee
+2025-10-19T22:54:06Z clk_drv:0x00,q_drv:0x00,d_drv:0x00,cs0_drv:0x00,hd_drv:0x00,wp_drv:0x00
+2025-10-19T22:54:06Z mode:DIO, clock div:1
+2025-10-19T22:54:06Z load:0x3fff0030,len:4980
+2025-10-19T22:54:06Z load:0x40078000,len:16612
+2025-10-19T22:54:06Z load:0x40080400,len:3480
+2025-10-19T22:54:07Z entry 0x400805b4
+2025-10-19T22:54:07Z 
+2025-10-19T22:54:07Z === SKYFEEDER BOOT DEBUG ===
+2025-10-19T22:54:07Z setup() reached!
+2025-10-19T22:54:07Z Free heap: 250288
+2025-10-19T22:54:07Z CPU Freq: 240
+2025-10-19T22:54:07Z Initializing logging...
+2025-10-19T22:54:07Z Logging initialized!
+2025-10-19T22:54:07Z Initializing OTA Manager...
+2025-10-19T22:54:07Z OTA Manager initialized!
+2025-10-19T22:54:07Z Initializing Boot Health...
+2025-10-19T22:54:07Z Boot Health initialized!
+2025-10-19T22:54:07Z Initializing LED services...
+2025-10-19T22:54:07Z LED services initialized!
+2025-10-19T22:54:07Z Initializing power manager...
+2025-10-19T22:54:07Z Power manager initialized!
+2025-10-19T22:54:07Z Initializing weight service...
+2025-10-19T22:54:07Z Weight service initialized!
+2025-10-19T22:54:07Z Initializing motion service...
+2025-10-19T22:54:07Z Motion service initialized!
+2025-10-19T22:54:07Z Initializing visit service...
+2025-10-19T22:54:07Z Visit service initialized!
+2025-10-19T22:54:07Z Initializing AMB mini link...
+2025-10-19T22:54:07Z [mini] >> {"op":"status"}
+2025-10-19T22:54:07Z Requested initial Mini status
+2025-10-19T22:54:07Z AMB mini link initialized!
+2025-10-19T22:54:07Z Initializing camera service...
+2025-10-19T22:54:07Z Camera service initialized!
+2025-10-19T22:54:07Z Configuring OTA service...
+2025-10-19T22:54:07Z OTA service configured!
+2025-10-19T22:54:07Z Initializing provisioning...
+2025-10-19T22:54:07Z Provisioning initialized!
+2025-10-19T22:54:07Z Provisioning ready - starting MQTT...
+2025-10-19T22:54:09Z DEBUG: OTA Service subscribing to: skyfeeder/dev1/cmd/ota
+2025-10-19T22:54:09Z DEBUG: Subscription result: SUCCESS
+2025-10-19T22:54:09Z DEBUG: publishDiscovery called
+2025-10-19T22:54:09Z DEBUG: Publishing discovery...
+2025-10-19T22:54:09Z DEBUG: Publishing discovery to topic: skyfeeder/dev1/discovery
+2025-10-19T22:54:09Z DEBUG: Discovery payload: {"device_id":"dev1","fw_version":"1.4.0","step":"sf_step15D_ota_safe_staging","camera_state":"","camera_settled":false,"services":["weight","motion","visit","led","camera","logs","ota","health"],"topics":{"status":"skyfeeder/dev1/status","ack":"skyfeeder/dev1/ack","telemetry":"skyfeeder/dev1/telemetry","cmd":"skyfeeder/dev1/cmd/#","cmd_logs":"skyfeeder/dev1/cmd/logs","cmd_ota":"skyfeeder/dev1/cmd/ota","event_visit":"skyfeeder/dev1/event/visit","event_snapshot":"skyfeeder/dev1/event/camera/snapshot","event_log":"skyfeeder/dev1/event/log","event_ota":"skyfeeder/dev1/event/ota"}}
+2025-10-19T22:54:09Z DEBUG: Discovery publish result: SUCCESS
+2025-10-19T22:54:09Z MQTT initialized!
+2025-10-19T22:54:09Z Starting telemetry...
+2025-10-19T22:54:09Z Telemetry started!
+2025-10-19T22:54:09Z MQTT services started!
+2025-10-19T22:54:09Z === SETUP COMPLETE ===
+2025-10-19T22:54:17Z DEBUG: Loop running, MQTT active
+2025-10-19T22:54:17Z WiFi connected: YES
+2025-10-19T22:54:17Z MQTT connected: YES
+2025-10-19T22:54:27Z DEBUG: Loop running, MQTT active
+2025-10-19T22:54:27Z WiFi connected: YES
+2025-10-19T22:54:27Z MQTT connected: YES
+2025-10-19T22:54:30Z DEBUG: Received OTA payload (165 bytes): {url:http://localhost:9180/fw/1.4.2/skyfeeder.ino.bin,staged:true,version:1.4.2,size:1226432,sha256:1bd9989ceca10a034499e7e3db5b281f2959c219dc6fed30b8bae0598b43b854}
+2025-10-19T22:54:30Z DEBUG: JSON parse error: InvalidInput
+2025-10-19T22:54:37Z DEBUG: Loop running, MQTT active
+2025-10-19T22:54:37Z WiFi connected: YES
+2025-10-19T22:54:37Z MQTT connected: YES
+2025-10-19T22:54:47Z DEBUG: Loop running, MQTT active
+2025-10-19T22:54:47Z WiFi connected: YES
+2025-10-19T22:54:47Z MQTT connected: YES
+2025-10-19T22:54:57Z DEBUG: Loop running, MQTT active
+2025-10-19T22:54:57Z WiFi connected: YES
+2025-10-19T22:54:57Z MQTT connected: YES
+2025-10-19T22:55:07Z DEBUG: Loop running, MQTT active
+2025-10-19T22:55:07Z WiFi connected: YES
+2025-10-19T22:55:07Z MQTT connected: YES
+2025-10-19T22:55:17Z DEBUG: Loop running, MQTT active
+2025-10-19T22:55:17Z WiFi connected: YES
+2025-10-19T22:55:17Z MQTT connected: YES
+2025-10-19T22:55:27Z DEBUG: Loop running, MQTT active
+2025-10-19T22:55:27Z WiFi connected: YES
+2025-10-19T22:55:27Z MQTT connected: YES
+2025-10-19T22:55:37Z DEBUG: Loop running, MQTT active
+2025-10-19T22:55:37Z WiFi connected: YES
+2025-10-19T22:55:37Z MQTT connected: YES
+2025-10-19T22:55:47Z DEBUG: Loop running, MQTT active
+2025-10-19T22:55:47Z WiFi connected: YES
+2025-10-19T22:55:47Z MQTT connected: YES
+2025-10-19T22:55:57Z DEBUG: Loop running, MQTT active
+2025-10-19T22:55:57Z WiFi connected: YES
+2025-10-19T22:55:57Z MQTT connected: YES
+2025-10-19T22:56:07Z DEBUG: Received OTA payload (165 bytes): {url:http://localhost:9180/fw/1.4.2/skyfeeder.ino.bin,version:1.4.2,size:1226432,sha256:1bd9989ceca10a034499e7e3db5b281f2959c219dc6fed30b8bae0598b43b854,staged:true}
+2025-10-19T22:56:07Z DEBUG: JSON parse error: InvalidInput
+2025-10-19T22:56:07Z DEBUG: Loop running, MQTT active
+2025-10-19T22:56:07Z WiFi connected: YES
+2025-10-19T22:56:07Z MQTT connected: YES
+2025-10-19T22:56:17Z DEBUG: Loop running, MQTT active
+2025-10-19T22:56:17Z WiFi connected: YES
+2025-10-19T22:56:17Z MQTT connected: YES
+2025-10-19T22:56:27Z DEBUG: Loop running, MQTT active
+2025-10-19T22:56:27Z WiFi connected: YES
+2025-10-19T22:56:27Z MQTT connected: YES
+2025-10-19T22:56:37Z DEBUG: Loop running, MQTT active
+2025-10-19T22:56:37Z WiFi connected: YES
+2025-10-19T22:56:37Z MQTT connected: YES
+2025-10-19T22:56:47Z DEBUG: Loop running, MQTT active
+2025-10-19T22:56:47Z WiFi connected: YES
+2025-10-19T22:56:47Z MQTT connected: YES
+2025-10-19T22:56:57Z DEBUG: Loop running, MQTT active
+2025-10-19T22:56:57Z WiFi connected: YES
+2025-10-19T22:56:57Z MQTT connected: YES

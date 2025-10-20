@@ -1,0 +1,11 @@
+skyfeeder/dev1/event/ota {"schema":"v1","state":"download_started","version":"1.4.2"}
+skyfeeder/dev1/event/ota {"status":"downloading","version":"1.4.2","progress":0,"bytes":2048,"total":1226432}
+skyfeeder/dev1/event/ota {"status":"downloading","version":"1.4.2","progress":20,"bytes":245845,"total":1226432}
+skyfeeder/dev1/event/ota {"status":"downloading","version":"1.4.2","progress":39,"bytes":487917,"total":1226432}
+skyfeeder/dev1/event/ota {"status":"downloading","version":"1.4.2","progress":60,"bytes":742089,"total":1226432}
+skyfeeder/dev1/event/ota {"status":"downloading","version":"1.4.2","progress":78,"bytes":961585,"total":1226432}
+skyfeeder/dev1/event/ota {"status":"downloading","version":"1.4.2","progress":97,"bytes":1200973,"total":1226432}
+skyfeeder/dev1/event/ota {"schema":"v1","state":"download_ok","version":"1.4.2"}
+skyfeeder/dev1/event/ota {"schema":"v1","state":"verify_ok","version":"1.4.2"}
+skyfeeder/dev1/event/ota {"schema":"v1","state":"apply_pending","version":"1.4.2"}
+Checking for 'applied' event... mosquitto_sub -h localhost -p 1883 -u dev1 -P dev1pass -t skyfeeder/dev1/event/ota -v -W 45

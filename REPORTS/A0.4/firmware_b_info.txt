@@ -1,0 +1,4 @@
+version=1.4.2
+file=ops/local/ota-server/public/fw/1.4.2/skyfeeder.ino.bin
+size=1226432
+sha256=1bd9989ceca10a034499e7e3db5b281f2959c219dc6fed30b8bae0598b43b854

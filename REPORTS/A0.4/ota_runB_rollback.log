@@ -1,0 +1,10 @@
+skyfeeder/dev1/event/ota {"schema":"v1","state":"download_started","version":"1.4.3"}
+skyfeeder/dev1/event/ota {"status":"downloading","version":"1.4.3","progress":0,"bytes":2048,"total":1226432}
+skyfeeder/dev1/event/ota {"status":"downloading","version":"1.4.3","progress":19,"bytes":239489,"total":1226432}
+skyfeeder/dev1/event/ota {"status":"downloading","version":"1.4.3","progress":37,"bytes":454677,"total":1226432}
+skyfeeder/dev1/event/ota {"status":"downloading","version":"1.4.3","progress":40,"bytes":495709,"total":1226432}
+skyfeeder/dev1/event/ota {"status":"downloading","version":"1.4.3","progress":51,"bytes":631517,"total":1226432}
+skyfeeder/dev1/event/ota {"status":"downloading","version":"1.4.3","progress":69,"bytes":857581,"total":1226432}
+skyfeeder/dev1/event/ota {"status":"downloading","version":"1.4.3","progress":91,"bytes":1118933,"total":1226432}
+skyfeeder/dev1/event/ota {"schema":"v1","state":"error","version":"1.4.3","reason":"sha256_mismatch"}
+skyfeeder/dev1/event/ota {"schema":"v1","state":"error","reason":"sha256_mismatch"}
