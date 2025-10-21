@@ -234,17 +234,17 @@ try {
     # Generate summary report
     $ReportPath = Join-Path $OutputDir "SOAK_TEST_REPORT.md"
 
-    $TableHeader = "| Metric | Count |"
-    $TableSeparator = "|--------|-------|"
-    $TableRow1 = "| MQTT Messages | $($Script:Counters.MqttMessages) |"
-    $TableRow2 = "| Total Uploads | $($Script:Counters.Uploads) |"
-    $TableRow3 = "| Upload Successes | $($Script:Counters.UploadSuccesses) |"
-    $TableRow4 = "| Upload Failures | $($Script:Counters.UploadFailures) |"
-    $TableRow5 = "| WebSocket Connections | $($Script:Counters.WsConnections) |"
-    $TableRow6 = "| OTA Heartbeats | $($Script:Counters.OtaHeartbeats) |"
-    $TableRow7 = "| Snapshot Events | $($Script:Counters.Snapshots) |"
-    $TableRow8 = "| Boot Events | $($Script:Counters.BootEvents) |"
-    $TableRow9 = "| Errors | $($Script:Counters.Errors) |"
+    $TableHeader = '| Metric | Count |'
+    $TableSeparator = '|--------|-------|'
+    $TableRow1 = "| MQTT Messages | " + $Script:Counters.MqttMessages + " |"
+    $TableRow2 = "| Total Uploads | " + $Script:Counters.Uploads + " |"
+    $TableRow3 = "| Upload Successes | " + $Script:Counters.UploadSuccesses + " |"
+    $TableRow4 = "| Upload Failures | " + $Script:Counters.UploadFailures + " |"
+    $TableRow5 = "| WebSocket Connections | " + $Script:Counters.WsConnections + " |"
+    $TableRow6 = "| OTA Heartbeats | " + $Script:Counters.OtaHeartbeats + " |"
+    $TableRow7 = "| Snapshot Events | " + $Script:Counters.Snapshots + " |"
+    $TableRow8 = "| Boot Events | " + $Script:Counters.BootEvents + " |"
+    $TableRow9 = "| Errors | " + $Script:Counters.Errors + " |"
 
     if ($Script:Counters.Uploads -gt 0) {
         $SuccessRate = [math]::Round(($Script:Counters.UploadSuccesses / $Script:Counters.Uploads) * 100, 2)
