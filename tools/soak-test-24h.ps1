@@ -234,73 +234,60 @@ try {
     # Generate summary report
     $ReportPath = Join-Path $OutputDir "SOAK_TEST_REPORT.md"
 
-    $TableHeader = '| Metric | Count |'
-    $TableSeparator = '|--------|-------|'
-    $TableRow1 = "| MQTT Messages | " + $Script:Counters.MqttMessages + " |"
-    $TableRow2 = "| Total Uploads | " + $Script:Counters.Uploads + " |"
-    $TableRow3 = "| Upload Successes | " + $Script:Counters.UploadSuccesses + " |"
-    $TableRow4 = "| Upload Failures | " + $Script:Counters.UploadFailures + " |"
-    $TableRow5 = "| WebSocket Connections | " + $Script:Counters.WsConnections + " |"
-    $TableRow6 = "| OTA Heartbeats | " + $Script:Counters.OtaHeartbeats + " |"
-    $TableRow7 = "| Snapshot Events | " + $Script:Counters.Snapshots + " |"
-    $TableRow8 = "| Boot Events | " + $Script:Counters.BootEvents + " |"
-    $TableRow9 = "| Errors | " + $Script:Counters.Errors + " |"
+    # Build report content directly to avoid pipe parsing issues
+    $sb = New-Object System.Text.StringBuilder
+    [void]$sb.AppendLine("# SkyFeeder 24-Hour Soak Test Report")
+    [void]$sb.AppendLine("")
+    [void]$sb.AppendLine("**Test Date:** $StartTime to $(Get-Date)")
+    [void]$sb.AppendLine("**Device ID:** $DeviceId")
+    [void]$sb.AppendLine("**Duration:** $DurationHours hours")
+    [void]$sb.AppendLine("")
+    [void]$sb.AppendLine("## Summary Metrics")
+    [void]$sb.AppendLine("")
+    [void]$sb.AppendLine("| Metric | Count |")
+    [void]$sb.AppendLine("|--------|-------|")
+    [void]$sb.AppendLine("| MQTT Messages | $($Script:Counters.MqttMessages) |")
+    [void]$sb.AppendLine("| Total Uploads | $($Script:Counters.Uploads) |")
+    [void]$sb.AppendLine("| Upload Successes | $($Script:Counters.UploadSuccesses) |")
+    [void]$sb.AppendLine("| Upload Failures | $($Script:Counters.UploadFailures) |")
+    [void]$sb.AppendLine("| WebSocket Connections | $($Script:Counters.WsConnections) |")
+    [void]$sb.AppendLine("| OTA Heartbeats | $($Script:Counters.OtaHeartbeats) |")
+    [void]$sb.AppendLine("| Snapshot Events | $($Script:Counters.Snapshots) |")
+    [void]$sb.AppendLine("| Boot Events | $($Script:Counters.BootEvents) |")
+    [void]$sb.AppendLine("| Errors | $($Script:Counters.Errors) |")
+    [void]$sb.AppendLine("")
+    [void]$sb.AppendLine("## Success Rate")
+    [void]$sb.AppendLine("")
 
     if ($Script:Counters.Uploads -gt 0) {
         $SuccessRate = [math]::Round(($Script:Counters.UploadSuccesses / $Script:Counters.Uploads) * 100, 2)
-        $SuccessRateText = "**$SuccessRate%** ($($Script:Counters.UploadSuccesses)/$($Script:Counters.Uploads) successful uploads)"
+        [void]$sb.AppendLine("**$SuccessRate%** ($($Script:Counters.UploadSuccesses)/$($Script:Counters.Uploads) successful uploads)")
     } else {
-        $SuccessRateText = "⚠️ **No uploads detected during test period**"
+        [void]$sb.AppendLine("⚠️ **No uploads detected during test period**")
     }
+
+    [void]$sb.AppendLine("")
+    [void]$sb.AppendLine("## Artifacts")
+    [void]$sb.AppendLine("")
+    [void]$sb.AppendLine("- MQTT Events: ``$MqttLog``")
+    [void]$sb.AppendLine("- Uploads Log: ``$UploadLog``")
+    [void]$sb.AppendLine("- WebSocket Metrics: ``$WsMetricsLog``")
+    [void]$sb.AppendLine("- OTA Heartbeats: ``$OtaHeartbeatsLog``")
+    [void]$sb.AppendLine("- Summary Log: ``$SummaryLog``")
+    [void]$sb.AppendLine("- Error Log: ``$ErrorLog``")
+    [void]$sb.AppendLine("")
+    [void]$sb.AppendLine("## Test Status")
+    [void]$sb.AppendLine("")
 
     if ($Script:Counters.Uploads -gt 0 -and ($Script:Counters.UploadSuccesses / $Script:Counters.Uploads) -ge 0.85) {
-        $TestStatus = "✅ **PASS** - Success rate >= 85% target"
+        [void]$sb.AppendLine("✅ **PASS** - Success rate >= 85% target")
     } elseif ($Script:Counters.Uploads -gt 0) {
-        $TestStatus = "❌ **FAIL** - Success rate below 85% target"
+        [void]$sb.AppendLine("❌ **FAIL** - Success rate below 85% target")
     } else {
-        $TestStatus = "⚠️ **INCOMPLETE** - Device did not come online during test period"
+        [void]$sb.AppendLine("⚠️ **INCOMPLETE** - Device did not come online during test period")
     }
 
-    $ReportContent = @"
-# SkyFeeder 24-Hour Soak Test Report
-
-**Test Date:** $StartTime to $(Get-Date)
-**Device ID:** $DeviceId
-**Duration:** $DurationHours hours
-
-## Summary Metrics
-
-$TableHeader
-$TableSeparator
-$TableRow1
-$TableRow2
-$TableRow3
-$TableRow4
-$TableRow5
-$TableRow6
-$TableRow7
-$TableRow8
-$TableRow9
-
-## Success Rate
-
-$SuccessRateText
-
-## Artifacts
-
-- MQTT Events: ``$MqttLog``
-- Uploads Log: ``$UploadLog``
-- WebSocket Metrics: ``$WsMetricsLog``
-- OTA Heartbeats: ``$OtaHeartbeatsLog``
-- Summary Log: ``$SummaryLog``
-- Error Log: ``$ErrorLog``
-
-## Test Status
-
-$TestStatus
-"@
-
-    $ReportContent | Out-File -FilePath $ReportPath -Encoding UTF8
+    $sb.ToString() | Out-File -FilePath $ReportPath -Encoding UTF8
 
     Write-Summary "Report saved to: $ReportPath"
 }
