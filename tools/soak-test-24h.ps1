@@ -233,7 +233,35 @@ try {
 
     # Generate summary report
     $ReportPath = Join-Path $OutputDir "SOAK_TEST_REPORT.md"
-    @"
+
+    $TableHeader = "| Metric | Count |"
+    $TableSeparator = "|--------|-------|"
+    $TableRow1 = "| MQTT Messages | $($Script:Counters.MqttMessages) |"
+    $TableRow2 = "| Total Uploads | $($Script:Counters.Uploads) |"
+    $TableRow3 = "| Upload Successes | $($Script:Counters.UploadSuccesses) |"
+    $TableRow4 = "| Upload Failures | $($Script:Counters.UploadFailures) |"
+    $TableRow5 = "| WebSocket Connections | $($Script:Counters.WsConnections) |"
+    $TableRow6 = "| OTA Heartbeats | $($Script:Counters.OtaHeartbeats) |"
+    $TableRow7 = "| Snapshot Events | $($Script:Counters.Snapshots) |"
+    $TableRow8 = "| Boot Events | $($Script:Counters.BootEvents) |"
+    $TableRow9 = "| Errors | $($Script:Counters.Errors) |"
+
+    if ($Script:Counters.Uploads -gt 0) {
+        $SuccessRate = [math]::Round(($Script:Counters.UploadSuccesses / $Script:Counters.Uploads) * 100, 2)
+        $SuccessRateText = "**$SuccessRate%** ($($Script:Counters.UploadSuccesses)/$($Script:Counters.Uploads) successful uploads)"
+    } else {
+        $SuccessRateText = "⚠️ **No uploads detected during test period**"
+    }
+
+    if ($Script:Counters.Uploads -gt 0 -and ($Script:Counters.UploadSuccesses / $Script:Counters.Uploads) -ge 0.85) {
+        $TestStatus = "✅ **PASS** - Success rate >= 85% target"
+    } elseif ($Script:Counters.Uploads -gt 0) {
+        $TestStatus = "❌ **FAIL** - Success rate below 85% target"
+    } else {
+        $TestStatus = "⚠️ **INCOMPLETE** - Device did not come online during test period"
+    }
+
+    $ReportContent = @"
 # SkyFeeder 24-Hour Soak Test Report
 
 **Test Date:** $StartTime to $(Get-Date)
@@ -242,26 +270,21 @@ try {
 
 ## Summary Metrics
 
-| Metric | Count |
-|--------|-------|
-| MQTT Messages | $($Script:Counters.MqttMessages) |
-| Total Uploads | $($Script:Counters.Uploads) |
-| Upload Successes | $($Script:Counters.UploadSuccesses) |
-| Upload Failures | $($Script:Counters.UploadFailures) |
-| WebSocket Connections | $($Script:Counters.WsConnections) |
-| OTA Heartbeats | $($Script:Counters.OtaHeartbeats) |
-| Snapshot Events | $($Script:Counters.Snapshots) |
-| Boot Events | $($Script:Counters.BootEvents) |
-| Errors | $($Script:Counters.Errors) |
+$TableHeader
+$TableSeparator
+$TableRow1
+$TableRow2
+$TableRow3
+$TableRow4
+$TableRow5
+$TableRow6
+$TableRow7
+$TableRow8
+$TableRow9
 
 ## Success Rate
 
-$(if ($Script:Counters.Uploads -gt 0) {
-    $SuccessRate = [math]::Round(($Script:Counters.UploadSuccesses / $Script:Counters.Uploads) * 100, 2)
-    "**$SuccessRate%** ($($Script:Counters.UploadSuccesses)/$($Script:Counters.Uploads) successful uploads)"
-} else {
-    "⚠️ **No uploads detected during test period**"
-})
+$SuccessRateText
 
 ## Artifacts
 
@@ -274,14 +297,10 @@ $(if ($Script:Counters.Uploads -gt 0) {
 
 ## Test Status
 
-$(if ($Script:Counters.Uploads -gt 0 -and ($Script:Counters.UploadSuccesses / $Script:Counters.Uploads) -ge 0.85) {
-    "✅ **PASS** - Success rate >= 85% target"
-} elseif ($Script:Counters.Uploads -gt 0) {
-    "❌ **FAIL** - Success rate below 85% target"
-} else {
-    "⚠️ **INCOMPLETE** - Device did not come online during test period"
-})
-"@ | Out-File -FilePath $ReportPath -Encoding UTF8
+$TestStatus
+"@
+
+    $ReportContent | Out-File -FilePath $ReportPath -Encoding UTF8
 
     Write-Summary "Report saved to: $ReportPath"
 }
