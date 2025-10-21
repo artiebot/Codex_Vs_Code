@@ -12,7 +12,7 @@ _Last updated: 2025-10-20_
 - Storage: MinIO buckets `photos/<deviceId>/...` (30-day retention + day indices) and `clips/<deviceId>/...` (1-day retention). Day index JSON files live inside `photos/<deviceId>/indices/`.
 - OTA: ESP32/Mini fetch firmware from `OTA_BASE` (`http://<LAN-IP>:9180/fw/...`), verify sha256/signature, and roll back on failed boots.
 - Auth: Local stack trusts any deviceId (dev-only). Real JWT validation begins at Cloud gate CF-1.
-- Active focus: **A1.4 - Reliability & Power (Owner: Codex)** after A1.3 upload-status validation.
+- Active focus: **B1 - Provisioning polish (Owner: Codex)** after A1.x local stack completion.
 
 ### Phase Status
 
@@ -24,7 +24,7 @@ _Last updated: 2025-10-20_
 | **A1.1** | [x] complete | Codex | Local stack validation + artifact capture. |
 | A1.2 | [x] complete | Codex | Discovery v0.2 + WS resilience validated with queue/replay metrics. |
 | A1.3 | [x] complete | Codex | WS upload-status broadcast + LOCAL gallery documentation. |
-| A1.4 | [ ] pending | Codex | Reliability & power soak (local stack). |
+| A1.4 | [x] complete | Codex | Fault injection + reliability artifacts ready; power soak TODO noted. |
 | B-series | [ ] planned | Codex | App “Button-Up” milestones (B1-B6). |
 | A2 | [ ] planned | Codex | Field application pilot (1-3 units). |
 | C-series | [ ] planned | Codex | Post-deployment ops outline. |
@@ -67,6 +67,23 @@ The following validation items were skipped during simulation/software-only test
 **Required for:** Field deployment readiness, power budget validation
 **Artifacts expected:** `REPORTS/A1.4/power.csv` (INA260 measurements), `REPORTS/A1.4/power_summary.md` (analysis)
 **Status:** Simulation testing proves retry logic works correctly; hardware validation needed for production readiness
+
+---
+
+### B1 - Provisioning Polish Validation (Pending Manual Testing)
+**What was validated:** Code implementation complete, LED state machine verified in firmware, triple power-cycle counter in NVS
+**What was NOT validated:**
+- [ ] Triple power-cycle triggers captive portal automatically
+- [ ] LED transitions: amber (portal) → blue (Wi-Fi connecting) → green (online)
+- [ ] Captive portal accessible via SkyFeeder-Setup AP
+- [ ] Wi-Fi + MQTT credentials save and persist across reboots
+- [ ] LED returns to AUTO mode after ~2 minutes of stable connectivity
+- [ ] Power-cycle counter clears after stability period
+- [ ] Provisioning demo video recorded
+
+**Required for:** Operator training, field deployment UX validation
+**Artifacts expected:** `REPORTS/B1/provisioning_demo.mp4` (video of full provisioning flow with LED transitions)
+**Status:** Firmware implementation complete; manual hardware testing and video recording needed
 
 ---
 
@@ -285,6 +302,8 @@ Exit: ✅ Fault injection and retry logic validated via simulation; hardware soa
 
 ## 3. B-Series - App “Button-Up” (Owner: Codex)
 
+**Current focus: B1 – Provisioning polish**
+
 ### B1 - Provisioning polish
 
 - Implement AP + captive portal when no Wi-Fi; triple power-cycle re-enters AP.
@@ -388,10 +407,10 @@ Limit to read-only audit; no code changes.
 
 ## 9. Immediate Focus Recap
 
-1. Prepare reliability/fault-injection scenarios for A1.4 (retry queue metrics, MinIO lifecycle sanity).  
-2. Extend reporting scripts for soak metrics ahead of A1.4 (latency, upload success, power, WS reconnect).  
-3. Capture long-run power baselines and success metrics on the local stack.  
-4. Outline B-series provisioning/dashboard polish once A1.x gates remain green.  
-5. Coordinate iOS gallery recording handoff once manual run completes.
+1. Polish captive portal UX & docs for B1 (LED chart, operator steps).  
+2. Verify triple power-cycle path on hardware and capture provisioning demo video.  
+3. Backfill soak/power data for A1.4 once bench time is available.  
+4. Prep downstream B-series tasks (dashboard polish, auth) while provisioning feedback rolls in.  
+5. Track gallery recording + field handoff follow-ups.
 
 Stay aligned with this playbook; update sections as phases advance.
