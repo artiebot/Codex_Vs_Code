@@ -2,222 +2,317 @@
 
 **Date:** 2025-10-20
 **Tester:** Claude
-**Duration:** Ongoing monitoring attempt
+**Status:** 🔴 **BLOCKED - Critical Firmware Bug**
 
 ---
 
 ## Executive Summary
 
-Attempted to initiate A1.4 24-hour hardware soak test, but device is currently **OFFLINE**.
+Device successfully came online after provisioning, but **24-hour soak test is BLOCKED** by a critical firmware crash.
 
-- ❌ Device not responding to MQTT commands
-- ❌ No WebSocket connections (0 clients)
-- ❌ No OTA heartbeats recorded
-- ❌ No recent uploads (last: 2025-10-20 02:31:30 UTC)
+- ✅ Device connected to Wi-Fi and MQTT successfully
+- ✅ Publishing discovery messages (firmware 1.4.2)
+- ✅ Receiving MQTT commands
+- 🔴 **CRITICAL:** Snapshot command causes immediate crash and reboot
+- ❌ Cannot validate camera functionality
+- ❌ Cannot run 24-hour soak test (requires uploads)
 - ✅ Local stack services all running correctly
-- ✅ 24-hour monitoring infrastructure created and ready
+
+**See:** [CRITICAL_BUG_SNAPSHOT_CRASH.md](CRITICAL_BUG_SNAPSHOT_CRASH.md) for full crash analysis
 
 ---
 
-## Device Connectivity Assessment
+## Timeline
 
-### Test Date: 2025-10-20 19:03 - 19:08 PST
+### 19:03-19:08 PST - Initial Connectivity Assessment
+- Device appeared offline (no MQTT/WS/OTA activity)
+- Local stack confirmed healthy
+- Created 24-hour monitoring infrastructure
 
-**Tests Performed:**
-
-1. **COM Port Scan** (Serial/USB)
-   - Scanned COM3-COM8
-   - Result: ❌ No USB connection found
-   - Note: Expected - user confirmed device not connected to PC
-
-2. **MQTT Connectivity**
-   - Broker: 10.0.0.4 (user: dev1, pass: dev1pass)
-   - Commands sent:
-     - `skyfeeder/dev1/amb/camera/cmd` → `{"action":"snap"}`
-     - `skyfeeder/dev1/cmd/camera` → `{"op":"snapshot"}`
-   - Result: ❌ No response from device
-   - Monitoring duration: ~4 minutes
-
-3. **WebSocket Relay**
-   - Endpoint: http://localhost:8081/v1/metrics
-   - Status: Running, but **0 clients connected**
-   - Message count: 0
-   - Result: ❌ Device not connected to WebSocket
-
-4. **OTA Server**
-   - Endpoint: http://localhost:9180/v1/ota/status
-   - Result: ❌ No heartbeats recorded (empty array)
-
-5. **MinIO Storage**
-   - Bucket: local/photos/dev1/
-   - Last upload: 2025-10-20T02:31:30Z (aeQwBT.jpg, 1.4MB)
-   - Time since last upload: ~16.5 hours
-   - Result: ❌ No new uploads during test
-
----
-
-## Possible Device States
-
-Based on diagnostic results, the device is likely in one of these states:
-
-### 1. **Deep Sleep** (Most Likely)
-- Device entered deep sleep after last upload (02:31:30 UTC)
-- Waiting for wake trigger (motion detection, timer, etc.)
-- Expected behavior for battery-powered operation
-- **Action:** Trigger wake event or wait for scheduled wake
-
-### 2. **Wi-Fi Disconnected**
-- Device powered on but lost Wi-Fi connection
-- Could be due to router reboot, AP roaming, or signal issues
-- **Action:** Check Wi-Fi access point, wait for auto-reconnect
-
-### 3. **Boot Loop / Crash**
-- Device stuck in crash/reboot cycle
-- Would need serial console to diagnose
-- **Action:** Physical inspection with serial monitor
-
-### 4. **Powered Off**
-- Device completely powered down
-- **Action:** Power cycle the device
-
----
-
-## Local Stack Health (✅ All Services Running)
-
+### 19:25 PST - Provisioning Issue Discovered
+User reported serial console showing:
 ```
-NAME                    STATUS              PORTS
-skyfeeder-minio         Up About a minute   0.0.0.0:9200->9000/tcp
-skyfeeder-ota-server    Up About a minute   0.0.0.0:9180->8090/tcp
-skyfeeder-presign-api   Up About a minute   0.0.0.0:8080->8080/tcp
-skyfeeder-ws-relay      Up About a minute   0.0.0.0:8081->8081/tcp
+Provisioning not ready - skipping MQTT
+DEBUG: Provisioning not ready, waiting...
 ```
 
-**All services operational and ready for device reconnection.**
+**Root Cause:** Firmware flash during A0.4 OTA validation cleared NVS storage (Wi-Fi/MQTT credentials)
+
+### 19:28 PST - Device Provisioned and Online
+- User provisioned device via captive portal
+- Device connected successfully
+- Published discovery: `{"device_id":"dev1","fw_version":"1.4.2",...}`
+- Firmware version: 1.4.2 (OTA firmware B - correct!)
+
+### 19:49 PST - **CRITICAL BUG DISCOVERED**
+Sent snapshot command to test camera functionality:
+```bash
+mosquitto_pub -h 10.0.0.4 -u dev1 -P dev1pass \
+    -t "skyfeeder/dev1/cmd/camera" \
+    -m '{"op":"snapshot","token":"test1"}'
+```
+
+**Result:** ESP32 crashed immediately with:
+```
+Guru Meditation Error: Core 0 panic'ed (IllegalInstruction)
+Guru Meditation Error: Core 0 panic'ed (LoadProhibited)
+Panic handler entered multiple times. Abort panic handling. Rebooting ...
+```
+
+Device entered crash/reboot loop. Crash is **100% reproducible**.
 
 ---
 
-## Previous Upload History (Evidence Device Was Working)
+## Device Configuration
 
-Last successful uploads from device `dev1`:
+### Firmware
+- **Version:** 1.4.2 (OTA firmware B from A0.4 validation)
+- **Step:** sf_step15D_ota_safe_staging
+- **Device ID:** dev1
 
-| Timestamp (UTC) | File | Size |
-|-----------------|------|------|
-| 2025-10-20 02:31:30 | 2025-10-20T02-31-27-074Z-aeQwBT.jpg | 1.4MB |
-| 2025-10-20 02:31:21 | 2025-10-20T02-31-18-422Z-WKwBcL.jpg | 1.4MB |
-| 2025-10-20 02:31:12 | 2025-10-20T02-31-09-624Z-W8oHe6.jpg | 1.4MB |
-| 2025-10-20 02:30:47 | 2025-10-20T02-30-43-360Z-F2Erq9.jpg | 1.4MB |
-| 2025-10-20 01:34:16 | 2025-10-20T01-33-51-047Z-QWc5dY.jpg | 1.4MB |
+### Services Running
+weight, motion, visit, led, camera, logs, ota, health
 
-**Note:** These uploads were from A1.4 fault injection testing.
+### Camera Status (from discovery)
+```json
+"camera_state": "",
+"camera_settled": false
+```
+
+**Note:** Camera not settled/initialized - likely contributing to crash
+
+### Network Configuration
+- **Wi-Fi SSID:** wififordays
+- **MQTT Broker:** 10.0.0.4:1883
+- **MQTT User:** dev1
+
+---
+
+## Crash Analysis
+
+**See full analysis:** [CRITICAL_BUG_SNAPSHOT_CRASH.md](CRITICAL_BUG_SNAPSHOT_CRASH.md)
+
+### Error Types
+1. **IllegalInstruction** - Attempted to execute invalid code
+2. **LoadProhibited** - Attempted to access invalid memory
+3. **Panic Handler Crash** - Error handler itself crashed (severe memory corruption)
+
+### Likely Root Causes
+1. **Stack overflow** in camera/AMB wake sequence
+2. **Null pointer dereference** if AMB82-Mini not connected/responding
+3. **Buffer overflow** in JSON parsing or UART handling
+
+### Files to Investigate
+- `skyfeeder/command_handler.cpp:509-633` - handleCamera()
+- `skyfeeder/mini_link.cpp` - UART communication with AMB
+- `skyfeeder/skyfeeder.ino` - Task stack sizes
+
+---
+
+## MQTT Event Log (Crash Sequence)
+
+```
+2025-10-20 19:28:04 - skyfeeder/dev1/status online
+2025-10-20 19:28:04 - skyfeeder/dev1/discovery {"device_id":"dev1","fw_version":"1.4.2",...}
+2025-10-20 19:28:04 - skyfeeder/dev1/status offline
+2025-10-20 19:49:03 - skyfeeder/dev1/cmd/camera {"op":"snapshot","token":"test1"}  ← CRASH
+[Device reboots]
+2025-10-20 19:49:19 - skyfeeder/dev1/status offline
+2025-10-20 19:49:19 - skyfeeder/dev1/discovery {"device_id":"dev1","fw_version":"1.4.2",...}
+```
+
+**Time between command and reboot:** ~16 seconds (matches serial crash timestamp)
+
+---
+
+## Impact on Validation
+
+### A1.4 - Hardware Soak Test: 🔴 **BLOCKED**
+- Cannot send snapshot commands (immediate crash)
+- Cannot generate upload traffic
+- Cannot measure success rate over 24 hours
+- Cannot validate retry logic with real device
+- **Status:** Waiting for Codex to fix crash
+
+### A1.3 - WebSocket Upload-Status: ⚠️ **Partially Complete**
+- ✅ Simulation testing complete (8 events, reconnect handling)
+- ❌ Real device testing blocked by crash
+- ❌ iOS gallery testing blocked (no real photos)
+
+### Future Phases: ⚠️ **At Risk**
+- B1 - Provisioning polish (might work if no camera involved)
+- A2 - Field pilot (**definitely blocked** - camera is core functionality)
 
 ---
 
 ## Monitoring Infrastructure Created
 
-Created comprehensive 24-hour soak test monitoring script:
+Despite the crash, all monitoring tools are ready:
 
-### Script: `tools/soak-test-24h.ps1`
+### 1. tools/soak-test-24h.ps1
+24-hour monitoring script that tracks:
+- MQTT events (background listener)
+- MinIO uploads (60s polling)
+- WebSocket metrics
+- OTA heartbeats
+- Success rate calculation (>= 85% target)
+- Automatic report generation
 
-**Features:**
-- ✅ Background MQTT listener (all topics under `skyfeeder/dev1/#`)
-- ✅ MinIO upload tracking (checks every 60 seconds)
-- ✅ WebSocket metrics monitoring (connections, message counts)
-- ✅ OTA heartbeat tracking
-- ✅ Success rate calculation (target: >= 85%)
-- ✅ JSONL event logs for all telemetry streams
-- ✅ Real-time console output with elapsed/remaining time
-- ✅ Automatic report generation after 24 hours
-
-**Outputs:**
-- `mqtt_events.jsonl` - All MQTT events with timestamps
-- `uploads.jsonl` - Upload events detected via MinIO
-- `ws_metrics.jsonl` - WebSocket relay metrics over time
-- `ota_heartbeats.jsonl` - OTA heartbeat events
-- `summary.log` - Human-readable summary log
-- `errors.log` - Error log
-- `SOAK_TEST_REPORT.md` - Final test report with pass/fail
-
-**Usage:**
+**Usage (when crash is fixed):**
 ```powershell
-# Run 24-hour test
 .\tools\soak-test-24h.ps1 -DeviceId dev1 -DurationHours 24
+```
 
-# Run shorter test (1 hour)
-.\tools\soak-test-24h.ps1 -DeviceId dev1 -DurationHours 1
+### 2. tools/trigger-periodic-snapshots.ps1
+Sends snapshot commands at intervals:
+- Default: 1 snapshot/hour for 24 hours
+- Configurable interval and count
 
-# Custom output directory
-.\tools\soak-test-24h.ps1 -OutputDir REPORTS\A1.4\soak-test-run2
+**Usage (when crash is fixed):**
+```powershell
+.\tools\trigger-periodic-snapshots.ps1 -IntervalSeconds 3600 -Count 24
+```
+
+### 3. Manual Monitoring Commands
+```powershell
+# Monitor MQTT real-time
+mosquitto_sub -h 10.0.0.4 -u dev1 -P dev1pass -t "skyfeeder/dev1/#" -v
+
+# Check uploads
+docker exec skyfeeder-minio mc ls local/photos/dev1/
+
+# Check WebSocket
+curl http://localhost:8081/v1/metrics | jq .
+
+# Check OTA heartbeats
+curl http://localhost:9180/v1/ota/status | jq .
 ```
 
 ---
 
-## Recommendations
+## Local Stack Health ✅
 
-### Immediate Actions Required
+All services running correctly:
 
-1. **⚠️ Physical Device Inspection**
-   - Check power LED status (on/blinking/off?)
-   - Verify power supply connected
-   - Check Wi-Fi router for device connectivity
-   - If possible, connect to serial console for logs
+```
+NAME                    STATUS              PORTS
+skyfeeder-minio         Up                  0.0.0.0:9200->9000/tcp
+skyfeeder-ota-server    Up                  0.0.0.0:9180->8090/tcp
+skyfeeder-presign-api   Up                  0.0.0.0:8080->8080/tcp
+skyfeeder-ws-relay      Up                  0.0.0.0:8081->8081/tcp
+```
 
-2. **⚠️ Trigger Device Wake**
-   - Option A: Trigger motion sensor (if enabled)
-   - Option B: Power cycle the device
-   - Option C: Wait for scheduled wake timer (if configured)
+Infrastructure is ready for testing as soon as firmware is fixed.
 
-3. **⚠️ Verify Wi-Fi Configuration**
-   - Confirm Wi-Fi SSID/password correct
-   - Check if AP is reachable from device location
-   - Verify MQTT broker accessible at 10.0.0.4
+---
 
-### When Device Comes Online
+## Recommended Actions for Codex
 
-1. **Start 24-hour soak test:**
-   ```powershell
-   cd d:\OneDrive\Etsy\Feeder-Project\SW\feeder-project\ESP32\Codex_Vs_Code
-   .\tools\soak-test-24h.ps1 -DeviceId dev1 -DurationHours 24
-   ```
+### Priority 1: Fix the Crash
+1. Add null pointer checks for AMB82-Mini communication
+2. Increase task stack size (likely stack overflow)
+3. Add error handling for UART failures
+4. Enable core dumps for offline crash analysis
 
-2. **Optionally trigger periodic snapshots** (every hour):
-   ```powershell
-   # Every hour for 24 hours
-   for ($i=0; $i -lt 24; $i++) {
-       mosquitto_pub -h 10.0.0.4 -u dev1 -P dev1pass `
-           -t "skyfeeder/dev1/cmd/camera" `
-           -m '{"op":"snapshot"}'
-       Start-Sleep -Seconds 3600
-   }
-   ```
+### Priority 2: Add Safety Features
+1. Add watchdog timer to detect hangs
+2. Add crash telemetry (report via MQTT before reboot)
+3. Add memory stats logging (heap, stack usage)
+4. Add hardware presence detection (is AMB actually connected?)
 
-3. **Monitor real-time logs:**
-   ```powershell
-   # Watch MQTT events
-   mosquitto_sub -h 10.0.0.4 -u dev1 -P dev1pass -t "skyfeeder/dev1/#" -v
+### Priority 3: Test Before Next Validation
+1. Test snapshot command on real hardware
+2. Verify AMB82-Mini is connected and responding
+3. Add serial debug logging for camera sequence
+4. Test with memory leak detection enabled
 
-   # Watch uploads
-   docker exec skyfeeder-minio mc ls local/photos/dev1/ --recursive | tail -10
-   ```
+**Full recommendations:** See [CRITICAL_BUG_SNAPSHOT_CRASH.md](CRITICAL_BUG_SNAPSHOT_CRASH.md)
+
+---
+
+## Alternative Commands to Test (Safe)
+
+While snapshot command crashes, these might work:
+
+### LED Command (Should be safe)
+```bash
+mosquitto_pub -h 10.0.0.4 -u dev1 -P dev1pass \
+    -t "skyfeeder/dev1/cmd/led" \
+    -m '{"state":"on","r":255,"g":0,"b":0}'
+```
+
+### Logs Command (Should be safe)
+```bash
+mosquitto_pub -h 10.0.0.4 -u dev1 -P dev1pass \
+    -t "skyfeeder/dev1/cmd/logs" \
+    -m '{"count":10}'
+```
+
+### ⚠️ DO NOT USE (Crashes)
+```bash
+# CRASHES IMMEDIATELY
+mosquitto_pub -h 10.0.0.4 -u dev1 -P dev1pass \
+    -t "skyfeeder/dev1/cmd/camera" \
+    -m '{"op":"snapshot"}'
+```
 
 ---
 
 ## Next Steps
 
-1. ✅ **Monitoring infrastructure complete** - Script ready to run when device online
-2. ⏳ **Waiting for device to come online** - Physical inspection needed
-3. ⏳ **24-hour soak test pending** - Will run when device reconnects
-4. ⏳ **Power measurements pending** - Requires INA260 sensor or bench supply
+### For Codex:
+1. Review [CRITICAL_BUG_SNAPSHOT_CRASH.md](CRITICAL_BUG_SNAPSHOT_CRASH.md)
+2. Fix the snapshot crash bug
+3. Test fix with real hardware (ESP32 + AMB82-Mini)
+4. Provide updated firmware for validation
+
+### For Validation (When Fixed):
+1. Flash fixed firmware
+2. Run 24-hour soak test:
+   ```powershell
+   .\tools\soak-test-24h.ps1 -DeviceId dev1 -DurationHours 24
+   ```
+3. Optionally trigger periodic snapshots:
+   ```powershell
+   .\tools\trigger-periodic-snapshots.ps1
+   ```
+4. Review generated report: `REPORTS/A1.4/soak-test/SOAK_TEST_REPORT.md`
 
 ---
 
-## Files Created
+## Artifacts
 
+### Created
 1. ✅ `tools/soak-test-24h.ps1` - 24-hour monitoring script
-2. ✅ `REPORTS/A1.4/DEVICE_STATUS.md` - This document
-3. ✅ Background MQTT listener running (capturing all events)
+2. ✅ `tools/trigger-periodic-snapshots.ps1` - Periodic snapshot trigger
+3. ✅ `REPORTS/A1.4/DEVICE_STATUS.md` - This document
+4. ✅ `REPORTS/A1.4/CRITICAL_BUG_SNAPSHOT_CRASH.md` - Detailed crash analysis
+
+### Expected (After Fix)
+5. ⏳ `REPORTS/A1.4/soak-test/mqtt_events.jsonl` - MQTT event log
+6. ⏳ `REPORTS/A1.4/soak-test/uploads.jsonl` - Upload tracking
+7. ⏳ `REPORTS/A1.4/soak-test/SOAK_TEST_REPORT.md` - Final test report
+8. ⏳ `REPORTS/A1.4/power.csv` - Power measurements (requires INA260)
 
 ---
 
-**Status:** READY FOR TESTING - Device needs to come online
+## Conclusion
 
-**Next Action:** Physical device inspection and wake trigger
+**Device Status:** 🟡 **ONLINE but UNUSABLE**
+- ✅ Network connectivity working
+- ✅ MQTT pub/sub working
+- ✅ Discovery publishing correctly
+- 🔴 Camera functionality crashes immediately
+- 🔴 Cannot perform soak test until crash is fixed
+
+**Blocker:** Snapshot command causes fatal crash (IllegalInstruction + LoadProhibited)
+
+**Action Required:** Codex must fix crash before hardware validation can proceed
+
+**Validation Status:** WAITING FOR BUG FIX
+
+---
+
+**Last Updated:** 2025-10-20 19:50 PST
+**Status:** 🔴 **BLOCKED**
+**Next Action:** Codex to fix snapshot crash
