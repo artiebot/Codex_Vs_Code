@@ -11,13 +11,17 @@
 #include <ESPmDNS.h>
 #include <ESP.h>
 #include <string.h>
+#include "led_ux.h"
 #include "storage_nvs.h"
 #include "logging.h"
 #include "topics.h"
+#include "command_handler.h"
 
 namespace {
 constexpr uint32_t kMagic = 0x53465014;
+constexpr uint32_t kPowerCycleMagic = 0x53504331;  // "SPC1"
 const unsigned long HOLD_MS = PROVISION_HOLD_MS;
+constexpr unsigned long kStableConnectedMs = 120000;
 DNSServer dnsServer;
 WebServer portalServer(80);
 bool portalActive = false;
@@ -80,6 +84,59 @@ void handleNotFound(){ sendPortalPage(); }
 namespace SF {
 Provisioning provisioning;
 
+void Provisioning::loadPowerCycleState() {
+  if (power_cycle_loaded_) return;
+  struct Stored {
+    uint32_t magic;
+    uint8_t count;
+    uint8_t armed;
+  } stored{};
+  if (SF::Storage::getBytes("prov", "cycle", &stored, sizeof(stored)) && stored.magic == kPowerCycleMagic) {
+    power_cycle_state_.count = stored.count;
+    power_cycle_state_.armed = stored.armed != 0;
+  } else {
+    power_cycle_state_.count = 0;
+    power_cycle_state_.armed = false;
+  }
+  power_cycle_loaded_ = true;
+}
+
+void Provisioning::savePowerCycleState() {
+  struct Stored {
+    uint32_t magic;
+    uint8_t count;
+    uint8_t armed;
+  } stored{};
+  stored.magic = kPowerCycleMagic;
+  stored.count = power_cycle_state_.count;
+  stored.armed = power_cycle_state_.armed ? 1 : 0;
+  SF::Storage::setBytes("prov", "cycle", &stored, sizeof(stored));
+}
+
+uint8_t Provisioning::recordBootCycle() {
+  loadPowerCycleState();
+  if (!power_cycle_state_.armed) {
+    power_cycle_state_.count = 1;
+    power_cycle_state_.armed = true;
+  } else if (power_cycle_state_.count < 255) {
+    power_cycle_state_.count += 1;
+  }
+  savePowerCycleState();
+  return power_cycle_state_.count;
+}
+
+void Provisioning::clearPowerCycleCounter() {
+  loadPowerCycleState();
+  if (!power_cycle_state_.armed && power_cycle_state_.count == 0) {
+    power_cycle_cleared_ = true;
+    return;
+  }
+  power_cycle_state_.count = 0;
+  power_cycle_state_.armed = false;
+  savePowerCycleState();
+  power_cycle_cleared_ = true;
+}
+
 const char* Provisioning::deviceId() const { return cfg_.device_id[0] ? cfg_.device_id : DEVICE_ID_DEFAULT; }
 
 bool Provisioning::deriveAndSave(const ProvisionedConfig& incoming){ if(!cfgValid(incoming)) return false; save(incoming); return true; }
@@ -87,17 +144,27 @@ bool Provisioning::deriveAndSave(const ProvisionedConfig& incoming){ if(!cfgVali
 bool Provisioning::cfgValid(const ProvisionedConfig& incoming) const { return incoming.wifi_ssid[0] && incoming.mqtt_host[0] && incoming.device_id[0]; }
 
 void Provisioning::begin(){
-  SF::Log::init(); gProvisioning=this; pinMode(PROVISION_BUTTON_PIN, INPUT_PULLUP);   gProvisioning=this;
+  SF::Log::init();
+  gProvisioning=this;
   pinMode(PROVISION_BUTTON_PIN, INPUT_PULLUP);
   Storage::begin();
+  uint8_t bootCycles = recordBootCycle();
   load();
-  if(buttonRequestedSetup() || !ready_){
+  bool tripleTriggered = bootCycles >= 3;
+  if (tripleTriggered) {
+    SF::Log::warn("prov", "power-cycle setup triggered count=%u", bootCycles);
+  }
+  if(buttonRequestedSetup() || !ready_ || tripleTriggered){
     enterProvisioningMode();
   } else {
     ready_=true;
     Topics::init(deviceId());
     SF::Log::info("boot", "provisioning ready");
     ensureMdns();
+    SF::ledUx.setMode(LedUx::Mode::CONNECTING_WIFI);
+    stable_connected_since_ms_ = 0;
+    applied_stable_auto_ = false;
+    power_cycle_cleared_ = power_cycle_state_.count == 0 && !power_cycle_state_.armed;
   }
 }
 
@@ -107,11 +174,27 @@ void Provisioning::load(){ ProvisionedConfig defaults{}; copySafe(defaults.wifi_
   if(!ready_) cfg_=defaults;
 }
 
-void Provisioning::save(const ProvisionedConfig& incoming){ struct Persisted { uint32_t magic; ProvisionedConfig cfg; } stored{}; stored.magic=kMagic; stored.cfg=incoming; cfg_=incoming; Storage::setBytes("prov","cfg", &stored, sizeof(stored)); Topics::init(deviceId()); discovery_published_=false; ready_=true; setup_mode_=false; mdns_ready_=false; stopSetupAp(); }
+void Provisioning::save(const ProvisionedConfig& incoming){
+  struct Persisted { uint32_t magic; ProvisionedConfig cfg; } stored{};
+  stored.magic=kMagic;
+  stored.cfg=incoming;
+  cfg_=incoming;
+  Storage::setBytes("prov","cfg", &stored, sizeof(stored));
+  Topics::init(deviceId());
+  discovery_published_=false;
+  ready_=true;
+  setup_mode_=false;
+  mdns_ready_=false;
+  stopSetupAp();
+  clearPowerCycleCounter();
+  stable_connected_since_ms_ = 0;
+  applied_stable_auto_ = false;
+  SF::ledUx.setMode(LedUx::Mode::CONNECTING_WIFI);
+}
 
 bool Provisioning::buttonRequestedSetup(){ if(digitalRead(PROVISION_BUTTON_PIN)==LOW){ unsigned long start=millis(); while(digitalRead(PROVISION_BUTTON_PIN)==LOW){ if(millis()-start >= HOLD_MS) return true; delay(10); } } return false; }
 
-void Provisioning::startSetupAp(){ WiFi.mode(WIFI_AP); WiFi.softAP("SkyFeeder-Setup"); dnsServer.start(53,"*",WiFi.softAPIP()); portalServer.on("/", HTTP_GET, handleRoot); portalServer.on("/submit", HTTP_POST, handleSubmit); portalServer.onNotFound(handleNotFound); portalServer.begin(); portalActive=true; }
+void Provisioning::startSetupAp(){ WiFi.mode(WIFI_AP); WiFi.softAP("SkyFeeder-Setup"); dnsServer.start(53,"*",WiFi.softAPIP()); portalServer.on("/", HTTP_GET, handleRoot); portalServer.on("/submit", HTTP_POST, handleSubmit); portalServer.onNotFound(handleNotFound); portalServer.begin(); portalActive=true; SF::ledUx.setMode(LedUx::Mode::PROVISIONING); }
 
 void Provisioning::stopSetupAp(){ if(portalActive){ portalServer.stop(); dnsServer.stop(); portalActive=false; } WiFi.softAPdisconnect(true); WiFi.mode(WIFI_STA); }
 
@@ -124,11 +207,47 @@ void Provisioning::enterProvisioningMode(){
   SF::Log::warn("prov", "entering setup AP mode");
   startSetupAp();
   runtime_press_active_=true;
+  stable_connected_since_ms_ = 0;
+  power_cycle_cleared_ = false;
+  applied_stable_auto_ = false;
 }
 
 void Provisioning::runtimeButtonCheck(){ int level=digitalRead(PROVISION_BUTTON_PIN); unsigned long now=millis(); if(level==LOW){ if(!runtime_press_active_){ runtime_press_active_=true; runtime_press_start_=now; } else if((now-runtime_press_start_)>=HOLD_MS && !setup_mode_){ enterProvisioningMode(); } } else { runtime_press_active_=false; runtime_press_start_=0; } }
 
-void Provisioning::loop(){ if(setup_mode_){ handleHttp(); return; } runtimeButtonCheck(); ensureMdns(); }
+void Provisioning::monitorStability() {
+  if (setup_mode_ || !ready_) {
+    stable_connected_since_ms_ = 0;
+    applied_stable_auto_ = false;
+    return;
+  }
+  if (WiFi.status() == WL_CONNECTED) {
+    unsigned long now = millis();
+    if (stable_connected_since_ms_ == 0) {
+      stable_connected_since_ms_ = now;
+    }
+    unsigned long elapsed = now - stable_connected_since_ms_;
+    if (!power_cycle_cleared_ && elapsed >= kStableConnectedMs) {
+      clearPowerCycleCounter();
+    }
+    if (!applied_stable_auto_ && elapsed >= kStableConnectedMs) {
+      SF::ledUx.setMode(LedUx::Mode::AUTO);
+      applied_stable_auto_ = true;
+    }
+  } else {
+    stable_connected_since_ms_ = 0;
+    applied_stable_auto_ = false;
+  }
+}
+
+void Provisioning::loop(){
+  if(setup_mode_){
+    handleHttp();
+    return;
+  }
+  runtimeButtonCheck();
+  ensureMdns();
+  monitorStability();
+}
 
 void Provisioning::ensureMdns(){ if(!ready_||mdns_ready_) return; if(!MDNS.begin(deviceId())) return; MDNS.addService("skyfeeder","tcp",80); MDNS.addServiceTxt("skyfeeder","tcp","step","sf_step15D_ota_safe_staging"); mdns_ready_=true; }
 
@@ -146,6 +265,8 @@ void Provisioning::publishDiscovery(PubSubClient& client){
   doc["device_id"]=deviceId();
   doc["fw_version"]=FW_VERSION;
   doc["step"]="sf_step15D_ota_safe_staging";
+  doc["camera_state"]=SF_miniState();
+  doc["camera_settled"]=SF_miniSettled();
   doc["services"][0]="weight";
   doc["services"][1]="motion";
   doc["services"][2]="visit";
@@ -183,7 +304,12 @@ void Provisioning::publishDiscovery(PubSubClient& client){
   SF::Log::info("prov", "discovery published with log topics");
 }
 
-void Provisioning::onMqttConnected(PubSubClient& client){ publishDiscovery(client); }
+void Provisioning::onMqttConnected(PubSubClient& client){
+  publishDiscovery(client);
+  SF::ledUx.setMode(LedUx::Mode::ONLINE);
+  stable_connected_since_ms_ = millis();
+  applied_stable_auto_ = false;
+}
 
 } // namespace SF
 

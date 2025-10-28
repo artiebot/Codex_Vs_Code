@@ -33,7 +33,7 @@ class OtaServiceTest(unittest.TestCase):
             port=1883,
             username="dev1",
             password="dev1pass",
-            device_id="sf-mock01",
+            device_id="dev1",
             interval=1,
             base_weight=1234.0,
             rssi=-62,

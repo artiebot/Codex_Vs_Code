@@ -1,0 +1,10 @@
+PubSubClient configuration:
+- Default MQTT_MAX_PACKET_SIZE (PubSubClient/src/PubSubClient.h:26) = 256 bytes.
+- Firmware explicitly calls mqtt.setBufferSize(512), so effective publish limit is 512 bytes.
+
+Snapshot data size from log: 11506 bytes (raw JPEG).
+If we attempted to send the JPEG inline, base64 would be ceil(11506 * 4/3) ˜ 15348 bytes, well above 512-byte limit.
+
+Current firmware implementation publishes only a JSON metadata payload (~100 bytes) containing url/ts/size; the JPEG itself stays on-device for HTTP retrieval. Therefore buffer limits do not block the existing publish code.
+
+Hardware proof (low-res capture) not executed in this run; bench access required. Recommended if we need an on-device confirmation of the size limit.

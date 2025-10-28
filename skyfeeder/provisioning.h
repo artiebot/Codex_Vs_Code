@@ -33,6 +33,11 @@ private:
   void publishDiscovery(PubSubClient& client);
   void enterProvisioningMode();
   void runtimeButtonCheck();
+  void monitorStability();
+  uint8_t recordBootCycle();
+  void clearPowerCycleCounter();
+  void loadPowerCycleState();
+  void savePowerCycleState();
   bool setup_mode_=false;
   bool ready_=false;
   bool discovery_published_=false;
@@ -41,6 +46,14 @@ private:
   bool runtime_press_active_=false;
   bool runtime_triggered_=false;
   ProvisionedConfig cfg_{};
+  struct PowerCycleState {
+    uint8_t count;
+    bool armed;
+  } power_cycle_state_{0, false};
+  bool power_cycle_loaded_ = false;
+  bool power_cycle_cleared_ = false;
+  unsigned long stable_connected_since_ms_ = 0;
+  bool applied_stable_auto_ = false;
 };
 extern Provisioning provisioning;
 } // namespace SF

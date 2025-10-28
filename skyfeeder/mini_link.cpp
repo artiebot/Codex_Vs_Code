@@ -12,6 +12,7 @@
 namespace {
 constexpr size_t kRxBuf = 256;
 constexpr size_t kLogCapacity = 24;
+constexpr uint16_t kDefaultWakePulseMs = 80;
 
 HardwareSerial* miniSerial = nullptr;
 char rxBuffer[kRxBuf];
@@ -29,6 +30,9 @@ size_t logHead = 0;
 SF::MiniStatusCallback statusCb = nullptr;
 SF::MiniSnapshotCallback snapshotCb = nullptr;
 SF::MiniWifiCallback wifiCb = nullptr;
+SF::MiniEventCallback eventCb = nullptr;
+SF::MiniLifecycleCallback lifecycleCb = nullptr;
+
 
 void pushLog(char dir, const char* line) {
   if (!line) line = "";
@@ -52,7 +56,8 @@ void handleStatus(const JsonDocument& doc) {
   const char* state = doc["state"] | "";
   const char* ip = doc["ip"] | "";
   const char* rtsp = doc["rtsp"] | "";
-  if (statusCb) statusCb(state, ip, rtsp);
+  bool settled = doc["settled"].as<bool>();
+  if (statusCb) statusCb(state, ip, rtsp, settled);
 }
 
 void handleSnapshot(const JsonDocument& doc) {
@@ -62,6 +67,33 @@ void handleSnapshot(const JsonDocument& doc) {
   const char* path = doc["path"] | "";
   const char* trigger = doc["trigger"] | "";
   if (snapshotCb) snapshotCb(ok, bytes, sha, path, trigger);
+}
+
+void handleEvent(const JsonDocument& doc) {
+  const char* phase = doc["phase"] | "";
+  const char* trigger = doc["trigger"] | "";
+  uint8_t index = doc["index"] | 0;
+  uint8_t total = doc["total"] | 0;
+  uint16_t seconds = doc["seconds"] | 0;
+  bool ok = doc["ok"].is<bool>() ? doc["ok"].as<bool>() : true;
+  if (eventCb) eventCb(phase, trigger, index, total, seconds, ok);
+}
+
+void handleLifecycle(const JsonDocument& doc) {
+  const char* miniType = doc["mini"] | "";
+  if (std::strcmp(miniType, "boot") == 0) {
+    const char* fw = doc["fw"] | "";
+    uint32_t ts = doc["ts"].as<uint32_t>();
+    if (lifecycleCb) lifecycleCb("boot", ts, fw, false, false);
+  } else if (std::strcmp(miniType, "ready") == 0) {
+    uint32_t ts = doc["ts"].as<uint32_t>();
+    bool camera = doc["camera"].as<bool>();
+    bool rtsp = doc["rtsp"].as<bool>();
+    if (lifecycleCb) lifecycleCb("ready", ts, nullptr, camera, rtsp);
+  } else if (std::strcmp(miniType, "sleep_deep") == 0) {
+    uint32_t ts = doc["ts"].as<uint32_t>();
+    if (lifecycleCb) lifecycleCb("sleep_deep", ts, nullptr, false, false);
+  }
 }
 
 void handleWifiTest(const JsonDocument& doc) {
@@ -88,6 +120,10 @@ void processLine(const char* line) {
     handleStatus(doc);
   } else if (strcmp(type, "snapshot") == 0) {
     handleSnapshot(doc);
+  } else if (strcmp(type, "event") == 0) {
+    handleEvent(doc);
+  } else if (strcmp(type, "boot") == 0 || std::strcmp(type, "ready") == 0 || std::strcmp(type, "sleep_deep") == 0) {
+    handleLifecycle(doc);
   } else if (strcmp(type, "wifi_test") == 0) {
     handleWifiTest(doc);
   } else if (strcmp(type, "error") == 0) {
@@ -132,7 +168,7 @@ void Mini_begin(unsigned long baud) {
   }
   if (Pins::MiniWake >= 0) {
     pinMode(Pins::MiniWake, OUTPUT);
-    digitalWrite(Pins::MiniWake, HIGH);
+    digitalWrite(Pins::MiniWake, Pins::MiniWakeActiveHigh ? LOW : HIGH);
   }
 }
 
@@ -158,18 +194,19 @@ void Mini_loop() {
 }
 
 bool Mini_sendWake() {
+  return Mini_wakePulse(kDefaultWakePulseMs);
+}
+
+bool Mini_sendSleepDeep() {
+  bool ok = queueOp("sleep_deep");
   if (Pins::MiniWake >= 0) {
-    digitalWrite(Pins::MiniWake, HIGH);
+    digitalWrite(Pins::MiniWake, Pins::MiniWakeActiveHigh ? LOW : HIGH);
   }
-  return queueOp("wake");
+  return ok;
 }
 
 bool Mini_sendSleep() {
-  bool ok = queueOp("sleep");
-  if (Pins::MiniWake >= 0) {
-    digitalWrite(Pins::MiniWake, LOW);
-  }
-  return ok;
+  return Mini_sendSleepDeep();
 }
 
 bool Mini_requestStatus() {
@@ -178,6 +215,18 @@ bool Mini_requestStatus() {
 
 bool Mini_requestSnapshot() {
   return queueOp("snapshot");
+}
+
+bool Mini_requestEventCapture(uint8_t snapshotCount, uint16_t videoSeconds, const char* trigger) {
+  if (!miniSerial) return false;
+  StaticJsonDocument<128> doc;
+  doc["op"] = "capture_event";
+  doc["snapshots"] = snapshotCount;
+  doc["video_sec"] = videoSeconds;
+  if (trigger && trigger[0]) {
+    doc["trigger"] = trigger;
+  }
+  return writeLine(doc);
 }
 
 bool Mini_stageWifi(const char* ssid, const char* psk, const char* token) {
@@ -192,8 +241,23 @@ bool Mini_abortWifi(const char* token) {
   return queueWifiOp("abort_wifi", nullptr, nullptr, token);
 }
 
+bool Mini_wakePulse(uint16_t ms) {
+  if (Pins::MiniWake < 0) {
+    Serial.println("[mini] wake pulse skipped (pin < 0)");
+    return false;
+  }
+  pinMode(Pins::MiniWake, OUTPUT);
+  Serial.print("[mini] wake pulse "); Serial.print(ms); Serial.println(" ms");
+  digitalWrite(Pins::MiniWake, Pins::MiniWakeActiveHigh ? HIGH : LOW);
+  delay(ms);
+  digitalWrite(Pins::MiniWake, Pins::MiniWakeActiveHigh ? LOW : HIGH);
+  return true;
+}
+
 void Mini_setStatusCallback(MiniStatusCallback cb) { statusCb = cb; }
 void Mini_setSnapshotCallback(MiniSnapshotCallback cb) { snapshotCb = cb; }
+void Mini_setEventCallback(MiniEventCallback cb) { eventCb = cb; }
+void Mini_setLifecycleCallback(MiniLifecycleCallback cb) { lifecycleCb = cb; }
 void Mini_setWifiCallback(MiniWifiCallback cb) { wifiCb = cb; }
 
 void Mini_logTo(Stream& out) {
@@ -212,4 +276,12 @@ void Mini_logTo(Stream& out) {
 }
 
 }  // namespace SF
+
+
+
+
+
+
+
+
 

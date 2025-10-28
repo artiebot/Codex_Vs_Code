@@ -1,4 +1,4 @@
-# SkyFeeder 24-Hour Soak Test Monitor
+﻿# SkyFeeder 24-Hour Soak Test Monitor
 # Monitors device activity across MQTT, WebSocket, MinIO, and OTA for 24+ hours
 # Usage: .\soak-test-24h.ps1 [-DeviceId dev1] [-Duration 24] [-OutputDir REPORTS\A1.4]
 
@@ -231,63 +231,77 @@ try {
         Write-Summary "⚠ WARNING: No uploads detected during test period"
     }
 
-    # Generate summary report
+    # Generate summary report - write directly to avoid PowerShell pipe parsing
     $ReportPath = Join-Path $OutputDir "SOAK_TEST_REPORT.md"
 
-    # Build report content directly to avoid pipe parsing issues
-    $sb = New-Object System.Text.StringBuilder
-    [void]$sb.AppendLine("# SkyFeeder 24-Hour Soak Test Report")
-    [void]$sb.AppendLine("")
-    [void]$sb.AppendLine("**Test Date:** $StartTime to $(Get-Date)")
-    [void]$sb.AppendLine("**Device ID:** $DeviceId")
-    [void]$sb.AppendLine("**Duration:** $DurationHours hours")
-    [void]$sb.AppendLine("")
-    [void]$sb.AppendLine("## Summary Metrics")
-    [void]$sb.AppendLine("")
-    [void]$sb.AppendLine("| Metric | Count |")
-    [void]$sb.AppendLine("|--------|-------|")
-    [void]$sb.AppendLine("| MQTT Messages | $($Script:Counters.MqttMessages) |")
-    [void]$sb.AppendLine("| Total Uploads | $($Script:Counters.Uploads) |")
-    [void]$sb.AppendLine("| Upload Successes | $($Script:Counters.UploadSuccesses) |")
-    [void]$sb.AppendLine("| Upload Failures | $($Script:Counters.UploadFailures) |")
-    [void]$sb.AppendLine("| WebSocket Connections | $($Script:Counters.WsConnections) |")
-    [void]$sb.AppendLine("| OTA Heartbeats | $($Script:Counters.OtaHeartbeats) |")
-    [void]$sb.AppendLine("| Snapshot Events | $($Script:Counters.Snapshots) |")
-    [void]$sb.AppendLine("| Boot Events | $($Script:Counters.BootEvents) |")
-    [void]$sb.AppendLine("| Errors | $($Script:Counters.Errors) |")
-    [void]$sb.AppendLine("")
-    [void]$sb.AppendLine("## Success Rate")
-    [void]$sb.AppendLine("")
+    # Clear file if exists
+    if (Test-Path $ReportPath) { Remove-Item $ReportPath -Force }
+
+    # Write header
+    Add-Content -Path $ReportPath -Value "# SkyFeeder 24-Hour Soak Test Report"
+    Add-Content -Path $ReportPath -Value ""
+    Add-Content -Path $ReportPath -Value "**Test Date:** $StartTime to $(Get-Date)"
+    Add-Content -Path $ReportPath -Value "**Device ID:** $DeviceId"
+    Add-Content -Path $ReportPath -Value "**Duration:** $DurationHours hours"
+    Add-Content -Path $ReportPath -Value ""
+    Add-Content -Path $ReportPath -Value "## Summary Metrics"
+    Add-Content -Path $ReportPath -Value ""
+
+    # Build table rows as variables to avoid inline pipes
+    $tableHeader = "Metric" + [char]124 + " Count"
+    $tableSep = "--------" + [char]124 + "-------"
+    $row1 = "MQTT Messages" + [char]124 + " $($Script:Counters.MqttMessages)"
+    $row2 = "Total Uploads" + [char]124 + " $($Script:Counters.Uploads)"
+    $row3 = "Upload Successes" + [char]124 + " $($Script:Counters.UploadSuccesses)"
+    $row4 = "Upload Failures" + [char]124 + " $($Script:Counters.UploadFailures)"
+    $row5 = "WebSocket Connections" + [char]124 + " $($Script:Counters.WsConnections)"
+    $row6 = "OTA Heartbeats" + [char]124 + " $($Script:Counters.OtaHeartbeats)"
+    $row7 = "Snapshot Events" + [char]124 + " $($Script:Counters.Snapshots)"
+    $row8 = "Boot Events" + [char]124 + " $($Script:Counters.BootEvents)"
+    $row9 = "Errors" + [char]124 + " $($Script:Counters.Errors)"
+
+    Add-Content -Path $ReportPath -Value ([char]124 + " " + $tableHeader + " " + [char]124)
+    Add-Content -Path $ReportPath -Value ([char]124 + $tableSep + [char]124)
+    Add-Content -Path $ReportPath -Value ([char]124 + " " + $row1 + " " + [char]124)
+    Add-Content -Path $ReportPath -Value ([char]124 + " " + $row2 + " " + [char]124)
+    Add-Content -Path $ReportPath -Value ([char]124 + " " + $row3 + " " + [char]124)
+    Add-Content -Path $ReportPath -Value ([char]124 + " " + $row4 + " " + [char]124)
+    Add-Content -Path $ReportPath -Value ([char]124 + " " + $row5 + " " + [char]124)
+    Add-Content -Path $ReportPath -Value ([char]124 + " " + $row6 + " " + [char]124)
+    Add-Content -Path $ReportPath -Value ([char]124 + " " + $row7 + " " + [char]124)
+    Add-Content -Path $ReportPath -Value ([char]124 + " " + $row8 + " " + [char]124)
+    Add-Content -Path $ReportPath -Value ([char]124 + " " + $row9 + " " + [char]124)
+    Add-Content -Path $ReportPath -Value ""
+    Add-Content -Path $ReportPath -Value "## Success Rate"
+    Add-Content -Path $ReportPath -Value ""
 
     if ($Script:Counters.Uploads -gt 0) {
         $SuccessRate = [math]::Round(($Script:Counters.UploadSuccesses / $Script:Counters.Uploads) * 100, 2)
-        [void]$sb.AppendLine("**$SuccessRate%** ($($Script:Counters.UploadSuccesses)/$($Script:Counters.Uploads) successful uploads)")
+        Add-Content -Path $ReportPath -Value "**$SuccessRate%** ($($Script:Counters.UploadSuccesses)/$($Script:Counters.Uploads) successful uploads)"
     } else {
-        [void]$sb.AppendLine("⚠️ **No uploads detected during test period**")
+        Add-Content -Path $ReportPath -Value "**No uploads detected during test period**"
     }
 
-    [void]$sb.AppendLine("")
-    [void]$sb.AppendLine("## Artifacts")
-    [void]$sb.AppendLine("")
-    [void]$sb.AppendLine("- MQTT Events: ``$MqttLog``")
-    [void]$sb.AppendLine("- Uploads Log: ``$UploadLog``")
-    [void]$sb.AppendLine("- WebSocket Metrics: ``$WsMetricsLog``")
-    [void]$sb.AppendLine("- OTA Heartbeats: ``$OtaHeartbeatsLog``")
-    [void]$sb.AppendLine("- Summary Log: ``$SummaryLog``")
-    [void]$sb.AppendLine("- Error Log: ``$ErrorLog``")
-    [void]$sb.AppendLine("")
-    [void]$sb.AppendLine("## Test Status")
-    [void]$sb.AppendLine("")
+    Add-Content -Path $ReportPath -Value ""
+    Add-Content -Path $ReportPath -Value "## Artifacts"
+    Add-Content -Path $ReportPath -Value ""
+    Add-Content -Path $ReportPath -Value "- MQTT Events: ``$MqttLog``"
+    Add-Content -Path $ReportPath -Value "- Uploads Log: ``$UploadLog``"
+    Add-Content -Path $ReportPath -Value "- WebSocket Metrics: ``$WsMetricsLog``"
+    Add-Content -Path $ReportPath -Value "- OTA Heartbeats: ``$OtaHeartbeatsLog``"
+    Add-Content -Path $ReportPath -Value "- Summary Log: ``$SummaryLog``"
+    Add-Content -Path $ReportPath -Value "- Error Log: ``$ErrorLog``"
+    Add-Content -Path $ReportPath -Value ""
+    Add-Content -Path $ReportPath -Value "## Test Status"
+    Add-Content -Path $ReportPath -Value ""
 
     if ($Script:Counters.Uploads -gt 0 -and ($Script:Counters.UploadSuccesses / $Script:Counters.Uploads) -ge 0.85) {
-        [void]$sb.AppendLine("✅ **PASS** - Success rate >= 85% target")
+        Add-Content -Path $ReportPath -Value "**PASS** - Success rate >= 85% target"
     } elseif ($Script:Counters.Uploads -gt 0) {
-        [void]$sb.AppendLine("❌ **FAIL** - Success rate below 85% target")
+        Add-Content -Path $ReportPath -Value "**FAIL** - Success rate below 85% target"
     } else {
-        [void]$sb.AppendLine("⚠️ **INCOMPLETE** - Device did not come online during test period")
+        Add-Content -Path $ReportPath -Value "**INCOMPLETE** - Device did not come online during test period"
     }
-
-    $sb.ToString() | Out-File -FilePath $ReportPath -Encoding UTF8
 
     Write-Summary "Report saved to: $ReportPath"
 }

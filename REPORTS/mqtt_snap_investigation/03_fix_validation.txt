@@ -1,0 +1,119 @@
+=== Investigation Step 3: Fix Validation Instructions ===
+Date: 2025-10-04
+Status: READY FOR USER TEST
+
+CHANGES MADE:
+=============
+
+File: amb-mini/amb-mini.ino
+
+1. Enhanced pumpMqtt() (line 50-57):
+   - Added reconnection attempt if disconnected
+   - Added processMessage() call to handle pending commands
+   - Ensures MQTT stays alive during long operations
+
+2. Added connection state logging (line 131-132):
+   - Prints CONNECTED/DISCONNECTED before publish attempt
+   - Helps diagnose future issues
+
+3. Improved error messages (line 127, 135):
+   - Distinguishes "no frame" vs "MQTT reconnect failed"
+   - Makes debugging easier
+
+TEST PROCEDURE:
+===============
+
+Step 1: Flash Updated Firmware
+------------------------------
+1. Open Arduino IDE
+2. Open: amb-mini/amb-mini.ino
+3. Select: AMB82 MINI board + correct COM port
+4. Click: Upload
+5. Open Serial Monitor (115200 baud)
+
+Step 2: Verify Boot and Connection
+----------------------------------
+Serial should show:
+  [boot] AMB82 MQTT Camera Bridge
+  [wifi] connected: 10.0.0.X
+  [cam] started
+  [http] server listening on 80
+  [mqtt] connected!
+  [mqtt] subscribed to: skyfeeder/sf-mock01/amb/camera/cmd
+
+Step 3: Start MQTT Listener (PowerShell Window 1)
+-------------------------------------------------
+cd d:\OneDrive\Etsy\Feeder-Project\SW\feeder-project\ESP32\Codex_Vs_Code\amb-mini\scripts
+.\mqtt-test-broker.ps1
+
+Expected output:
+  === MQTT Broker Monitor ===
+  Listening to all AMB topics...
+
+Step 4: Send MQTT Snap Command (PowerShell Window 2)
+----------------------------------------------------
+cd d:\OneDrive\Etsy\Feeder-Project\SW\feeder-project\ESP32\Codex_Vs_Code\amb-mini\scripts
+.\mqtt-snap-stdin.ps1
+
+Expected serial output:
+  === CALLBACK FIRED ===
+  Topic: skyfeeder/sf-mock01/amb/camera/cmd
+  Length: 17
+  [process] message (17 bytes): {"action":"snap"}
+  [process] action: snap
+  [snap] attempting capture...
+  [snap] captured 11XXX bytes
+  [mqtt] connection state before publish: CONNECTED    ← KEY CHANGE
+  [mqtt] publish snapshot event -> OK                  ← KEY CHANGE
+
+Expected Window 1 output:
+  skyfeeder/sf-mock01/amb/camera/event/snapshot {"url":"http://10.0.0.X/snapshot.jpg","ts":XXXXX,"size":11XXX}
+
+Step 5: Verify Snapshot Available
+---------------------------------
+Copy the URL from the event and open in browser:
+  http://10.0.0.X/snapshot.jpg
+
+Should display the captured JPEG image.
+
+Step 6: Test During Streaming
+-----------------------------
+1. Open browser: http://10.0.0.X/stream
+2. While stream is active, run: .\mqtt-snap-stdin.ps1
+3. Verify snapshot event still publishes successfully
+
+EXPECTED OUTCOMES:
+==================
+
+SUCCESS CRITERIA:
+✓ Serial shows: "[mqtt] connection state before publish: CONNECTED"
+✓ Serial shows: "[mqtt] publish snapshot event -> OK"
+✓ Listener receives event with URL
+✓ URL serves valid JPEG image
+✓ Works during streaming (validates mqtt.loop() in stream handler too)
+
+FAILURE SCENARIOS:
+
+If shows "DISCONNECTED":
+- pumpMqtt() reconnect logic needs debugging
+- Check broker is accepting connections
+- Verify credentials correct
+
+If shows "CONNECTED" but "FAIL":
+- mqtt.publish() failed (buffer/topic/permission issue)
+- Check broker logs for rejection
+- Verify topic path correct
+
+If no callback fires:
+- Stream handler blocking issue (original bug not fixed)
+- Verify mqtt.loop() in handleHttpStream() present
+
+ARTIFACT TO SAVE:
+=================
+After successful test, copy full serial output and MQTT listener output to:
+  REPORTS/mqtt_snap_investigation/04_test_results.txt
+
+Include:
+- Full serial log from boot through snap command
+- MQTT listener showing event received
+- Screenshot or curl of snapshot URL working

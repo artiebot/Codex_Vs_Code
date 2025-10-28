@@ -1,0 +1,201 @@
+================================================================================
+HTTP MULTI-CLIENT CONCURRENCY ISSUE - AMB-MINI
+================================================================================
+Date: 2025-10-09
+Device: AMB82-Mini (sf-mock01)
+Firmware: amb-mini.ino
+
+================================================================================
+ISSUE DESCRIPTION
+================================================================================
+When multiple HTTP clients connect simultaneously (e.g., multiple browser tabs),
+only one client is served at a time. Other clients block/hang until the first
+client's request completes.
+
+SPECIFIC SCENARIOS:
+1. Open /stream in tab 1, then open / in tab 2
+   → Tab 2 hangs until stream finishes (~20 seconds)
+
+2. Open / in multiple tabs simultaneously
+   → Only one tab loads, others wait in queue
+
+3. Open /stream in multiple tabs
+   → Only first stream plays, others block
+
+================================================================================
+ROOT CAUSE ANALYSIS
+================================================================================
+The issue stems from the single-threaded request handling pattern:
+
+void loop() {
+  WiFiClient client = httpServer.available();
+  if (client) {
+    handleHttpRequest(client);  // BLOCKS until request completes
+  }
+}
+
+BLOCKING OPERATIONS:
+1. handleHttpStream() - blocks for ~20 seconds (600 frames)
+2. captureStill() - blocks for ~1 second (40 x 25ms polls)
+3. Client read/write operations - variable duration
+
+ARCHITECTURE LIMITATION:
+- WiFiServer.available() returns ONE client at a time
+- No concurrent request handling
+- No request queue management
+- No client timeout handling
+
+================================================================================
+CURRENT BEHAVIOR (FROM USER TESTING)
+================================================================================
+USER OBSERVATION:
+"if i open multiple pages at the same time (lets say status and stream)
+none work but if i close one the other works"
+
+INTERPRETATION:
+- Both tabs attempt to connect
+- First tab gets served, blocks in handler
+- Second tab waits at TCP level
+- Browser timeout may cause both to fail
+- Closing one tab allows the other to complete
+
+================================================================================
+WHY THIS HAPPENS
+================================================================================
+1. Tab 1 opens /stream
+   - Client acquired by loop()
+   - handleHttpStream() executes
+   - Streams 600 frames over ~20 seconds
+   - During this time, loop() cannot call httpServer.available()
+
+2. Tab 2 opens / during stream
+   - TCP connection accepted by WiFiServer
+   - Client WAITS in OS queue
+   - No HTTP response sent yet
+   - Browser timeout (typically 30-60 seconds) may expire
+
+3. When Tab 1 closes
+   - handleHttpStream() exits
+   - loop() calls httpServer.available() again
+   - Tab 2's client is now returned and served
+
+================================================================================
+IMPACT ASSESSMENT
+================================================================================
+SEVERITY: Medium
+
+AFFECTED USE CASES:
+[ ] Multiple users accessing device simultaneously
+[ ] User opening multiple browser tabs
+[ ] Monitoring tools + manual access
+[ ] Background polling + user interaction
+
+NOT AFFECTED:
+[✓] MQTT control (independent service)
+[✓] Single client access (works perfectly)
+[✓] Sequential requests (normal browsing)
+
+PRODUCTION IMPACT:
+- Field Alpha: LOW (single user, controlled testing)
+- Production: MEDIUM (multiple clients likely)
+
+================================================================================
+WORKAROUND (CURRENT)
+================================================================================
+USER BEHAVIOR:
+- Only open one browser tab at a time
+- Wait for requests to complete before opening new tabs
+- Close unused tabs
+- Use MQTT for commands instead of HTTP during streaming
+
+================================================================================
+POTENTIAL SOLUTIONS
+================================================================================
+OPTION 1: Non-blocking Stream Handler
+- Send frames in chunks
+- Return to loop() periodically
+- Track stream state globally
+- COMPLEXITY: Medium
+- EFFORT: 2-4 hours
+- RISK: May affect stream quality
+
+OPTION 2: Client Queue + Timeout
+- Accept multiple clients
+- Queue pending requests
+- Implement connection timeouts
+- Send 503 "Server Busy" to queued clients
+- COMPLEXITY: Medium
+- EFFORT: 3-5 hours
+- RISK: Low
+
+OPTION 3: Separate Server Threads
+- Use RTOS tasks (if supported by RTL8735B)
+- HTTP handler in separate thread
+- COMPLEXITY: High
+- EFFORT: 8+ hours
+- RISK: High (platform-dependent)
+
+OPTION 4: Async HTTP Library
+- Replace WiFiServer with async library
+- Handle multiple clients with callbacks
+- COMPLEXITY: High
+- EFFORT: 6-8 hours
+- RISK: Medium (library availability/compatibility)
+
+OPTION 5: Accept as Design Limitation
+- Document behavior clearly
+- Implement proper 503 responses
+- Add client queue depth = 1
+- COMPLEXITY: Low
+- EFFORT: 1 hour
+- RISK: None
+
+================================================================================
+RECOMMENDATION
+================================================================================
+FOR FIELD ALPHA (Phase A):
+→ OPTION 5: Document and accept limitation
+→ Add basic queue rejection (respond 503 to 2nd client)
+→ Focus on MQTT functionality (primary interface)
+
+FOR PRODUCTION (Phase B):
+→ OPTION 2: Implement client queue + timeout handling
+→ Add proper HTTP status codes
+→ Monitor actual multi-client usage patterns
+
+RATIONALE:
+- Field Alpha is single-user testing environment
+- MQTT is primary control interface (works perfectly)
+- HTTP is secondary/debug interface
+- Engineering time better spent on core features (A1.1, A1.2, etc.)
+- Can revisit after Field Alpha validates architecture
+
+================================================================================
+TESTING NEEDED (IF FIXING)
+================================================================================
+1. Two clients request /stream simultaneously
+2. Client requests / while /stream active
+3. Rapid sequential requests (< 1 second apart)
+4. Client disconnects during stream
+5. 10+ rapid connections (stress test)
+6. MQTT commands during HTTP multi-client scenario
+
+================================================================================
+CODE LOCATIONS
+================================================================================
+Main loop: amb-mini.ino:368-398
+HTTP handler: amb-mini.ino:322-366
+Stream handler: amb-mini.ino:285-320
+Server setup: amb-mini.ino:83
+
+================================================================================
+DECISION NEEDED
+================================================================================
+Should we:
+[ ] Fix for Field Alpha (delays A0.1 completion by ~3-5 hours)
+[ ] Accept as known limitation (document and continue to A0.2)
+[ ] Partial fix (reject 2nd client with 503) - ~1 hour
+
+Please advise based on Field Alpha priorities.
+
+================================================================================

@@ -3,6 +3,7 @@
 #include <WiFi.h>
 #include "mqtt_client.h"
 #include "telemetry_service.h"
+#include "command_handler.h"
 #include "power_manager.h"
 #include "weight_service.h"
 #include "motion_service.h"
@@ -67,8 +68,10 @@ void setup() {
   Serial.println("Visit service initialized!");
 
   Serial.println("Initializing AMB mini link...");
-  SF::miniLink.begin();
-  SF::miniLink.requestStatus();
+  SF::Mini_begin();
+  delay(200);
+  SF::Mini_requestStatus();
+  Serial.println("Requested initial Mini status");
   Serial.println("AMB mini link initialized!");
 
   Serial.println("Initializing camera service...");
@@ -112,7 +115,8 @@ void loop() {
   SF::motion.loop();
   SF::visit.loop();
   SF::cameraEsp.loop();
-  SF::miniLink.loop();
+  SF::Mini_loop();
+  SF_commandHandlerLoop();
   SF::ledUx.loop();
   SF::ws2812.update();
 

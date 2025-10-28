@@ -1,2 +1,2 @@
 # Send snap command to AMB82-Mini via MQTT
-mosquitto_pub -h 10.0.0.4 -u dev1 -P dev1pass -t "skyfeeder/sf-mock01/amb/camera/cmd" -f "$PSScriptRoot\snap.json"
+mosquitto_pub -h 10.0.0.4 -u dev1 -P dev1pass -t "skyfeeder/dev1/amb/camera/cmd" -f "$PSScriptRoot\snap.json"

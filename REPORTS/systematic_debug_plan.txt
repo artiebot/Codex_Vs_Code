@@ -1,0 +1,256 @@
+================================================================================
+SYSTEMATIC MQTT CALLBACK DEBUG PLAN
+================================================================================
+Date: 2025-10-09
+Problem: MQTT commands don't trigger callback, but HTTP /test-snap works
+
+This plan isolates the issue step-by-step with minimal test firmware
+
+================================================================================
+STEP 1: VALIDATE MINIMAL MQTT-ONLY FIRMWARE
+================================================================================
+GOAL: Prove that basic MQTT callback works without HTTP interference
+
+FILE: test-mqtt-only.ino (created in amb-mini folder)
+
+WHAT IT DOES:
+- WiFi + MQTT only
+- NO HTTP server
+- NO camera
+- NO complex processing
+- ONLY: Connect MQTT, subscribe, print when callback fires
+
+FLASH PROCEDURE:
+1. Open Arduino IDE
+2. Open: d:\OneDrive\Etsy\Feeder-Project\SW\feeder-project\ESP32\Codex_Vs_Code\amb-mini\test-mqtt-only.ino
+3. Select board: AMB82-Mini
+4. Upload firmware
+5. Open serial monitor @ 115200 baud
+
+EXPECTED SERIAL OUTPUT:
+```
+===========================================
+MQTT CALLBACK TEST - MINIMAL FIRMWARE
+===========================================
+
+Command topic: skyfeeder/sf-mock01/amb/camera/cmd
+[wifi] connecting to wififordays
+..........
+[wifi] CONNECTED!
+[wifi] IP: 10.0.0.XXX
+[mqtt] attempting connection...
+[mqtt] connecting as: amb82-test-XXXXX
+[mqtt] CONNECTED!
+[mqtt] subscribing to: skyfeeder/sf-mock01/amb/camera/cmd
+[mqtt] subscribed OK
+[mqtt] *** CALLBACK READY - SEND TEST MESSAGE ***
+[status] MQTT connected, callbacks received: 0
+[status] MQTT connected, callbacks received: 0
+```
+
+TEST COMMAND:
+PowerShell:
+'{"action":"snap"}' | mosquitto_pub -h 10.0.0.4 -u dev1 -P dev1pass -t "skyfeeder/sf-mock01/amb/camera/cmd" -l
+
+EXPECTED AFTER COMMAND:
+```
+==========================================
+=== CALLBACK FIRED #1 ===
+==========================================
+Topic: skyfeeder/sf-mock01/amb/camera/cmd
+Length: 17
+Payload: {"action":"snap"}
+==========================================
+[status] MQTT connected, callbacks received: 1
+```
+
+VALIDATION:
+[ ] Firmware compiles
+[ ] Device boots and connects to WiFi
+[ ] MQTT connects successfully
+[ ] Serial shows "CALLBACK READY"
+[ ] Send test command
+[ ] Callback fires (giant banner appears)
+[ ] Callback count increments
+[ ] Second test command also triggers callback
+
+OUTCOMES:
+✓ PASS: Callback works → Issue is in main firmware's complexity
+✗ FAIL: Callback doesn't fire → PubSubClient library or platform issue
+
+================================================================================
+STEP 2A: IF MINIMAL TEST PASSES
+================================================================================
+CONCLUSION: MQTT callback works, but something in amb-mini.ino breaks it
+
+NEXT INVESTIGATION:
+1. Compare minimal test with amb-mini.ino line by line
+2. Key differences to check:
+   - HTTP server presence
+   - serviceStream() called before mqtt.loop()
+   - Camera initialization
+   - Multiple mqtt.loop() calls
+   - processMessage() flag handling
+
+HYPOTHESIS 1: serviceStream() blocking mqtt.loop()
+- serviceStream() called at line 525 (BEFORE mqtt check)
+- If it takes too long, mqtt.loop() doesn't get called
+- Check: Add timing logs to serviceStream()
+
+HYPOTHESIS 2: processingMessage flag deadlock
+- processMessage flag might stay true
+- Prevents new callbacks from being copied to buffer
+- Check: Log processingMessage state
+
+HYPOTHESIS 3: HTTP server TCP port conflict
+- Both MQTT and HTTP use same WiFiClient type
+- Possible resource contention
+- Check: Disable HTTP server temporarily in main firmware
+
+ACTION: Systematic elimination - disable features one by one
+
+================================================================================
+STEP 2B: IF MINIMAL TEST FAILS
+================================================================================
+CONCLUSION: Platform-level issue with PubSubClient on AMB82-Mini
+
+POSSIBLE CAUSES:
+1. PubSubClient library incompatibility with Realtek platform
+2. WiFiClient implementation bug
+3. Interrupt handling issue
+4. Memory corruption
+
+NEXT STEPS:
+1. Test with different MQTT library (AsyncMQTT, etc.)
+2. Check Realtek forum for known issues
+3. Try older/newer PubSubClient version
+4. Add heap monitoring for memory leaks
+
+ACTION: Switch to different MQTT library or abandon MQTT control path
+
+================================================================================
+STEP 3: INCREMENTAL COMPLEXITY (IF STEP 2A)
+================================================================================
+Once minimal test passes, add features back ONE AT A TIME:
+
+TEST 3.1: Add HTTP Server (no camera)
+- Copy minimal test
+- Add WiFiServer httpServer(80)
+- Add basic handler in loop()
+- Test: Does callback still fire?
+
+TEST 3.2: Add Camera (no HTTP)
+- Copy minimal test
+- Add VideoStream initialization
+- Add ensureCamera()
+- Test: Does callback still fire?
+
+TEST 3.3: Add processMessage logic
+- Copy minimal test
+- Add msgBuffer, msgReceived flag
+- Add processMessage() function
+- Test: Does callback still fire?
+
+TEST 3.4: Add serviceStream
+- Copy minimal test
+- Add streaming state machine
+- Call serviceStream() in loop()
+- Test: Does callback still fire?
+
+EACH STEP:
+- If callback breaks → FOUND THE CULPRIT
+- If callback works → Continue to next step
+
+================================================================================
+STEP 4: ROOT CAUSE FIX
+================================================================================
+Based on Step 3 findings, apply targeted fix:
+
+SCENARIO A: serviceStream() blocks too long
+FIX: Add mqtt.loop() inside serviceStream()
+FIX: Reduce serviceStream() execution time
+FIX: Change loop() order - mqtt.loop() BEFORE serviceStream()
+
+SCENARIO B: processingMessage deadlock
+FIX: Add timeout to processingMessage flag
+FIX: Reset flag if >1 second old
+FIX: Remove flag entirely (process inline)
+
+SCENARIO C: HTTP/MQTT contention
+FIX: Use separate WiFiClient instances
+FIX: Disable HTTP when MQTT critical
+FIX: Add mutex/semaphore
+
+SCENARIO D: Multiple mqtt.loop() interference
+FIX: Call mqtt.loop() exactly once per main loop()
+FIX: Remove redundant calls
+
+================================================================================
+STEP 5: VALIDATION
+================================================================================
+After fix applied to main amb-mini.ino:
+
+TEST 5.1: MQTT Command (no HTTP)
+- Boot device
+- Wait for MQTT ready
+- Send snap command
+- Verify: Callback fires, snapshot captured, event published
+
+TEST 5.2: MQTT During HTTP Stream
+- Start /stream in browser
+- Send snap command while streaming
+- Verify: Callback fires, command processed
+
+TEST 5.3: Rapid MQTT Commands
+- Send 10 snap commands in 5 seconds
+- Verify: All callbacks fire, all processed
+
+TEST 5.4: Long-term Stability
+- Leave device running 10 minutes
+- Send command every minute
+- Verify: No disconnections, all callbacks work
+
+SUCCESS CRITERIA:
+[ ] All 4 tests pass
+[ ] No serial errors
+[ ] No disconnections
+[ ] Callback count matches command count
+
+================================================================================
+EXECUTION TIMELINE
+================================================================================
+STEP 1 (Minimal test): 10 minutes
+- Flash: 2 min
+- Boot + test: 3 min
+- Validation: 5 min
+
+STEP 2 (Analysis): 15 minutes
+- Code comparison: 10 min
+- Hypothesis testing: 5 min
+
+STEP 3 (Incremental): 30 minutes
+- 4 sub-tests × 7 min each
+
+STEP 4 (Fix): 10 minutes
+- Code change: 5 min
+- Compile + flash: 5 min
+
+STEP 5 (Validation): 20 minutes
+- 4 validation tests
+
+TOTAL: ~85 minutes if all steps needed
+LIKELY: ~30 minutes (Step 1 passes, quick fix in Step 4)
+
+================================================================================
+CURRENT STATUS
+================================================================================
+[X] Minimal test firmware created (test-mqtt-only.ino)
+[ ] User flashes minimal test
+[ ] User validates callback works/fails
+[ ] Analysis based on result
+[ ] Fix applied
+[ ] Final validation
+
+NEXT ACTION: User flashes test-mqtt-only.ino and reports results
+
+================================================================================

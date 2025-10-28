@@ -1,0 +1,201 @@
+================================================================================
+AMB-MINI FIRMWARE VALIDATION STEPS - A0.1
+================================================================================
+Device: AMB82-Mini (sf-mock01)
+Device IP: 10.0.0.198
+MQTT Broker: 10.0.0.4
+Date: 2025-10-09
+
+================================================================================
+PREREQUISITES
+================================================================================
+1. AMB82-Mini flashed with latest amb-mini.ino firmware
+2. Device connected to WiFi "wififordays"
+3. MQTT broker running at 10.0.0.4
+4. Serial monitor open to observe debug output
+5. Separate PowerShell terminal for MQTT commands
+
+================================================================================
+TEST 1: BASIC CONNECTIVITY
+================================================================================
+Step 1.1: Verify WiFi Connection
+- Open serial monitor
+- Look for: "[WiFi] connected! IP: 10.0.0.198"
+- Expected: Should show IP address within 10 seconds of boot
+
+Step 1.2: Verify MQTT Connection
+- Look for: "[mqtt] connected!"
+- Look for: "[mqtt] subscribed to: skyfeeder/sf-mock01/amb/camera/cmd"
+- Expected: Should connect within 5 seconds after WiFi
+
+Step 1.3: Verify HTTP Server
+- Open browser: http://10.0.0.198/
+- Expected: Should see simple status page with device info
+
+PASS CRITERIA: All three services running without errors
+
+================================================================================
+TEST 2: HTTP ENDPOINTS (SINGLE CLIENT)
+================================================================================
+Step 2.1: Test Status Endpoint
+- Browser: http://10.0.0.198/
+- Expected: Page loads showing device status
+- Serial: Look for "[http] client connected"
+
+Step 2.2: Test Snapshot Endpoint
+- Browser: http://10.0.0.198/test-snap
+- Expected: "Snapshot captured" message
+- Serial: Look for "[http] test-snap triggered"
+- Serial: Look for "[mqtt] publish snapshot -> OK"
+
+Step 2.3: Test Stream Endpoint
+- Browser: http://10.0.0.198/stream
+- Expected: Live MJPEG video stream displays
+- Expected: Stream runs for ~20 seconds (600 frames @ 30fps)
+- Serial: Look for "[http] streaming started"
+- Serial: Look for frame counter incrementing
+
+PASS CRITERIA: All endpoints work when accessed individually
+
+================================================================================
+TEST 3: HTTP MULTI-CLIENT CONCURRENCY (KNOWN ISSUE)
+================================================================================
+Step 3.1: Test Two Simultaneous Clients
+- Open browser tab 1: http://10.0.0.198/
+- Immediately open browser tab 2: http://10.0.0.198/stream
+- Observe: Do both pages load or does one hang?
+
+Step 3.2: Test Stream During Status
+- Start stream in tab 1: http://10.0.0.198/stream
+- While streaming, open tab 2: http://10.0.0.198/
+- Observe: Does status page load or wait for stream to finish?
+
+Step 3.3: Test Multiple Streams
+- Open tab 1: http://10.0.0.198/stream
+- While streaming, open tab 2: http://10.0.0.198/stream
+- Observe: Does second stream start or block?
+
+EXPECTED ISSUE: Only one HTTP client can be served at a time
+ROOT CAUSE: WiFiServer.available() + blocking handlers = no concurrency
+IMPACT: Multiple browser tabs will block each other
+
+SERIAL OUTPUT TO CAPTURE:
+- Connection patterns
+- Whether clients are queued or rejected
+- Any timeout/disconnect messages
+
+================================================================================
+TEST 4: MQTT COMMAND RECEPTION
+================================================================================
+Step 4.1: Setup MQTT Listener
+PowerShell terminal 1:
+mosquitto_sub -h 10.0.0.4 -u dev1 -P dev1pass -t "skyfeeder/sf-mock01/amb/#" -v
+
+Step 4.2: Send Snap Command
+PowerShell terminal 2:
+'{"action":"snap"}' | mosquitto_pub -h 10.0.0.4 -u dev1 -P dev1pass -t "skyfeeder/sf-mock01/amb/camera/cmd" -l
+
+Step 4.3: Verify Command Reception
+Serial monitor should show:
+- "[mqtt] msg received"
+- "[mqtt] parsed JSON: action=snap"
+- "[mqtt] processing snap command"
+
+Step 4.4: Verify Snapshot Capture
+Serial monitor should show:
+- "[snapshot] capturing still image..."
+- "[snapshot] captured 640x480 JPEG, size: XXXXX bytes"
+
+PASS CRITERIA: Command received and snapshot captured
+
+================================================================================
+TEST 5: MQTT EVENT PUBLISHING (CURRENT ISSUE)
+================================================================================
+Step 5.1: Send Snap Command
+PowerShell terminal 2:
+'{"action":"snap"}' | mosquitto_pub -h 10.0.0.4 -u dev1 -P dev1pass -t "skyfeeder/sf-mock01/amb/camera/cmd" -l
+
+Step 5.2: Check Serial for Publish Attempt
+Look for:
+- "[mqtt] connection state before publish: CONNECTED" or "DISCONNECTED"
+- "[mqtt] publish snapshot -> OK" or "skipped (MQTT reconnect failed)"
+
+Step 5.3: Check MQTT Listener
+PowerShell terminal 1 should show:
+skyfeeder/sf-mock01/amb/camera/event/snapshot {"url":"http://10.0.0.198/snapshot.jpg","size":XXXXX,"timestamp":XXXXXXX}
+
+CURRENT ISSUE: Events not publishing even though snapshot captured
+DEBUGGING NEEDED:
+1. Is MQTT still connected after captureStill()?
+2. Does pumpMqtt() successfully reconnect?
+3. Does ensureMqttConnected() return true before publish?
+4. Does mqtt.publish() return true/false?
+
+SERIAL OUTPUT TO CAPTURE (with exact text):
+- Full output from command reception to publish attempt
+- Connection state messages
+- Any "skipped" messages
+
+================================================================================
+TEST 6: MQTT DURING HTTP STREAMING (PREVIOUS FIX VALIDATION)
+================================================================================
+Step 6.1: Start HTTP Stream
+Browser: http://10.0.0.198/stream
+
+Step 6.2: Send MQTT Snap During Stream
+While stream is active, PowerShell terminal:
+'{"action":"snap"}' | mosquitto_pub -h 10.0.0.4 -u dev1 -P dev1pass -t "skyfeeder/sf-mock01/amb/camera/cmd" -l
+
+Step 6.3: Verify Command Processed
+Serial should show:
+- Stream frames continuing
+- "[mqtt] msg received" appears during stream
+- "[mqtt] processing snap command" appears during stream
+
+PASS CRITERIA: MQTT commands processed while streaming (validates mqtt.loop() fix)
+
+================================================================================
+TEST 7: STRESS TEST - RAPID COMMANDS
+================================================================================
+Step 7.1: Send Multiple Snap Commands
+PowerShell terminal (run 5 times quickly):
+'{"action":"snap"}' | mosquitto_pub -h 10.0.0.4 -u dev1 -P dev1pass -t "skyfeeder/sf-mock01/amb/camera/cmd" -l
+
+Step 7.2: Observe Behavior
+Serial should show:
+- Each command received and processed
+- Connection state changes (if any)
+- Whether all events publish successfully
+
+================================================================================
+VALIDATION CHECKLIST
+================================================================================
+[ ] WiFi connects on boot
+[ ] MQTT connects and subscribes
+[ ] HTTP server responds
+[ ] /test-snap captures and publishes event
+[ ] /stream delivers video
+[ ] MQTT snap commands trigger capture
+[ ] MQTT events publish successfully
+[ ] MQTT works during HTTP streaming
+
+KNOWN ISSUES:
+[ ] HTTP multi-client concurrency (only one client served at a time)
+[ ] MQTT events not publishing (investigating)
+
+================================================================================
+DEBUGGING COMMANDS
+================================================================================
+# Watch all MQTT traffic for device
+mosquitto_sub -h 10.0.0.4 -u dev1 -P dev1pass -t "skyfeeder/sf-mock01/#" -v
+
+# Send snap command (stdin method - best for PowerShell)
+'{"action":"snap"}' | mosquitto_pub -h 10.0.0.4 -u dev1 -P dev1pass -t "skyfeeder/sf-mock01/amb/camera/cmd" -l
+
+# Send snap command (file method)
+mosquitto_pub -h 10.0.0.4 -u dev1 -P dev1pass -t "skyfeeder/sf-mock01/amb/camera/cmd" -f snap.json
+
+# Check MQTT broker is reachable
+Test-NetConnection -ComputerName 10.0.0.4 -Port 1883
+
+================================================================================

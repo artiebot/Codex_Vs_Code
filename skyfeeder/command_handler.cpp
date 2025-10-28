@@ -17,9 +17,21 @@
 #include "log_service.h"
 #include "logging.h"
 #include "ota_service.h"
+#include "visit_service.h"
 #include <ctime>
 
 namespace {
+enum class MiniArmState {
+  Idle,
+  ArmedWaking,
+  ArmedWaitBoot,
+  ArmedWaitReady,
+  ArmedSettling,
+  ArmedReady,
+  VisitCapturing,
+  Disarming
+};
+
 void publishAck(const char* cmd, bool ok, const char* msg = nullptr) {
   StaticJsonDocument<160> doc;
   doc["cmd"] = cmd;
@@ -91,6 +103,9 @@ bool gMiniActive = false;
 bool gMiniSettled = false;
 bool gSleepInFlight = false;
 bool gSnapshotPending = false;
+bool gVisitActive = false;
+bool gVisitMediaCaptured = false;
+bool gVisitMetadataOnly = false;
 unsigned long gMiniLastStatusMs = 0;
 unsigned long gMiniLastActivityMs = 0;
 
@@ -101,13 +116,79 @@ struct SnapshotRecord {
 };
 
 SnapshotRecord gSnapshotResult;
+bool gEventCapturePending = false;
+unsigned long gEventCaptureStartMs = 0;
 
-constexpr unsigned long kMiniIdleSleepMs = 15000;
+constexpr unsigned long kMiniIdleSleepMs = 90000;  // 90s to allow upload retries
 constexpr unsigned long kMiniWakeTimeoutMs = 15000;
 constexpr unsigned long kMiniSettleTimeoutMs = 1500;
 constexpr unsigned long kMiniSnapshotTimeoutMs = 5000;
+constexpr unsigned long kMiniEventTimeoutMs = 15000;
+constexpr unsigned long kMiniWakePulseIntervalMs = 2000;
+constexpr unsigned long kMiniBootTimeoutMs = 8000;
+constexpr unsigned long kMiniReadyTimeoutMs = 8000;
+constexpr uint8_t kMiniWakeMaxRetries = 3;
+
+MiniArmState gArmState = MiniArmState::Idle;
+bool gMiniBootSeen = false;
+bool gMiniReadySeen = false;
+bool miniLikelyPresent() {
+  if (gMiniLastStatusMs != 0) return true;
+  if (gMiniActive) return true;
+  if (gMiniReadySeen) return true;
+  if (gMiniBootSeen) return true;
+  return false;
+}
+
+unsigned long gWakePulseMs = 0;
+unsigned long gBootSeenMs = 0;
+unsigned long gReadySeenMs = 0;
+unsigned long gSettleDueMs = 0;
+uint8_t gWakeRetryCount = 0;
+bool gCaptureQueued = false;
+const char* gCaptureReason = nullptr;
+unsigned long gVisitStartMs = 0;
+float gVisitPeakDelta = 0.0f;
+unsigned long gVisitEndMs = 0;
+
+const char* reasonArmedReady = "armed_ready";
+const char* reasonLateReady = "late_ready";
+const char* reasonNoCapture = "no_capture_ready";
 
 void markMiniActivity() { gMiniLastActivityMs = millis(); }
+
+void publishSysState(const char* state) {
+  StaticJsonDocument<160> doc;
+  doc["ts"] = unixNow();
+  doc["state"] = state;
+  char buf[160];
+  size_t n = serializeJson(doc, buf, sizeof(buf));
+  (void)n;
+  SF::mqtt.raw().publish(SF::Topics::eventSys(), buf, false);
+  Serial.print("[sys] ");
+  Serial.println(buf);
+}
+
+void publishVisitEvent(const char* type, float delta = 0.0f, unsigned long durationMs = 0, const char* reason = nullptr) {
+  StaticJsonDocument<192> doc;
+  doc["ts"] = unixNow();
+  doc["type"] = type;
+  if (std::strcmp(type, "start") == 0) {
+    doc["delta"] = delta;
+  } else if (std::strcmp(type, "capture") == 0) {
+    if (reason && reason[0]) doc["reason"] = reason;
+  } else if (std::strcmp(type, "end") == 0) {
+    doc["dur_ms"] = durationMs;
+    doc["delta"] = delta;
+    if (reason && reason[0]) doc["reason"] = reason;
+  }
+  char buf[192];
+  size_t n = serializeJson(doc, buf, sizeof(buf));
+  (void)n;
+  SF::mqtt.raw().publish(SF::Topics::eventVisit(), buf, false);
+  Serial.print("[visit] ");
+  Serial.println(buf);
+}
 
 void onMiniStatus(const char* state, const char* ip, const char* rtsp, bool settled) {
   copyString(gMiniState, sizeof(gMiniState), state);
@@ -169,11 +250,83 @@ void onMiniWifi(bool ok, const char* reason, const char* op, const char* token) 
   Serial.println();
 }
 
+void onMiniEvent(const char* phase, const char* trigger, uint8_t index, uint8_t total, uint16_t seconds, bool ok) {
+  SF::Log::info("mini", "event phase=%s trigger=%s idx=%u/%u sec=%u ok=%s",
+                phase ? phase : "(null)",
+                trigger ? trigger : "",
+                static_cast<unsigned>(index),
+                static_cast<unsigned>(total),
+                static_cast<unsigned>(seconds),
+                ok ? "true" : "false");
+  Serial.print("[mini] event phase=");
+  Serial.print(phase ? phase : "(null)");
+  if (trigger && trigger[0]) {
+    Serial.print(" trigger=");
+    Serial.print(trigger);
+  }
+  if (total > 0) {
+    Serial.print(" total=");
+    Serial.print(total);
+  }
+  if (index > 0) {
+    Serial.print(" index=");
+    Serial.print(index);
+  }
+  if (seconds > 0) {
+    Serial.print(" seconds=");
+    Serial.print(seconds);
+  }
+  Serial.print(" ok=");
+  Serial.println(ok ? "true" : "false");
+
+  if (phase && std::strcmp(phase, "done") == 0) {
+    gEventCapturePending = false;
+    gVisitMediaCaptured = ok;
+    publishVisitEvent("capture_done", 0.0f, 0, ok ? "ok" : "error");
+    gCaptureQueued = false;
+    gArmState = MiniArmState::Disarming;
+  }
+  markMiniActivity();
+}
+
+void onMiniLifecycle(const char* kind, uint32_t ts, const char* fw, bool camera, bool rtsp) {
+  if (!kind) return;
+  if (std::strcmp(kind, "boot") == 0) {
+    gMiniBootSeen = true;
+    gBootSeenMs = millis();
+    publishSysState("mini_boot_seen");
+    if (gArmState == MiniArmState::ArmedWaking || gArmState == MiniArmState::ArmedWaitBoot) {
+      gArmState = MiniArmState::ArmedWaitReady;
+    }
+  } else if (std::strcmp(kind, "ready") == 0) {
+    gMiniReadySeen = true;
+    gReadySeenMs = millis();
+    gSettleDueMs = gReadySeenMs + MINI_READY_SETTLE_MS;
+    publishSysState("mini_ready_seen");
+    if (gArmState == MiniArmState::ArmedWaitReady || gArmState == MiniArmState::ArmedSettling) {
+      gArmState = MiniArmState::ArmedSettling;
+    }
+  } else if (std::strcmp(kind, "sleep_deep") == 0) {
+    publishSysState("mini_sleep_deep");
+    gArmState = MiniArmState::Idle;
+    gMiniBootSeen = false;
+    gMiniReadySeen = false;
+    gCaptureQueued = false;
+    gCaptureReason = nullptr;
+    gEventCapturePending = false;
+    gVisitActive = false;
+    gVisitMediaCaptured = false;
+    gVisitMetadataOnly = false;
+  }
+}
+
 struct MiniCallbackRegistrar {
   MiniCallbackRegistrar() {
     SF::Mini_setStatusCallback(onMiniStatus);
     SF::Mini_setSnapshotCallback(onMiniSnapshot);
     SF::Mini_setWifiCallback(onMiniWifi);
+    SF::Mini_setEventCallback(onMiniEvent);
+    SF::Mini_setLifecycleCallback(onMiniLifecycle);
   }
 } miniCallbackRegistrar;
 
@@ -222,23 +375,44 @@ bool waitForSnapshotResult(unsigned long timeoutMs, SnapshotRecord& out) {
   return false;
 }
 
-bool runSnapshotSequence(const char*& codeOut) {
-  Serial.println("[cmd/cam] Snapshot sequence start");
+bool ensureMiniReady(const char*& codeOut) {
+  if (!miniLikelyPresent()) {
+    codeOut = "NO_MINI";
+    Serial.println("[cmd/cam] Mini unavailable before wake");
+    return false;
+  }
   markMiniActivity();
-  SF::Mini_wakePulse();
+  if (!SF::Mini_wakePulse()) {
+    codeOut = "WAKE_PIN";
+    SF::Log::warn("cmd/cam", "wake pulse skipped (pin < 0)");
+    return false;
+  }
 
   if (!waitForMiniState("active", kMiniWakeTimeoutMs)) {
     codeOut = "WAKE_TIMEOUT";
-    Serial.println("[cmd/cam] Snapshot wake timeout");
+    Serial.println("[cmd/cam] Mini wake timeout");
     return false;
   }
 
   if (!waitForMiniSettled(kMiniSettleTimeoutMs)) {
     codeOut = "SETTLE_TIMEOUT";
-    Serial.println("[cmd/cam] Snapshot settle timeout");
+    Serial.println("[cmd/cam] Mini settle timeout");
     return false;
   }
 
+  return true;
+}
+
+bool runSnapshotSequence(const char*& codeOut) {
+  if (!miniLikelyPresent()) {
+    codeOut = "NO_MINI";
+    Serial.println("[cmd/cam] Mini not detected; aborting snapshot");
+    return false;
+  }
+  Serial.println("[cmd/cam] Snapshot sequence start");
+  if (!ensureMiniReady(codeOut)) {
+    return false;
+  }
   gSnapshotPending = true;
   gSnapshotResult.ready = false;
   if (!SF::Mini_requestSnapshot()) {
@@ -266,6 +440,36 @@ bool runSnapshotSequence(const char*& codeOut) {
   codeOut = "OK";
   markMiniActivity();
   Serial.println("[cmd/cam] Snapshot sequence success");
+  return true;
+}
+
+bool runEventCapture(uint8_t snapshotCount, uint16_t videoSeconds, const char* trigger, const char*& codeOut) {
+  if (!miniLikelyPresent()) {
+    codeOut = "NO_MINI";
+    Serial.println("[event] Mini not detected; aborting capture");
+    return false;
+  }
+  Serial.println("[event] Capture sequence start");
+  if (!gMiniSettled) {
+    if (!ensureMiniReady(codeOut)) {
+      return false;
+    }
+  }
+  if (!SF::Mini_requestEventCapture(snapshotCount, videoSeconds, trigger)) {
+    codeOut = "UART_WRITE";
+    Serial.println("[event] capture_event UART write failed");
+    return false;
+  }
+  markMiniActivity();
+  gEventCapturePending = true;
+  gEventCaptureStartMs = millis();
+  gCaptureQueued = true;
+  gVisitMetadataOnly = false;
+  gCaptureReason = (trigger && trigger[0]) ? trigger : reasonArmedReady;
+  gArmState = MiniArmState::VisitCapturing;
+  publishVisitEvent("capture", 0.0f, 0, gCaptureReason);
+  Serial.println("[event] capture_event command sent");
+  codeOut = "OK";
   return true;
 }
 
@@ -373,6 +577,10 @@ void handleMiniCam(byte* payload, unsigned int len) {
   const char* token = (tokenField && tokenField[0]) ? tokenField : nullptr;
 
   if (std::strcmp(op, "snapshot") == 0) {
+    if (!miniLikelyPresent()) {
+      publishCamAck(false, "NO_MINI", "mini_unavailable", op, token);
+      return;
+    }
     const char* code = "OK";
     bool ok = runSnapshotSequence(code);
     const char* msg = ok ? nullptr : code;
@@ -381,6 +589,10 @@ void handleMiniCam(byte* payload, unsigned int len) {
   }
 
   if (std::strcmp(op, "sleep_deep") == 0 || std::strcmp(op, "sleep") == 0) {
+    if (!miniLikelyPresent()) {
+      publishCamAck(false, "NO_MINI", "mini_unavailable", "sleep_deep", token);
+      return;
+    }
     bool ok = SF::Mini_sendSleepDeep();
     if (ok) {
       gSleepInFlight = true;
@@ -390,18 +602,29 @@ void handleMiniCam(byte* payload, unsigned int len) {
     publishCamAck(ok, ok ? "OK" : "UART_WRITE", ok ? nullptr : "sleep_deep_failed", "sleep_deep", token);
     return;
   }
-
   if (std::strcmp(op, "wake") == 0) {
-    SF::Mini_wakePulse();
-    publishCamAck(true, "OK", nullptr, op, token);
+    if (!miniLikelyPresent()) {
+      publishCamAck(false, "NO_MINI", "mini_unavailable", op, token);
+      return;
+    }
+    bool ok = SF::Mini_wakePulse();
+    publishCamAck(ok, ok ? "OK" : "WAKE_PIN", ok ? nullptr : "wake_pulse_failed", op, token);
     return;
   }
 
   bool queued = false;
   const char* ackToken = nullptr;
   if (std::strcmp(op, "status") == 0) {
+    if (!miniLikelyPresent()) {
+      publishCamAck(false, "NO_MINI", "mini_unavailable", op, token);
+      return;
+    }
     queued = SF::Mini_requestStatus();
   } else if (std::strcmp(op, "stage_wifi") == 0) {
+    if (!miniLikelyPresent()) {
+      publishCamAck(false, "NO_MINI", "mini_unavailable", op, token);
+      return;
+    }
     const char* ssid = doc["ssid"] | "";
     const char* psk = doc["psk"] | "";
     if (!ssid || !ssid[0]) {
@@ -411,9 +634,17 @@ void handleMiniCam(byte* payload, unsigned int len) {
     ackToken = token;
     queued = SF::Mini_stageWifi(ssid, psk ? psk : "", token);
   } else if (std::strcmp(op, "commit_wifi") == 0) {
+    if (!miniLikelyPresent()) {
+      publishCamAck(false, "NO_MINI", "mini_unavailable", op, token);
+      return;
+    }
     ackToken = token;
     queued = SF::Mini_commitWifi(token);
   } else if (std::strcmp(op, "abort_wifi") == 0) {
+    if (!miniLikelyPresent()) {
+      publishCamAck(false, "NO_MINI", "mini_unavailable", op, token);
+      return;
+    }
     ackToken = token;
     queued = SF::Mini_abortWifi(token);
   } else {
@@ -452,9 +683,169 @@ void SF_onMqttMessage(char* topic, byte* payload, unsigned int len) {
   }
 }
 
+bool SF_captureEvent(uint8_t snapshotCount, uint16_t videoSeconds, const char* trigger) {
+  const unsigned long now = millis();
+  if (gSnapshotPending) {
+    Serial.println("[event] capture blocked (snapshot pending)");
+    return false;
+  }
+  if (gSleepInFlight) {
+    Serial.println("[event] capture blocked (sleep in progress)");
+    return false;
+  }
+  if (gEventCapturePending) {
+    if (now - gEventCaptureStartMs < kMiniEventTimeoutMs) {
+      Serial.println("[event] capture blocked (event pending)");
+      return false;
+    }
+    gEventCapturePending = false;
+  }
+  const char* code = "OK";
+  if (!runEventCapture(snapshotCount, videoSeconds, trigger, code)) {
+    SF::Log::warn("event", "capture_event failed (%s)", code ? code : "err");
+    return false;
+  }
+  SF::Log::info("event", "capture_event queued (snap=%u video=%u)", snapshotCount, videoSeconds);
+  return true;
+}
+
+void SF_armForMotion() {
+  if (gArmState == MiniArmState::VisitCapturing ||
+      gArmState == MiniArmState::ArmedWaitBoot ||
+      gArmState == MiniArmState::ArmedWaitReady ||
+      gArmState == MiniArmState::ArmedSettling ||
+      gArmState == MiniArmState::ArmedReady) {
+    return;
+  }
+
+  gMiniBootSeen = false;
+  gMiniReadySeen = false;
+  gWakeRetryCount = 0;
+  gWakePulseMs = 0;
+  gCaptureQueued = false;
+  gCaptureReason = nullptr;
+  gVisitMetadataOnly = false;
+  gVisitMediaCaptured = false;
+  gSettleDueMs = 0;
+
+  publishVisitEvent("arm", 0.0f, 0, "wake");
+  if (SF::Mini_sendWake()) {
+    gWakePulseMs = millis();
+    gWakeRetryCount = 1;
+    markMiniActivity();
+    publishSysState("mini_wake_pulse");
+    gArmState = MiniArmState::ArmedWaitBoot;
+  } else {
+    publishSysState("mini_wake_failed");
+    gArmState = MiniArmState::Idle;
+  }
+}
+
+void SF_visitStart(float delta) {
+  gVisitActive = true;
+  gVisitStartMs = millis();
+  gVisitPeakDelta = delta;
+  publishVisitEvent("start", delta);
+}
+
+void SF_visitEnd(unsigned long durationMs, float peakDelta) {
+  gVisitActive = false;
+  gVisitEndMs = millis();
+  gVisitPeakDelta = peakDelta;
+
+  const char* reason = gCaptureReason;
+  if (!gVisitMediaCaptured) {
+    if (!reason) {
+      reason = gVisitMetadataOnly ? reasonNoCapture : reasonLateReady;
+    }
+  } else if (!reason) {
+    reason = reasonArmedReady;
+  }
+
+  publishVisitEvent("end", peakDelta, durationMs, reason);
+  gCaptureReason = nullptr;
+  gVisitMetadataOnly = false;
+  gVisitMediaCaptured = false;
+  gCaptureQueued = false;
+  gArmState = MiniArmState::Disarming;
+}
+
 void SF_commandHandlerLoop() {
   const unsigned long now = millis();
-  if (gMiniActive && gMiniSettled && !gSnapshotPending && !gSleepInFlight) {
+  if (gEventCapturePending && now - gEventCaptureStartMs > kMiniEventTimeoutMs) {
+    gEventCapturePending = false;
+  }
+  switch (gArmState) {
+    case MiniArmState::ArmedWaking:
+      if (gWakeRetryCount == 0 || now - gWakePulseMs >= kMiniWakePulseIntervalMs) {
+        if (SF::Mini_sendWake()) {
+          gWakePulseMs = now;
+          ++gWakeRetryCount;
+          markMiniActivity();
+          publishSysState("mini_wake_retry");
+          gArmState = MiniArmState::ArmedWaitBoot;
+        }
+      }
+      break;
+    case MiniArmState::ArmedWaitBoot:
+      if (gMiniBootSeen) {
+        publishSysState("mini_boot_confirmed");
+        gArmState = MiniArmState::ArmedWaitReady;
+      } else if (now - gWakePulseMs > kMiniBootTimeoutMs) {
+        if (gWakeRetryCount < kMiniWakeMaxRetries) {
+          gArmState = MiniArmState::ArmedWaking;
+        } else {
+          gVisitMetadataOnly = true;
+          gCaptureReason = reasonNoCapture;
+          publishVisitEvent("capture", 0.0f, 0, reasonNoCapture);
+          gArmState = MiniArmState::Idle;
+        }
+      }
+      break;
+    case MiniArmState::ArmedWaitReady:
+      if (gMiniReadySeen) {
+        publishSysState("mini_ready_detected");
+        gArmState = MiniArmState::ArmedSettling;
+        SF::Mini_requestStatus();
+      } else if (now - gBootSeenMs > kMiniReadyTimeoutMs) {
+        gVisitMetadataOnly = true;
+        gCaptureReason = reasonLateReady;
+        publishVisitEvent("capture", 0.0f, 0, reasonLateReady);
+        gArmState = MiniArmState::Idle;
+      }
+      break;
+    case MiniArmState::ArmedSettling:
+      if (gMiniSettled && now >= gSettleDueMs) {
+        gCaptureReason = reasonArmedReady;
+        publishVisitEvent("capture_ready", 0.0f, 0, reasonArmedReady);
+        gArmState = MiniArmState::ArmedReady;
+      } else if (now - gReadySeenMs > kMiniSettleTimeoutMs) {
+        gVisitMetadataOnly = true;
+        gCaptureReason = reasonLateReady;
+        publishVisitEvent("capture", 0.0f, 0, reasonLateReady);
+        gArmState = MiniArmState::ArmedReady;
+      }
+      break;
+    case MiniArmState::ArmedReady:
+      if (!gVisitActive && !gCaptureQueued && now - gReadySeenMs > kMiniIdleSleepMs) {
+        gArmState = MiniArmState::Disarming;
+      }
+      break;
+    case MiniArmState::Disarming:
+      if (!gEventCapturePending && !gSleepInFlight && gMiniActive) {
+        if (SF::Mini_sendSleepDeep()) {
+          gSleepInFlight = true;
+          gMiniSettled = false;
+          markMiniActivity();
+          publishSysState("mini_disarm_sleep");
+        }
+      }
+      break;
+    default:
+      break;
+  }
+
+  if (gMiniActive && gMiniSettled && !gSnapshotPending && !gSleepInFlight && gArmState == MiniArmState::Idle) {
     if (now - gMiniLastActivityMs > kMiniIdleSleepMs) {
       if (SF::Mini_sendSleepDeep()) {
         gSleepInFlight = true;
@@ -473,3 +864,4 @@ const char* SF_miniState() {
 bool SF_miniSettled() {
   return gMiniSettled;
 }
+

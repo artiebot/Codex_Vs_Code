@@ -1,0 +1,31 @@
+Pin Usage Reference (current as of A0.2)
+=========================================
+
+ESP32 Controller
+----------------
+GPIO  2  - Status LED (SF::led)
+GPIO  4  - Camera flash (ESP32-CAM module)
+GPIO  5  - Camera D0 / WS2812 data (board-specific)
+GPIO 23  - AMB Mini UART TX (to AMB PD16 serial RX)
+GPIO 34  - AMB Mini UART RX (from AMB PD15 serial TX)
+GPIO 14  - AMB Mini wake GPIO (drives Mini awake/high)
+GPIO 15+ - refer to config.h for HX711, INA260, PIR, etc.
+
+
+AMB82-Mini (Realtek)
+--------------------
+PD15 - UART TX to ESP32 RX (GPIO34)
+PD16 - UART RX from ESP32 TX (GPIO23)
+PDxx - RTSP camera sensor channels (per Realtek SDK defaults)
+
+Other buses/power
+-----------------
+I2C SDA 25 / SCL 26 – load cell amplifier & sensors
+HX711: DOUT 32 / SCK 33
+INA260 alert: GPIO17
+PIR motion: GPIO27
+NeoPixel strip: GPIO5 (default) with brightness defined in config
+
+See config.h, pins_board.h, and ARCHITECTURE.md for the canonical mappings.
+
+

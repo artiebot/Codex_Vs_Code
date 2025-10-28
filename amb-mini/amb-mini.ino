@@ -4,7 +4,13 @@
 #define ARDUINOJSON_DEPRECATED(msg)
 #endif
 #include <ArduinoJson.h>
+#include "http_response.h"
+#include <climits>
+#include <cstdlib>
+#include "mbedtls/sha256.h"
 #include <cstring>
+#include "PowerMode.h"
+#include "hal_power_mode.h"
 #include "VideoStream.h"
 #include "StreamIO.h"
 #include "RTSP.h"
@@ -33,7 +39,7 @@
 #endif
 
 // UART Configuration:
-// Serial3 uses PE1 (TX) / PE2 (RX) - connected to ESP32
+// Serial3 (ESP32 ↔ AMB82 Mini link) uses PE1 (TX from Mini) / PE2 (RX into Mini)
 // Serial is USB debug console
 #define MINI_UART Serial3
 
@@ -48,14 +54,22 @@ constexpr unsigned long WIFI_STAGE_TEST_TIMEOUT_MS = 15000;
 constexpr unsigned long WIFI_STAGE_RESTORE_TIMEOUT_MS = 8000;
 
 // ---------- WIFI / MQTT CONFIG ----------
-char WIFI_SSID[WIFI_SSID_MAX + 1] = "wififordays";
-char WIFI_PASS[WIFI_PASS_MAX + 1] = "wififordayspassword1236";
+#if MINI_MQTT
 static const char* MQTT_HOST = "10.0.0.4";
 static const uint16_t MQTT_PORT = 1883;
 static const char* MQTT_USER = "dev1";
 static const char* MQTT_PASS = "dev1pass";
+#endif
+char WIFI_SSID[WIFI_SSID_MAX + 1] = "wififordays";
+char WIFI_PASS[WIFI_PASS_MAX + 1] = "wififordayspassword1236";
 static const char* DEVICE_ID = "dev1";
 // ----------------------------------------
+
+enum class MiniState { Active, SleepDeep };
+constexpr unsigned long kSettleDurationMs = 1000;
+MiniState miniState = MiniState::Active;
+bool miniSettled = false;
+unsigned long settleUntilMs = 0;
 
 struct WifiCredentials {
   char ssid[WIFI_SSID_MAX + 1];
@@ -106,6 +120,8 @@ uint8_t* lastFrame = nullptr;
 size_t   lastFrameLen = 0;
 unsigned long lastSnapTs = 0;
 uint32_t snapCount = 0;
+constexpr uint8_t kEventSnapshotDefault = 10;
+constexpr uint16_t kEventVideoSecondsDefault = 5;
 
 #if MINI_MQTT
 // Message processing buffer
@@ -114,6 +130,31 @@ volatile unsigned int msgLen = 0;
 volatile bool msgReceived = false;
 volatile bool processingMessage = false;
 #endif
+
+constexpr size_t kUploadQueueSlots = 4;
+constexpr uint8_t kUploadMaxAttempts = 3;
+constexpr unsigned long kUploadBackoffAttempt2Ms = 60000UL;    // 1 minute
+constexpr unsigned long kUploadBackoffAttempt3Ms = 300000UL;   // 5 minutes
+constexpr unsigned long kUploadBackoffAttempt4Ms = 900000UL;   // 15 minutes
+
+struct UploadSlot {
+  bool used = false;
+  bool uploading = false;
+  bool clip = false;
+  uint8_t attempt = 0;
+  unsigned long createdMs = 0;
+  unsigned long lastAttemptMs = 0;
+  unsigned long nextAttemptMs = 0;
+  uint8_t sha256[32]{};
+  uint8_t* data = nullptr;
+  size_t length = 0;
+  char kind[8]{};
+  char trigger[16]{};
+};
+
+UploadSlot uploadQueue[kUploadQueueSlots];
+SemaphoreHandle_t uploadMutex = nullptr;
+
 TaskHandle_t mqttTaskHandle = nullptr;
 SemaphoreHandle_t frameMutex = nullptr;
 SemaphoreHandle_t streamMutex = nullptr;
@@ -145,6 +186,7 @@ void sendStatusSerial();
 void sendSerialError(const char* msg);
 void emitWifiTestSerial(const char* op, bool ok, const char* reason, const char* token);
 void copySafeString(char* dst, size_t len, const char* src);
+void emitEventPhase(const char* phase, const char* trigger, uint8_t index = 0, uint8_t total = 0, uint16_t seconds = 0, bool ok = true);
 void loadActiveCredentials(WifiCredentials& out);
 void applyCredentialsToActive(const WifiCredentials& creds);
 bool connectWithCredentials(WifiCredentials creds, unsigned long timeoutMs);
@@ -152,8 +194,13 @@ void clearWifiStage();
 bool handleStageWifi(const JsonDocument& doc);
 bool handleCommitWifi(const JsonDocument& doc);
 bool handleAbortWifi(const JsonDocument& doc);
+void handleCaptureEvent(const JsonDocument& doc);
 void processSerialLine(const char* line);
 void handleSerialInput();
+void enterDeepSleep();
+static void initUploadQueue();
+bool queueThumbnailUpload(const uint8_t* data, size_t len, const char* trigger);
+void serviceUploadQueue();
 
 #if MINI_MQTT
 void processMessage();
@@ -196,6 +243,8 @@ void initSynchronization() {
       Serial.println("[sync] ERROR: stream mutex alloc failed");
     }
   }
+
+  initUploadQueue();
 }
 
 bool lockFrameBuffer(TickType_t wait) {
@@ -291,8 +340,10 @@ void sendSerialError(const char* msg) {
 void sendStatusSerial() {
   StaticJsonDocument<192> doc;
   doc["mini"] = "status";
-  doc["state"] = camActive ? "ready" : "sleeping";
-  if (WiFi.status() == WL_CONNECTED) {
+  const char* stateStr = (miniState == MiniState::Active) ? "active" : "sleep_deep";
+  doc["state"] = stateStr;
+  doc["settled"] = miniSettled;
+  if (miniState == MiniState::Active && WiFi.status() == WL_CONNECTED) {
     String ip = ipToString(WiFi.localIP());
     doc["ip"] = ip;
     if (rtspStreaming) {
@@ -312,6 +363,607 @@ void sendStatusSerial() {
   Serial.println();
 }
 
+static bool enqueueUploadInternal(const uint8_t* data, size_t len, const char* kind, bool isClip, const char* trigger);
+static void emitUploadTelemetry(const UploadSlot& slot, const char* status, uint8_t attempt, unsigned long elapsedMs, unsigned long etaMs);
+
+// Request a presigned URL for uploading data
+static bool readHttpResponse(WiFiClient& client, HttpResponse& out, unsigned long timeoutMs) {
+  out.statusLine = "";
+  out.headers = "";
+  out.body = "";
+
+  String raw;
+  unsigned long deadline = millis() + timeoutMs;
+
+  while (millis() <= deadline) {
+    while (client.available()) {
+      int c = client.read();
+      if (c < 0) {
+        break;
+      }
+      raw += static_cast<char>(c);
+      // Extend the deadline a bit whenever we make progress.
+      deadline = millis() + 200;
+    }
+
+    if (!client.connected()) {
+      // Drain any trailing bytes left in the buffer.
+      while (client.available()) {
+        int c = client.read();
+        if (c < 0) {
+          break;
+        }
+        raw += static_cast<char>(c);
+      }
+      break;
+    }
+
+    vTaskDelay(pdMS_TO_TICKS(5));
+  }
+
+  if (raw.length() == 0) {
+    Serial.println("[http] Empty HTTP response");
+    return false;
+  }
+
+  int headerEnd = raw.indexOf("\r\n\r\n");
+  if (headerEnd < 0) {
+    Serial.println("[http] HTTP response missing header terminator");
+    return false;
+  }
+
+  String headerSection = raw.substring(0, headerEnd);
+  out.body = raw.substring(headerEnd + 4);
+
+  int statusEnd = headerSection.indexOf("\r\n");
+  if (statusEnd < 0) {
+    out.statusLine = headerSection;
+    out.headers = "";
+  } else {
+    out.statusLine = headerSection.substring(0, statusEnd);
+    out.headers = headerSection.substring(statusEnd + 2);
+  }
+
+  out.statusLine.trim();
+
+  int contentIdx = out.headers.indexOf("Content-Length:");
+  if (contentIdx >= 0) {
+    int lineEnd = out.headers.indexOf("\r\n", contentIdx);
+    String lenStr;
+    if (lineEnd >= 0) {
+      lenStr = out.headers.substring(contentIdx + 15, lineEnd);
+    } else {
+      lenStr = out.headers.substring(contentIdx + 15);
+    }
+    lenStr.trim();
+    long expected = lenStr.toInt();
+    if (expected > 0 && static_cast<long>(out.body.length()) < expected) {
+      Serial.print("[http] Incomplete response body (expected ");
+      Serial.print(expected);
+      Serial.print(", got ");
+      Serial.print(out.body.length());
+      Serial.println(")");
+      return false;
+    }
+  }
+
+  return true;
+}
+
+static bool requestPresignedUrl(const char* kind, char* urlOut, size_t maxLen, char* authOut, size_t authMaxLen) {
+  if (!kind || !kind[0] || !urlOut || maxLen == 0) {
+    Serial.println("[http] Invalid args: requestPresignedUrl");
+    return false;
+  }
+
+  constexpr const char* kPresignHost = "10.0.0.4";
+  constexpr uint16_t kPresignPort = 8080;
+
+  WiFiClient client;
+  client.setTimeout(5000);
+  if (!client.connect(kPresignHost, kPresignPort)) {
+    Serial.println("[http] Failed to connect to presign API");
+    return false;
+  }
+
+  StaticJsonDocument<128> reqDoc;
+  reqDoc["deviceId"] = DEVICE_ID;
+  reqDoc["kind"] = kind;
+  reqDoc["contentType"] = "image/jpeg";
+
+  String body;
+  serializeJson(reqDoc, body);
+
+  client.println("POST /v1/presign/put HTTP/1.1");
+  client.print("Host: ");
+  client.println(kPresignHost);
+  client.println("Content-Type: application/json");
+  client.print("Content-Length: ");
+  client.println(body.length());
+  client.println("Connection: close");
+  client.println();
+  client.print(body);
+
+  HttpResponse response;
+  if (!readHttpResponse(client, response, 5000)) {
+    Serial.println("[http] Presign API response timeout");
+    client.stop();
+    return false;
+  }
+  client.stop();
+
+  if (response.statusLine.length() > 0) {
+    Serial.print("[http] Presign status: ");
+    Serial.println(response.statusLine);
+  }
+
+  if (!response.statusLine.startsWith("HTTP/1.1 200") && !response.statusLine.startsWith("HTTP/1.0 200")) {
+    Serial.print("[http] Unexpected presign status: ");
+    Serial.println(response.statusLine);
+    return false;
+  }
+
+  if (response.body.length() == 0) {
+    Serial.println("[http] Empty response body from presign API");
+    return false;
+  }
+
+  StaticJsonDocument<1024> resDoc;
+  DeserializationError err = deserializeJson(resDoc, response.body);
+  if (err) {
+    Serial.print("[http] JSON parse error: ");
+    Serial.println(err.c_str());
+    return false;
+  }
+
+  const char* url = resDoc["url"];
+  if (!url || !url[0]) {
+    url = resDoc["uploadUrl"];
+  }
+  if (!url || !url[0]) {
+    Serial.print("[http] Presign API missing URL field: ");
+    Serial.println(response.body);
+    return false;
+  }
+
+  strncpy(urlOut, url, maxLen - 1);
+  urlOut[maxLen - 1] = '\0';
+
+  if (authOut && authMaxLen > 0) {
+    authOut[0] = '\0';
+    JsonVariantConst headers = resDoc["headers"];
+    const char* auth = nullptr;
+    if (headers.is<JsonObjectConst>()) {
+      auth = headers["Authorization"] | headers["authorization"];
+    }
+    if (!auth || !auth[0]) {
+      auth = resDoc["authorization"];
+    }
+    if (auth && auth[0]) {
+      strncpy(authOut, auth, authMaxLen - 1);
+      authOut[authMaxLen - 1] = '\0';
+    }
+  }
+
+  Serial.print("[http] Got presigned URL: ");
+  Serial.println(urlOut);
+  return true;
+}
+
+// PUT binary payload to a signed URL
+static bool putToSignedUrl(const char* url, const char* authHeader, const uint8_t* data, size_t len) {
+  if (!url || !url[0] || !data || len == 0) {
+    Serial.println("[http] Invalid args: putToSignedUrl");
+    return false;
+  }
+
+  if (strncmp(url, "http://", 7) != 0) {
+    Serial.println("[http] URL must start with http://");
+    return false;
+  }
+
+  const char* hostStart = url + 7;
+  const char* pathStart = strchr(hostStart, '/');
+  if (!pathStart) {
+    Serial.println("[http] Invalid signed URL format");
+    return false;
+  }
+
+  char host[64];
+  size_t hostLen = static_cast<size_t>(pathStart - hostStart);
+  if (hostLen >= sizeof(host)) {
+    hostLen = sizeof(host) - 1;
+  }
+  strncpy(host, hostStart, hostLen);
+  host[hostLen] = '\0';
+
+  uint16_t port = 80;
+  char* colon = strchr(host, ':');
+  if (colon) {
+    *colon = '\0';
+    long value = strtol(colon + 1, nullptr, 10);
+    if (value > 0 && value <= 65535) {
+      port = static_cast<uint16_t>(value);
+    }
+  }
+
+  String path = pathStart;
+
+  Serial.print("[http] Uploading to ");
+  Serial.print(host);
+  Serial.print(":");
+  Serial.print(port);
+  Serial.print(path);
+  Serial.print(" (");
+  Serial.print(len);
+  Serial.println(" bytes)");
+
+  WiFiClient client;
+  client.setTimeout(5000);
+  if (!client.connect(host, port)) {
+    Serial.println("[http] Failed to connect to upload host");
+    return false;
+  }
+
+  client.print("PUT ");
+  client.print(path);
+  client.println(" HTTP/1.1");
+  client.print("Host: ");
+  client.println(host);
+  client.println("Content-Type: image/jpeg");
+  client.print("Content-Length: ");
+  client.println(len);
+  if (authHeader && authHeader[0]) {
+    client.print("Authorization: ");
+    client.println(authHeader);
+  }
+  client.println("Connection: close");
+  client.println();
+
+  constexpr size_t kChunkSize = 1024;
+  size_t written = 0;
+  while (written < len) {
+    size_t remaining = len - written;
+    size_t toWrite = remaining > kChunkSize ? kChunkSize : remaining;
+    size_t actual = client.write(data + written, toWrite);
+    if (actual != toWrite) {
+      Serial.println("[http] Write error during upload");
+      client.stop();
+      return false;
+    }
+    written += actual;
+  }
+
+  Serial.print("[http] Wrote ");
+  Serial.print(written);
+  Serial.println(" bytes");
+
+  HttpResponse response;
+  bool readOk = readHttpResponse(client, response, 8000);
+  bool serverClosed = !client.connected();
+  if (!readOk) {
+    if (serverClosed && written == len) {
+      Serial.println("[http] Upload host closed without response; assuming success (204)");
+      client.stop();
+      return true;
+    }
+    Serial.println("[http] Upload response timeout");
+    client.stop();
+    return false;
+  }
+  client.stop();
+
+  if (response.statusLine.length() > 0) {
+    Serial.print("[http] Upload status: ");
+    Serial.println(response.statusLine);
+  }
+
+  bool ok = response.statusLine.startsWith("HTTP/1.1 200") ||
+            response.statusLine.startsWith("HTTP/1.0 200") ||
+            response.statusLine.startsWith("HTTP/1.1 204") ||
+            response.statusLine.startsWith("HTTP/1.0 204");
+  if (!ok) {
+    Serial.println("[http] Upload failed - unexpected status");
+    if (response.body.length() > 0) {
+      Serial.print("[http] Body: ");
+      Serial.println(response.body);
+    }
+    return false;
+  }
+
+  return true;
+}
+
+static void sha256ToHex(const uint8_t* hash, char* out, size_t outLen) {
+  if (!out || outLen == 0) {
+    return;
+  }
+  if (!hash || outLen < 3) {
+    out[0] = '\0';
+    return;
+  }
+  static const char kHex[] = "0123456789abcdef";
+  size_t written = 0;
+  for (size_t i = 0; i < 32 && (written + 2) < outLen; ++i) {
+    uint8_t byte = hash[i];
+    out[written++] = kHex[(byte >> 4) & 0x0F];
+    if (written < outLen) {
+      out[written++] = kHex[byte & 0x0F];
+    }
+  }
+  if (written >= outLen) {
+    out[outLen - 1] = '\0';
+  } else {
+    out[written] = '\0';
+  }
+}
+
+static void resetUploadSlot(UploadSlot& slot) {
+  if (slot.data) {
+    free(slot.data);
+  }
+  slot = UploadSlot{};
+}
+
+static unsigned long backoffForAttempt(uint8_t attempt) {
+  switch (attempt) {
+    case 0:
+    case 1:
+      return 0;
+    case 2:
+      return kUploadBackoffAttempt2Ms;
+    case 3:
+      return kUploadBackoffAttempt3Ms;
+    default:
+      return kUploadBackoffAttempt4Ms;
+  }
+}
+
+static void emitUploadTelemetry(const UploadSlot& slot, const char* status, uint8_t attempt, unsigned long elapsedMs, unsigned long etaMs) {
+  StaticJsonDocument<256> doc;
+  doc["mini"] = "upload";
+  doc["upload"] = slot.kind;
+  doc["status"] = status ? status : "";
+  doc["r"] = attempt;
+  doc["bytes"] = static_cast<uint32_t>(slot.length > UINT32_MAX ? UINT32_MAX : slot.length);
+  doc["elapsed_ms"] = elapsedMs;
+  if (etaMs > 0) {
+    doc["eta_ms"] = etaMs;
+  }
+  doc["ts"] = millis();
+  if (slot.trigger[0]) {
+    doc["trigger"] = slot.trigger;
+  }
+  char sha[65];
+  sha256ToHex(slot.sha256, sha, sizeof(sha));
+  doc["sha256"] = sha;
+  serializeJson(doc, MINI_UART);
+  MINI_UART.println();
+  serializeJson(doc, Serial);
+  Serial.println();
+}
+
+static void initUploadQueue() {
+  if (!uploadMutex) {
+    uploadMutex = xSemaphoreCreateMutex();
+    if (!uploadMutex) {
+      Serial.println("[upload] ERROR: upload mutex alloc failed");
+    }
+  }
+  for (size_t i = 0; i < kUploadQueueSlots; ++i) {
+    resetUploadSlot(uploadQueue[i]);
+  }
+}
+
+static bool performUploadAttempt(const UploadSlot& slot, unsigned long& elapsedMs) {
+  unsigned long start = millis();
+
+  Serial.print("[upload] Starting upload: kind=");
+  Serial.print(slot.kind ? slot.kind : "(unknown)");
+  Serial.print(" bytes=");
+  Serial.println(slot.length);
+
+  if (!slot.data || slot.length == 0) {
+    Serial.println("[upload] ERROR: Slot missing data");
+    elapsedMs = millis() - start;
+    return false;
+  }
+
+  char signedUrl[512];
+  char authHeader[256];
+  if (!requestPresignedUrl(slot.kind, signedUrl, sizeof(signedUrl), authHeader, sizeof(authHeader))) {
+    Serial.println("[upload] ERROR: Failed to get presigned URL");
+    elapsedMs = millis() - start;
+    return false;
+  }
+
+  if (!putToSignedUrl(signedUrl, authHeader, slot.data, slot.length)) {
+    Serial.println("[upload] ERROR: Failed to PUT data");
+    elapsedMs = millis() - start;
+    return false;
+  }
+
+  Serial.println("[upload] SUCCESS");
+  elapsedMs = millis() - start;
+  return true;
+}
+
+static bool enqueueUploadInternal(const uint8_t* data, size_t len, const char* kind, bool isClip, const char* trigger) {
+  if (!data || len == 0) {
+    Serial.println("[upload] enqueue skipped (no data)");
+    return false;
+  }
+  uint8_t hash[32];
+  mbedtls_sha256(data, len, hash, 0);
+  uint8_t* deferredFree = nullptr;
+
+  if (!uploadMutex) {
+    Serial.println("[upload] enqueue skipped (mutex missing)");
+    return false;
+  }
+  if (xSemaphoreTake(uploadMutex, pdMS_TO_TICKS(100)) != pdTRUE) {
+    Serial.println("[upload] enqueue mutex timeout");
+    return false;
+  }
+
+  int slotIndex = -1;
+  for (size_t i = 0; i < kUploadQueueSlots; ++i) {
+    if (!uploadQueue[i].used) {
+      slotIndex = static_cast<int>(i);
+      break;
+    }
+  }
+
+  if (slotIndex < 0) {
+    unsigned long oldest = ULONG_MAX;
+    int evictIdx = -1;
+    for (size_t i = 0; i < kUploadQueueSlots; ++i) {
+      if (uploadQueue[i].used && uploadQueue[i].attempt >= kUploadMaxAttempts) {
+        if (uploadQueue[i].createdMs < oldest) {
+          oldest = uploadQueue[i].createdMs;
+          evictIdx = static_cast<int>(i);
+        }
+      }
+    }
+    if (evictIdx >= 0) {
+      Serial.println("[upload] evicting slot that exhausted retries");
+      deferredFree = uploadQueue[evictIdx].data;
+      uploadQueue[evictIdx].data = nullptr;
+      resetUploadSlot(uploadQueue[evictIdx]);
+      slotIndex = evictIdx;
+    } else {
+      Serial.println("[upload] queue full (dropping newest)");
+      xSemaphoreGive(uploadMutex);
+      if (deferredFree) {
+        free(deferredFree);
+      }
+      return false;
+    }
+  }
+
+  UploadSlot& slot = uploadQueue[slotIndex];
+  slot.data = static_cast<uint8_t*>(malloc(len));
+  if (!slot.data) {
+    Serial.println("[upload] malloc failed");
+    resetUploadSlot(slot);
+    xSemaphoreGive(uploadMutex);
+    sendSerialError("upload_malloc_fail");
+    return false;
+  }
+
+  memcpy(slot.data, data, len);
+  slot.length = len;
+  slot.clip = isClip;
+  slot.used = true;
+  slot.uploading = false;
+  slot.attempt = 0;
+  slot.createdMs = millis();
+  slot.lastAttemptMs = 0;
+  slot.nextAttemptMs = slot.createdMs;
+  std::strncpy(slot.kind, kind ? kind : "", sizeof(slot.kind) - 1);
+  slot.kind[sizeof(slot.kind) - 1] = '\0';
+  std::strncpy(slot.trigger, trigger ? trigger : "", sizeof(slot.trigger) - 1);
+  slot.trigger[sizeof(slot.trigger) - 1] = '\0';
+  memcpy(slot.sha256, hash, sizeof(hash));
+  emitUploadTelemetry(slot, "pending", 0, 0, 0);
+
+  xSemaphoreGive(uploadMutex);
+  if (deferredFree) {
+    free(deferredFree);
+  }
+  return true;
+}
+
+bool queueThumbnailUpload(const uint8_t* data, size_t len, const char* trigger) {
+  return enqueueUploadInternal(data, len, "thumb", false, trigger);
+}
+
+bool queueClipUpload(const uint8_t* data, size_t len, const char* trigger) {
+  return enqueueUploadInternal(data, len, "clip", true, trigger);
+}
+
+void serviceUploadQueue() {
+  if (!uploadMutex) return;
+
+  int selectedIndex = -1;
+
+  if (xSemaphoreTake(uploadMutex, 0) == pdTRUE) {
+    unsigned long now = millis();
+    for (size_t i = 0; i < kUploadQueueSlots; ++i) {
+      UploadSlot& slot = uploadQueue[i];
+      if (!slot.used || slot.uploading) continue;
+      if (slot.nextAttemptMs > now) continue;
+      slot.uploading = true;
+      slot.attempt += 1;
+      slot.lastAttemptMs = now;
+      emitUploadTelemetry(slot, "start", slot.attempt, 0, 0);
+      selectedIndex = static_cast<int>(i);
+      break;
+    }
+    xSemaphoreGive(uploadMutex);
+  }
+
+  if (selectedIndex < 0) {
+    return;
+  }
+
+  UploadSlot slotSnapshot{};
+  if (xSemaphoreTake(uploadMutex, pdMS_TO_TICKS(200)) == pdTRUE) {
+    slotSnapshot = uploadQueue[selectedIndex];
+    xSemaphoreGive(uploadMutex);
+  } else {
+    Serial.println("[upload] WARN: snapshot mutex timeout");
+    slotSnapshot.used = false;
+  }
+
+  unsigned long elapsedMs = 0;
+  bool ok = false;
+  if (slotSnapshot.used) {
+    ok = performUploadAttempt(slotSnapshot, elapsedMs);
+  } else {
+    elapsedMs = 0;
+    ok = false;
+  }
+
+  if (xSemaphoreTake(uploadMutex, pdMS_TO_TICKS(100)) != pdTRUE) {
+    Serial.println("[upload] WARN: post-attempt mutex timeout");
+    return;
+  }
+
+  uint8_t* toFree = nullptr;
+
+  if (selectedIndex >= 0) {
+    UploadSlot& slot = uploadQueue[selectedIndex];
+    slot.uploading = false;
+    if (slot.used) {
+      if (ok) {
+        emitUploadTelemetry(slot, "ok", slot.attempt, elapsedMs, 0);
+        toFree = slot.data;
+        slot.data = nullptr;
+        resetUploadSlot(slot);
+      } else {
+        if (slot.attempt >= kUploadMaxAttempts) {
+          emitUploadTelemetry(slot, "fail", slot.attempt, elapsedMs, 0);
+          toFree = slot.data;
+          slot.data = nullptr;
+          resetUploadSlot(slot);
+        } else {
+          uint8_t nextAttempt = slot.attempt + 1;
+          unsigned long backoff = backoffForAttempt(nextAttempt);
+          slot.nextAttemptMs = millis() + backoff;
+          emitUploadTelemetry(slot, "retry", slot.attempt, elapsedMs, backoff);
+        }
+      }
+    }
+  }
+
+  xSemaphoreGive(uploadMutex);
+
+  if (toFree) {
+    free(toFree);
+  }
+}
+
 void emitSnapshotSerial(bool ok, size_t bytes, const char* trigger) {
   StaticJsonDocument<192> doc;
   doc["mini"] = "snapshot";
@@ -322,6 +974,32 @@ void emitSnapshotSerial(bool ok, size_t bytes, const char* trigger) {
   if (trigger && trigger[0]) {
     doc["trigger"] = trigger;
   }
+  serializeJson(doc, MINI_UART);
+  MINI_UART.println();
+  serializeJson(doc, Serial);
+  Serial.println();
+}
+
+void emitEventPhase(const char* phase, const char* trigger, uint8_t index, uint8_t total, uint16_t seconds, bool ok) {
+  StaticJsonDocument<192> doc;
+  doc["mini"] = "event";
+  if (phase && phase[0]) {
+    doc["phase"] = phase;
+  }
+  if (trigger && trigger[0]) {
+    doc["trigger"] = trigger;
+  }
+  if (total > 0) {
+    doc["total"] = total;
+  }
+  if (index > 0) {
+    doc["index"] = index;
+  }
+  if (seconds > 0) {
+    doc["seconds"] = seconds;
+  }
+  doc["ok"] = ok;
+  doc["ts"] = millis();
   serializeJson(doc, MINI_UART);
   MINI_UART.println();
   serializeJson(doc, Serial);
@@ -483,6 +1161,52 @@ bool handleAbortWifi(const JsonDocument& doc) {
   return true;
 }
 
+void handleCaptureEvent(const JsonDocument& doc) {
+  uint8_t snapshotCount = doc["snapshots"] | kEventSnapshotDefault;
+  if (snapshotCount == 0) snapshotCount = kEventSnapshotDefault;
+  uint16_t videoSec = doc["video_sec"] | kEventVideoSecondsDefault;
+  const char* trigger = doc["trigger"] | "cmd";
+
+  ensureCamera();
+
+  emitEventPhase("start", trigger, 0, snapshotCount, videoSec, true);
+
+  bool overallOk = true;
+  for (uint8_t i = 0; i < snapshotCount; ++i) {
+    bool ok = captureStill();
+    size_t capturedBytes = 0;
+    if (ok) {
+      snapCount++;
+      if (lockFrameBuffer(pdMS_TO_TICKS(100))) {
+        capturedBytes = lastFrameLen;
+        if (lastFrame && std::strcmp(trigger ? trigger : "", "http") != 0) {
+          queueThumbnailUpload(lastFrame, lastFrameLen, trigger);
+        }
+        unlockFrameBuffer();
+      } else {
+        Serial.println("[snap] WARN: frame lock timeout when queuing upload");
+      }
+    } else {
+      overallOk = false;
+    }
+    emitSnapshotSerial(ok, capturedBytes, trigger);
+    emitEventPhase("snapshot", trigger, i + 1, snapshotCount, 0, ok);
+    vTaskDelay(pdMS_TO_TICKS(200));
+  }
+
+  if (videoSec > 0) {
+    emitEventPhase("video_start", trigger, 0, snapshotCount, videoSec, true);
+    unsigned long videoEnd = millis() + static_cast<unsigned long>(videoSec) * 1000UL;
+    while (millis() < videoEnd) {
+      pumpMqtt();
+      vTaskDelay(pdMS_TO_TICKS(50));
+    }
+    emitEventPhase("video_end", trigger, 0, snapshotCount, videoSec, true);
+  }
+
+  emitEventPhase("done", trigger, 0, snapshotCount, videoSec, overallOk);
+}
+
 void processSerialLine(const char* line) {
   if (!line || !line[0]) return;
   StaticJsonDocument<256> doc;
@@ -501,18 +1225,30 @@ void processSerialLine(const char* line) {
     ensureCamera();
     return;
   }
-  if (strcmp(op, "sleep") == 0) {
-    stopCamera();
+  if (strcmp(op, "sleep") == 0 || strcmp(op, "sleep_deep") == 0) {
+    enterDeepSleep();
     return;
   }
   if (strcmp(op, "snapshot") == 0) {
     bool ok = captureStill();
+    size_t capturedBytes = 0;
     if (ok) {
       snapCount++;
-      emitSnapshotSerial(true, lastFrameLen, "cmd");
-    } else {
-      emitSnapshotSerial(false, 0, "cmd");
+      if (lockFrameBuffer(pdMS_TO_TICKS(100))) {
+        capturedBytes = lastFrameLen;
+        if (lastFrame) {
+          queueThumbnailUpload(lastFrame, lastFrameLen, "cmd");
+        }
+        unlockFrameBuffer();
+      } else {
+        Serial.println("[snap] WARN: frame lock timeout when queuing upload");
+      }
     }
+    emitSnapshotSerial(ok, capturedBytes, "cmd");
+    return;
+  }
+  if (strcmp(op, "capture_event") == 0) {
+    handleCaptureEvent(doc);
     return;
   }
   if (strcmp(op, "stage_wifi") == 0) {
@@ -587,7 +1323,11 @@ void ensureCamera() {
   Camera.channelBegin(CAM_CHANNEL);
   camActive = true;
   Serial.println("[cam] started");
-  lastCameraStart = millis();
+  unsigned long now = millis();
+  lastCameraStart = now;
+  miniState = MiniState::Active;
+  miniSettled = false;
+  settleUntilMs = now + kSettleDurationMs;
   sendStatusSerial();
 }
 
@@ -605,11 +1345,10 @@ void stopCamera() {
 bool captureStill() {
   ensureCamera();
   if (!camActive) return false;
-  if (lastCameraStart != 0) {
-    const unsigned long warmupMs = 800;
-    unsigned long elapsed = millis() - lastCameraStart;
-    if (elapsed < warmupMs) {
-      vTaskDelay(pdMS_TO_TICKS(warmupMs - elapsed));
+  if (!miniSettled) {
+    unsigned long now = millis();
+    if (now < settleUntilMs) {
+      vTaskDelay(pdMS_TO_TICKS(settleUntilMs - now));
     }
   }
 
@@ -648,6 +1387,32 @@ bool captureStill() {
   Serial.print(len);
   Serial.println(" bytes");
   return true;
+}
+
+void enterDeepSleep() {
+  Serial.println("[sleep] preparing deep sleep");
+  miniState = MiniState::SleepDeep;
+  miniSettled = false;
+  if (camActive) {
+    stopCamera();
+  } else {
+    sendStatusSerial();
+  }
+  delay(50);
+
+  MINI_UART.flush();
+  MINI_UART.end();
+  httpServer.stop();
+  WiFi.disconnect();
+  delay(20);
+
+  PowerMode.begin(DEEPSLEEP_MODE, 1, 0, 21);
+  Serial.println("[sleep] entering deep sleep via PowerMode.start()");
+  PowerMode.start();
+
+  while (true) {
+    delay(1000);
+  }
 }
 
 #if MINI_MQTT
@@ -1123,9 +1888,12 @@ void setup() {
   Serial.println("\n[boot] AMB82 MQTT Camera Bridge");
   Serial.println("[uart] Serial3 initialized on PE1(TX)/PE2(RX) @ 115200 baud");
 
-  // Send test message to ESP32 via Serial3
-  MINI_UART.println("{\"mini\":\"boot\",\"msg\":\"AMB82 Serial3 TX test\"}");
-  Serial.println("[uart] TX test message sent via Serial3");
+  uint32_t wakeFlags = hal_get_wake_reason();
+  Serial.print("[boot] wake flags: 0x");
+  Serial.println(wakeFlags, HEX);
+  if (wakeFlags & (DS_AON_TIMER | DS_AON_GPIO | DS_RTC | DS_COMP)) {
+    Serial.println("[boot] woke from deep sleep");
+  }
 
   initSynchronization();
 
@@ -1171,11 +1939,8 @@ void setup() {
   }
 #endif
 
-  Serial.println("=== SETUP COMPLETE - SENDING TEST MESSAGE ===");
-  MINI_UART.println("{\"mini\":\"boot\",\"msg\":\"AMB82 ready\"}");
-  Serial.println("[uart] Sent boot message to ESP32 via Serial3");
-
-  sendStatusSerial();
+  Serial.println("=== SETUP COMPLETE ===");
+  Serial.println("[uart] Boot handshake complete");
 
   Serial.println("=== ENTERING MAIN LOOP ===");
 }
@@ -1186,6 +1951,10 @@ void loop() {
   static unsigned long loopIterations = 0;
   static unsigned long lastPingTime = 0;
 
+  if (miniState == MiniState::Active && !miniSettled && millis() >= settleUntilMs) {
+    miniSettled = true;
+    sendStatusSerial();
+  }
   loopIterations++;
 
   // Send ping to ESP32 every 3 seconds to test TX
@@ -1274,8 +2043,16 @@ void loop() {
     }
   }
 
+  serviceUploadQueue();
   delay(1);
 }
+
+
+
+
+
+
+
 
 
 

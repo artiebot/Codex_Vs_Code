@@ -6,4 +6,4 @@ Write-Host "Listening to all AMB topics..." -ForegroundColor Yellow
 Write-Host "In another window, run: .\mqtt-snap.ps1" -ForegroundColor Yellow
 Write-Host ""
 
-mosquitto_sub -h 10.0.0.4 -u dev1 -P dev1pass -t "skyfeeder/sf-mock01/amb/#" -v
+mosquitto_sub -h 10.0.0.4 -u dev1 -P dev1pass -t "skyfeeder/dev1/amb/#" -v

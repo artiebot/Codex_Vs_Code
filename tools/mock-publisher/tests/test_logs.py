@@ -1,4 +1,4 @@
-﻿import argparse
+import argparse
 import importlib.util
 import json
 import threading
@@ -97,7 +97,7 @@ class LogServiceTest(unittest.TestCase):
             port=1883,
             username="dev1",
             password="dev1pass",
-            device_id="sf-mock01",
+            device_id="dev1",
             interval=1,
             base_weight=1234.0,
             rssi=-62,
@@ -117,7 +117,7 @@ class LogServiceTest(unittest.TestCase):
         event_payloads = [json.loads(p) for (t, p, _q, _r) in self.fake_client.published if t.endswith("/event/log")]
         self.assertTrue(event_payloads)
         last_dump = event_payloads[-1]
-        self.assertEqual(last_dump["device"], "sf-mock01")
+        self.assertEqual(last_dump["device"], "dev1")
         self.assertGreaterEqual(last_dump["count"], 1)
 
         self.fake_client.simulate_message(cmd_logs_topic, b'{"clear": true}')

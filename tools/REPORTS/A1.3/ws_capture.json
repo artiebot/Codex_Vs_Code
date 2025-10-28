@@ -1,0 +1,96 @@
+{
+  "deviceId": "dev1",
+  "objectKey": "dev1/uploads/demo-1760926725424.jpg",
+  "reconnectAttempts": 1,
+  "offlineWindows": [
+    {
+      "startTs": 1760926726592,
+      "endTs": 1760926730604,
+      "durationMs": 4012
+    }
+  ],
+  "events": [
+    {
+      "sequence": 1,
+      "status": "queued",
+      "attempt": 1,
+      "replay": false,
+      "sentTs": 1760926725525,
+      "recvTs": 1760926725527,
+      "latencyMs": 2
+    },
+    {
+      "sequence": 2,
+      "status": "uploading",
+      "attempt": 1,
+      "replay": false,
+      "sentTs": 1760926725881,
+      "recvTs": 1760926725883,
+      "latencyMs": 2
+    },
+    {
+      "sequence": 3,
+      "status": "uploading",
+      "attempt": 1,
+      "replay": false,
+      "sentTs": 1760926726236,
+      "recvTs": 1760926726238,
+      "latencyMs": 2
+    },
+    {
+      "sequence": 4,
+      "status": "retry_scheduled",
+      "attempt": 1,
+      "replay": true,
+      "sentTs": 1760926730604,
+      "recvTs": 1760926730606,
+      "latencyMs": 2
+    },
+    {
+      "sequence": 5,
+      "status": "uploading",
+      "attempt": 2,
+      "replay": true,
+      "sentTs": 1760926730966,
+      "recvTs": 1760926730968,
+      "latencyMs": 2
+    },
+    {
+      "sequence": 6,
+      "status": "uploading",
+      "attempt": 2,
+      "replay": true,
+      "sentTs": 1760926731325,
+      "recvTs": 1760926731327,
+      "latencyMs": 2
+    },
+    {
+      "sequence": 7,
+      "status": "success",
+      "attempt": 2,
+      "replay": true,
+      "sentTs": 1760926731683,
+      "recvTs": 1760926731685,
+      "latencyMs": 2
+    },
+    {
+      "sequence": 8,
+      "status": "gallery_ack",
+      "attempt": 2,
+      "replay": true,
+      "sentTs": 1760926732038,
+      "recvTs": 1760926732040,
+      "latencyMs": 2
+    }
+  ],
+  "summary": {
+    "totalStages": 8,
+    "replayedStages": 5,
+    "latency": {
+      "min": 2,
+      "max": 2,
+      "p50": 2,
+      "p95": 2
+    }
+  }
+}

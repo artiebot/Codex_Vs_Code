@@ -8,6 +8,7 @@
 #include "ota_service.h"
 #include "ota_manager.h"
 #include "provisioning.h"
+#include "led_ux.h"
 #include "telemetry_service.h"
 #include "topics.h"
 
@@ -27,10 +28,14 @@ void Mqtt::ensureWiFi() {
   if (WiFi.status() == WL_CONNECTED) return;
   const auto& cfg = SF::provisioning.config();
   WiFi.mode(WIFI_STA);
+  SF::ledUx.setMode(SF::LedUx::Mode::CONNECTING_WIFI);
   WiFi.begin(cfg.wifi_ssid, cfg.wifi_pass);
   const unsigned long start = millis();
   while (WiFi.status() != WL_CONNECTED && millis() - start < 20000) {
     delay(200);
+  }
+  if (WiFi.status() == WL_CONNECTED) {
+    SF::ledUx.setMode(SF::LedUx::Mode::ONLINE);
   }
 }
 

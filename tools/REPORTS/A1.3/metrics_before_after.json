@@ -1,0 +1,14 @@
+{
+  "before": {
+    "rooms": [],
+    "totalClients": 0,
+    "messageCount": 24,
+    "ts": 1760926725461
+  },
+  "after": {
+    "rooms": [],
+    "totalClients": 0,
+    "messageCount": 32,
+    "ts": 1760926733407
+  }
+}

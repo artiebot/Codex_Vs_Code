@@ -1,4 +1,4 @@
-# Trigger Periodic Snapshots for Soak Testing
+﻿# Trigger Periodic Snapshots for Soak Testing
 # Sends snapshot commands to device at regular intervals
 # Usage: .\trigger-periodic-snapshots.ps1 [-Interval 3600] [-Count 24] [-DeviceId dev1]
 

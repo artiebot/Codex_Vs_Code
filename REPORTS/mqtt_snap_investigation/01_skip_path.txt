@@ -1,0 +1,45 @@
+File: amb-mini/amb-mini.ino:123-155
+
+void publishSnapshot() {
+  if (!lastFrame) {
+    Serial.println("[mqtt] publish snapshot -> skipped (no frame)");
+    return;
+  }
+
+  Serial.print("[mqtt] connection state before publish: ");
+  Serial.println(mqtt.connected() ? "CONNECTED" : "DISCONNECTED");
+
+  if (!ensureMqttConnected()) {
+    Serial.println("[mqtt] publish snapshot -> skipped (MQTT reconnect failed)");
+    return;
+  }
+
+  StaticJsonDocument<256> doc;
+  doc["url"] = String("http://") + ipToString(WiFi.localIP()) + "/snapshot.jpg";
+  doc["ts"] = lastSnapTs;
+  doc["size"] = lastFrameLen;
+  char payload[256];
+  serializeJson(doc, payload, sizeof(payload));
+
+  bool ok = mqtt.publish(topicEvtSnapshot.c_str(), payload, false);
+  Serial.print("[mqtt] publish snapshot event -> ");
+  Serial.println(ok ? "OK" : "FAIL");
+  if (!ok) {
+    mqtt.disconnect();
+    if (ensureMqttConnected()) {
+      ok = mqtt.publish(topicEvtSnapshot.c_str(), payload, false);
+      Serial.print("[mqtt] retry publish -> ");
+      Serial.println(ok ? "OK" : "FAIL");
+    }
+  }
+  if (ok) {
+    snapCount++;
+  }
+}
+
+Skip reasons captured:
+- no frame captured (lastFrame == nullptr)
+- MQTT reconnect failed (ensureMqttConnected() returned false)
+
+publish() sends a JSON metadata payload (url, ts, size) rather than binary JPEG.
+MQTT_MAX_PACKET_SIZE is defined in PubSubClient/src/PubSubClient.h as 256 bytes by default.

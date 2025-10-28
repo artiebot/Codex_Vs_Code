@@ -1,0 +1,60 @@
+=== A0.1 MQTT Debug Session ===
+Date: 2025-10-04
+Issue: HTTP /test-snap works, MQTT commands don't trigger callback
+
+Findings:
+---------
+1. ✅ Device connects to MQTT broker (status -4 then success)
+2. ✅ Device subscribes to skyfeeder/sf-mock01/amb/camera/cmd
+3. ✅ Device publishes to skyfeeder/sf-mock01/amb/status (shows "online")
+4. ✅ HTTP endpoints work (/test-snap triggers snapshot)
+5. ❌ mosquitto_pub commands not reaching messageReceived() callback
+
+Serial Monitor Shows:
+---------------------
+- "[mqtt] failed, state: -4" (MQTT_CONNECTION_TIMEOUT - transient, retries work)
+- "[mqtt] connected"
+- "[mqtt] subscribed: skyfeeder/sf-mock01/amb/camera/cmd"
+
+NOT showing when mosquitto_pub is sent:
+- "========== MQTT MESSAGE RECEIVED =========="
+
+Possible Causes:
+---------------
+1. Callback not being invoked despite subscription success
+2. mqtt.loop() not being called frequently enough (but it's in main loop)
+3. KeepAlive timeout (was 30s, increased to 60s)
+4. PubSubClient library issue on AMB82 platform
+5. Topic string mismatch (unlikely - status publishes work)
+
+Changes Made:
+-------------
+1. Added verbose debug logging to messageReceived()
+2. Increased keepAlive from 30s to 60s
+3. Added topic printing on boot
+4. Created test-mqtt.sh diagnostic script
+
+Next Steps to Debug:
+-------------------
+1. Re-flash updated firmware with debug logging
+2. Watch serial monitor when sending: mosquitto_pub -h 10.0.0.4 -u dev1 -P dev1pass -t "skyfeeder/sf-mock01/amb/camera/cmd" -m '{"action":"snap"}'
+3. Check if "========== MQTT MESSAGE RECEIVED ==========" appears
+4. If YES: callback works, check processMessage() logic
+5. If NO: callback not firing, possible PubSubClient bug on AMB82
+
+Test Command:
+------------
+mosquitto_pub -h 10.0.0.4 -u dev1 -P dev1pass -t "skyfeeder/sf-mock01/amb/camera/cmd" -m '{"action":"snap"}'
+
+Monitor Command:
+---------------
+mosquitto_sub -h 10.0.0.4 -u dev1 -P dev1pass -t "skyfeeder/sf-mock01/amb/#" -v
+
+Expected Behavior After Fix:
+---------------------------
+1. mosquitto_pub sends command
+2. AMB serial shows: "========== MQTT MESSAGE RECEIVED =========="
+3. AMB serial shows: "[mqtt] cmd: snap"
+4. AMB serial shows: "[snap] ... bytes"
+5. AMB serial shows: "[mqtt] snapshot event published"
+6. mosquitto_sub shows snapshot event with URL

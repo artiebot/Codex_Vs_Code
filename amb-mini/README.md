@@ -25,12 +25,12 @@ https://github.com/ambiot/ambd_arduino/raw/master/Arduino_package/package_realte
 
 ### 2. Configuration
 
-Credentials are pre-configured to match your SkyFeeder ESP32 setup:
-- WiFi: wififordays
-- MQTT Broker: 10.0.0.4:1883
-- Device ID: sf-mock01
+Credentials are pre-configured to match the SkyFeeder Option A field rig:
+- WiFi: `wififordays`
+- MQTT Broker: `10.0.0.4:1883`
+- Device ID: `dev1`
 
-To change these, edit `amb-mini.ino` lines 16-25.
+To change these, edit `amb-mini.ino` (`WIFI_SSID`, `WIFI_PASS`, `MQTT_*`, `DEVICE_ID` at the top of the file).
 
 ### 3. Build and Flash
 
@@ -56,35 +56,34 @@ cd amb-mini
 
 ## Features
 
-### MQTT Control
+### Control Surface (UART via ESP32)
 
-**Command topic:** `skyfeeder/sf-mock01/amb/camera/cmd`
+The AMB Mini is commanded over the ESP32 UART. Direct MQTT support remains behind the `MINI_MQTT` compile-time flag (disabled by default) for lab diagnostics, but production builds send **all** control via the ESP32 bridge. Typical request/response flow:
 
-Send commands (publish to command topic):
-```bash
-# Capture snapshot
-mosquitto_pub -h 10.0.0.4 -u dev1 -P dev1pass -t "skyfeeder/sf-mock01/amb/camera/cmd" -m '{"action":"snap"}'
+- Wake camera: `{"op":"wake"}`
+- Sleep camera: `{"op":"sleep"}`
+- Trigger snapshot: `{"op":"snapshot"}`
+- Status probe: `{"op":"status"}`
 
-# Wake camera (start streaming)
-mosquitto_pub -h 10.0.0.4 -u dev1 -P dev1pass -t "skyfeeder/sf-mock01/amb/camera/cmd" -m '{"action":"wake"}'
+Each command yields a single-line JSON response (example):
 
-# Sleep camera (save power)
-mosquitto_pub -h 10.0.0.4 -u dev1 -P dev1pass -t "skyfeeder/sf-mock01/amb/camera/cmd" -m '{"action":"sleep"}'
+```json
+{"mini":"status","state":"ready","ip":"10.0.0.198","rtsp":"rtsp://10.0.0.198/live"}
 ```
 
-**Event topic:** `skyfeeder/sf-mock01/amb/camera/event/snapshot`
+Snapshot requests produce a metadata frame:
 
-Monitor snapshot events:
-```bash
-mosquitto_sub -h 10.0.0.4 -u dev1 -P dev1pass -t "skyfeeder/sf-mock01/amb/camera/event/snapshot" -v
+```json
+{"mini":"snapshot","ok":true,"bytes":16432,"sha256":"","path":"/snapshot.jpg"}
 ```
 
-**Status topic:** `skyfeeder/sf-mock01/amb/status`
+UART wiring (default harness):
 
-Monitor device status:
-```bash
-mosquitto_sub -h 10.0.0.4 -u dev1 -P dev1pass -t "skyfeeder/sf-mock01/amb/status" -v
-```
+- ESP32 GPIO23 → AMB82 Mini PE2 (Mini RX)
+- ESP32 GPIO34 ← AMB82 Mini PE1 (Mini TX)
+- Shared ground between boards
+
+The ESP32 consumes these messages and republishes acknowledgements and snapshot metadata over MQTT (`skyfeeder/<device>/event/ack`, `skyfeeder/<device>/event/snapshot`). Any legacy documentation that references `skyfeeder/<id>/amb/...` MQTT topics is deprecated. Use the ESP32 `cmd/cam` interface instead.
 
 ### Streaming & HTTP Endpoints
 
@@ -108,7 +107,7 @@ The ESP32 host communicates with the AMB Mini over a newline-delimited JSON stre
 Each command yields a status frame such as:
 
 ```json
-{"type":"status","state":"awake","cam_active":true,"rtsp":true,"snap_count":3,"uptime_ms":123456}
+{"mini":"status","state":"ready","ip":"10.0.0.198","rtsp":"rtsp://10.0.0.198/live"}
 ```
 
 When RTSP is active the JSON also includes `rtsp_url` so downstream hosts can latch onto the H.264 stream.

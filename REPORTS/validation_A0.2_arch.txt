@@ -1,0 +1,4 @@
+Files touched for A0.2 architecture alignment:
+- ARCHITECTURE.md
+- amb-mini/README.md
+- REPORTS/pin_map_A0.2.txt

@@ -1,0 +1,85 @@
+=== Phase A0.1 Validation: AMB Mini Build/Flash ===
+Date: 2025-10-04
+Status: READY FOR HARDWARE TEST
+
+Artifacts Created:
+-----------------
+✓ amb-mini/amb-mini.ino - Unified firmware with MQTT + HTTP streaming
+✓ amb-mini/README.md - Complete build/flash documentation
+✓ amb-mini/scripts/build.sh - Automated build script
+✓ amb-mini/scripts/flash.sh - Automated flash script
+
+Firmware Features:
+-----------------
+✓ WiFi connectivity
+✓ MQTT control (wake/sleep/snap commands)
+✓ HTTP endpoints:
+  - GET /status - JSON status
+  - GET /stream - MJPEG stream
+  - GET /snapshot.jpg - Latest snapshot
+  - GET /test-snap - Trigger snapshot
+✓ Video quality optimization:
+  - Resolution: VGA (640x480)
+  - Bitrate: 1.5 Mbps (balanced quality/speed)
+  - Frame rate: ~30 fps
+✓ Event publishing to MQTT (snapshot events)
+
+Improvements Over Previous Versions:
+-----------------------------------
+1. Combined MQTT control from feeder-steps/AMB/AMB.ino
+2. Combined HTTP streaming from 9-allworkswell-onlyvideoislowquality.ino
+3. Optimized video bitrate (1.5 Mbps vs 2.0 Mbps) for better balance
+4. Added comprehensive status reporting
+5. Structured code with clear sections
+6. Added test-snap endpoint for easy validation
+
+Next Steps (Manual):
+-------------------
+1. Connect AMB82-Mini to computer via USB
+2. Run: cd amb-mini && ./scripts/build.sh
+3. Run: ./scripts/flash.sh [PORT]
+4. Open serial monitor at 115200 baud
+5. Verify WiFi connection and MQTT connection
+6. Test endpoints:
+   - http://{device-ip}/status
+   - http://{device-ip}/stream
+
+RTSP/MJPEG Stream Validation:
+-----------------------------
+NOTE: Current implementation uses MJPEG over HTTP, not RTSP.
+The /stream endpoint provides multipart/x-mixed-replace MJPEG stream.
+
+To validate with ffprobe (when device is running):
+  ffprobe -v error http://{device-ip}/stream
+
+Expected output:
+  Input #0, mpjpeg, from 'http://{device-ip}/stream':
+  Duration: N/A, bitrate: N/A
+  Stream #0:0: Video: mjpeg, yuvj420p, 640x480, 30 fps
+
+To validate with VLC or browser:
+  vlc http://{device-ip}/stream
+  or open in Chrome/Firefox: http://{device-ip}/stream
+
+DoD Status:
+----------
+[PENDING] - Requires physical hardware test
+- Build script executes successfully
+- Flash script uploads to device
+- Device boots and connects to WiFi/MQTT
+- HTTP stream is accessible and plays
+- ffprobe validates stream format
+
+Manual Test Required:
+--------------------
+User must:
+1. Flash firmware to actual AMB82-Mini hardware
+2. Verify serial output shows WiFi + MQTT connection
+3. Access http://{device-ip}/stream in browser/VLC
+4. Run: ffprobe http://{device-ip}/stream
+5. Paste ffprobe output here to complete validation
+
+Current Blocker:
+---------------
+Cannot self-validate without physical AMB82-Mini hardware connected.
+Scripts are ready; hardware test required to proceed.

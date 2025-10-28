@@ -1,0 +1,10 @@
+Topic definitions (amb-mini/amb-mini.ino:413-415)
+- Command: skyfeeder/<DEVICE_ID>/amb/camera/cmd
+- Snapshot event: skyfeeder/<DEVICE_ID>/amb/camera/event/snapshot
+- Status: skyfeeder/<DEVICE_ID>/amb/status
+Current DEVICE_ID = sf-mock01
+
+Live subscription sample (mosquitto_sub -h 10.0.0.4 -u dev1 -P dev1pass -v -t 'skyfeeder/+/amb/camera/#' -t 'skyfeeder/+/amb/status'):
+skyfeeder/sf-mock01/amb/status online
+
+Snapshot triggers could not be replayed in this run (hardware not connected), so no new /event/snapshot frames were emitted during capture.

@@ -4,7 +4,7 @@
 MQTT_HOST="10.0.0.4"
 MQTT_USER="dev1"
 MQTT_PASS="dev1pass"
-DEVICE_ID="sf-mock01"
+DEVICE_ID="dev1"
 
 echo "=== AMB82-Mini MQTT Test ==="
 echo ""

@@ -4,12 +4,16 @@
 #include "config.h"
 #include "power_manager.h"
 namespace {
-uint32_t makeColor(uint8_t r,uint8_t g,uint8_t b){ return ((uint32_t)g<<16)|((uint32_t)r<<8)|((uint32_t)b); }
+constexpr uint32_t makeColor(uint8_t r,uint8_t g,uint8_t b){ return (static_cast<uint32_t>(g)<<16)|(static_cast<uint32_t>(r)<<8)|static_cast<uint32_t>(b); }
 void writeError(char* err,size_t len,const char* msg){ if(!err||len==0) return; strncpy(err,msg,len); err[len-1]='\0'; }
+constexpr uint32_t kProvisionColor = makeColor(255,140,0);
+constexpr uint32_t kConnectingColor = makeColor(64,150,255);
+constexpr uint32_t kOnlineColor = makeColor(64,220,96);
 }
 namespace SF {
 LedUx ledUx;
 void LedUx::begin(){ active_name_[0]='o'; active_name_[1]='f'; active_name_[2]='f'; active_name_[3]='\0'; last_pattern_=WsPattern::OFF; last_color_=0; last_brightness_=0; override_active_=false; }
+void LedUx::setMode(Mode mode){ if(mode_==mode) return; mode_=mode; }
 bool LedUx::overrideActive(unsigned long now){ if(!override_active_) return false; long diff=(long)(override_until_ms_-now); if(diff<=0){ override_active_=false; return false; } return true; }
 uint8_t LedUx::clampBrightness(int value) const{ if(value<0) value=0; if(value>255) value=255; uint8_t limit=SF::power.brightnessLimit(); if(value>limit) value=limit; return (uint8_t)value; }
 uint32_t LedUx::rgb(uint8_t r,uint8_t g,uint8_t b){ return makeColor(r,g,b); }
@@ -72,16 +76,60 @@ bool LedUx::applyCommand(JsonVariantConst cmd,const char*& appliedName,char* err
   appliedName=patternToName(pattern);
   return true;
 }
-void LedUx::loop(){ unsigned long now=millis(); bool active=overrideActive(now); WsPattern pattern; uint32_t color; uint8_t brightness; if(active){ pattern=override_pattern_; color=override_color_; brightness=override_brightness_; }
-  else {
-    if(SF::power.valid()){
-      switch(SF::power.state()){
-        case PowerState::CRIT: pattern=WsPattern::RED_ALERT; color=makeColor(255,32,0); brightness=LED_CRIT_BRIGHTNESS; break;
-        case PowerState::WARN: pattern=WsPattern::AMBER_WARN; color=makeColor(255,140,0); brightness=LED_WARN_BRIGHTNESS; break;
-        default: pattern=WsPattern::HEARTBEAT; color=makeColor(64,150,255); brightness=LED_IDLE_BRIGHTNESS; break;
-      }
-    } else {
-      pattern=WsPattern::HEARTBEAT; color=makeColor(64,150,255); brightness=LED_IDLE_BRIGHTNESS; }
+void LedUx::loop(){
+  unsigned long now=millis();
+  bool active=overrideActive(now);
+  WsPattern pattern;
+  uint32_t color;
+  uint8_t brightness;
+  if(active){
+    pattern=override_pattern_;
+    color=override_color_;
+    brightness=override_brightness_;
+  } else {
+    switch(mode_){
+      case Mode::PROVISIONING:
+        pattern = WsPattern::AMBER_WARN;
+        color = kProvisionColor;
+        brightness = LED_WARN_BRIGHTNESS;
+        break;
+      case Mode::CONNECTING_WIFI:
+        pattern = WsPattern::HEARTBEAT;
+        color = kConnectingColor;
+        brightness = LED_WARN_BRIGHTNESS;
+        break;
+      case Mode::ONLINE:
+        pattern = WsPattern::SOLID;
+        color = kOnlineColor;
+        brightness = LED_IDLE_BRIGHTNESS;
+        break;
+      case Mode::AUTO:
+      default:
+        if(SF::power.valid()){
+          switch(SF::power.state()){
+            case PowerState::CRIT:
+              pattern=WsPattern::RED_ALERT;
+              color=makeColor(255,32,0);
+              brightness=LED_CRIT_BRIGHTNESS;
+              break;
+            case PowerState::WARN:
+              pattern=WsPattern::AMBER_WARN;
+              color=kProvisionColor;
+              brightness=LED_WARN_BRIGHTNESS;
+              break;
+            default:
+              pattern=WsPattern::HEARTBEAT;
+              color=kConnectingColor;
+              brightness=LED_IDLE_BRIGHTNESS;
+              break;
+          }
+        } else {
+          pattern=WsPattern::HEARTBEAT;
+          color=kConnectingColor;
+          brightness=LED_IDLE_BRIGHTNESS;
+        }
+        break;
+    }
   }
   applyDesired(pattern,color,brightness);
 }

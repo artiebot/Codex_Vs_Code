@@ -1,0 +1,120 @@
+=== Phase A0.1 Final Validation: AMB Mini Build/Flash ===
+Date: 2025-10-04
+Status: PARTIAL - Core functionality works, MQTT receive issue identified and fixed
+
+Test Results:
+=============
+
+✅ PASS: WiFi connectivity
+✅ PASS: MQTT connection and authentication
+✅ PASS: MQTT publish (AMB → broker)
+✅ PASS: HTTP endpoints (/status, /stream, /snapshot.jpg, /test-snap)
+✅ PASS: Camera capture and MJPEG streaming
+✅ PASS: Video quality optimization (1.5 Mbps, VGA 640x480)
+⚠️  PARTIAL: MQTT receive (broker → AMB) - callback not firing consistently
+
+Detailed Findings:
+==================
+
+1. HTTP Functionality - WORKING
+   - Status endpoint: http://10.0.0.198/status ✓
+   - Stream endpoint: http://10.0.0.198/stream ✓
+   - Snapshot endpoint: http://10.0.0.198/snapshot.jpg ✓
+   - Test trigger: http://10.0.0.198/test-snap ✓
+
+2. MQTT Publish - WORKING
+   - Device publishes to skyfeeder/sf-mock01/amb/status: "online" ✓
+   - Snapshot events publish to skyfeeder/sf-mock01/amb/camera/event/snapshot ✓
+   - Event payload correct: {"url":"http://10.0.0.198/snapshot.jpg","ts":656941,"size":11584} ✓
+
+3. MQTT Subscribe/Receive - ISSUE IDENTIFIED
+   - Broker receives commands: skyfeeder/sf-mock01/amb/camera/cmd {"action":"snap"} ✓
+   - AMB subscription succeeds: "[mqtt] subscribed: skyfeeder/sf-mock01/amb/camera/cmd" ✓
+   - Callback does NOT fire when broker receives message ✗
+
+Root Cause Analysis:
+-------------------
+The PubSubClient library's mqtt.loop() was potentially being blocked by HTTP request
+handling. When the HTTP server is busy (especially during streaming), mqtt.loop()
+doesn't get called frequently enough to process incoming messages.
+
+Fix Applied:
+-----------
+1. Added mqtt.loop() call inside HTTP request reading loop
+2. Added periodic connection status logging (every 30s)
+3. Added connection state monitoring in loop()
+
+Changes in v1.1:
+- Line 50: Added lastStatusLog timer
+- Line 445: Added comment about mqtt.loop() criticality
+- Line 449-460: Added periodic status logging
+- Line 475: Added mqtt.loop() during HTTP request handling
+
+Files Delivered:
+===============
+✓ amb-mini/amb-mini.ino - Unified firmware (v1.1 with MQTT fix)
+✓ amb-mini/README.md - Complete documentation with working commands
+✓ amb-mini/scripts/build.sh - Build automation
+✓ amb-mini/scripts/flash.sh - Flash automation
+✓ amb-mini/scripts/snap.json - Snap command payload
+✓ amb-mini/scripts/wake.json - Wake command payload
+✓ amb-mini/scripts/sleep.json - Sleep command payload
+✓ amb-mini/scripts/mqtt-snap.ps1 - PowerShell snap command
+✓ amb-mini/scripts/mqtt-snap-stdin.ps1 - PowerShell snap (stdin method)
+✓ amb-mini/scripts/mqtt-test-broker.ps1 - MQTT listener for debugging
+✓ REPORTS/validation_A0.1.txt - Initial validation report
+✓ REPORTS/validation_A0.1_mqtt_debug.txt - Debug session notes
+✓ REPORTS/validation_A0.1_debug_plan.txt - Systematic debug plan
+✓ REPORTS/validation_A0.1_final.txt - This final report
+
+Test Commands (PowerShell):
+===========================
+
+# Monitor MQTT (Window 1)
+cd amb-mini\scripts
+.\mqtt-test-broker.ps1
+
+# Send snap command (Window 2)
+cd amb-mini\scripts
+.\mqtt-snap-stdin.ps1
+
+# Monitor snapshot events
+mosquitto_sub -h 10.0.0.4 -u dev1 -P dev1pass -t "skyfeeder/sf-mock01/amb/camera/event/snapshot" -v
+
+# Test HTTP trigger (browser)
+http://10.0.0.198/test-snap
+
+Next Steps:
+===========
+1. Re-flash amb-mini.ino v1.1 with MQTT loop fix
+2. Test MQTT snap command using .\mqtt-snap-stdin.ps1
+3. Verify callback fires (serial shows "========== MQTT MESSAGE RECEIVED ==========")
+4. If successful, proceed to A0.2 (ESP32↔Mini link)
+5. If still failing, consider alternative MQTT library or ESP32 direct control
+
+DoD Status:
+===========
+[READY FOR RETEST] - v1.1 firmware with MQTT receive fix ready for validation
+- Build/flash scripts: COMPLETE ✓
+- HTTP streaming: VALIDATED ✓
+- MQTT publish: VALIDATED ✓
+- MQTT subscribe: FIX APPLIED, PENDING RETEST
+
+Blocker Resolution:
+==================
+Original blocker: MQTT commands not received by AMB
+Fix: Added mqtt.loop() during HTTP processing + status monitoring
+Status: Ready for user to re-flash and retest
+
+Expected Outcome After Retest:
+==============================
+1. Flash updated firmware
+2. Send: .\mqtt-snap-stdin.ps1
+3. Serial shows: "========== MQTT MESSAGE RECEIVED =========="
+4. Serial shows: "[mqtt] cmd: snap"
+5. Serial shows: "[snap] 11452 bytes"
+6. Serial shows: "[mqtt] snapshot event published"
+7. Listener shows: skyfeeder/sf-mock01/amb/camera/event/snapshot {...}
+
+If retest passes → A0.1 COMPLETE → Proceed to A0.2
+If retest fails → Consider ESP32 UART control instead of MQTT (A0.2 alternative path)

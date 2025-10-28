@@ -1,12 +1,12 @@
 {
   "deviceId": "dev1",
-  "objectKey": "dev1/uploads/demo-1760926258181.jpg",
+  "objectKey": "dev1/uploads/demo-1760927405416.jpg",
   "reconnectAttempts": 1,
   "offlineWindows": [
     {
-      "startTs": 1760926259409,
-      "endTs": 1760926263430,
-      "durationMs": 4021
+      "startTs": 1760927406618,
+      "endTs": 1760927410640,
+      "durationMs": 4022
     }
   ],
   "events": [
@@ -15,17 +15,17 @@
       "status": "queued",
       "attempt": 1,
       "replay": false,
-      "sentTs": 1760926258330,
-      "recvTs": 1760926258337,
-      "latencyMs": 7
+      "sentTs": 1760927405544,
+      "recvTs": 1760927405547,
+      "latencyMs": 3
     },
     {
       "sequence": 2,
       "status": "uploading",
       "attempt": 1,
       "replay": false,
-      "sentTs": 1760926258695,
-      "recvTs": 1760926258697,
+      "sentTs": 1760927405904,
+      "recvTs": 1760927405906,
       "latencyMs": 2
     },
     {
@@ -33,8 +33,8 @@
       "status": "uploading",
       "attempt": 1,
       "replay": false,
-      "sentTs": 1760926259052,
-      "recvTs": 1760926259054,
+      "sentTs": 1760927406260,
+      "recvTs": 1760927406262,
       "latencyMs": 2
     },
     {
@@ -42,8 +42,8 @@
       "status": "retry_scheduled",
       "attempt": 1,
       "replay": true,
-      "sentTs": 1760926263430,
-      "recvTs": 1760926263432,
+      "sentTs": 1760927410640,
+      "recvTs": 1760927410642,
       "latencyMs": 2
     },
     {
@@ -51,8 +51,8 @@
       "status": "uploading",
       "attempt": 2,
       "replay": true,
-      "sentTs": 1760926263792,
-      "recvTs": 1760926263795,
+      "sentTs": 1760927411003,
+      "recvTs": 1760927411006,
       "latencyMs": 3
     },
     {
@@ -60,26 +60,26 @@
       "status": "uploading",
       "attempt": 2,
       "replay": true,
-      "sentTs": 1760926264145,
-      "recvTs": 1760926264147,
-      "latencyMs": 2
+      "sentTs": 1760927411361,
+      "recvTs": 1760927411364,
+      "latencyMs": 3
     },
     {
       "sequence": 7,
       "status": "success",
       "attempt": 2,
       "replay": true,
-      "sentTs": 1760926264502,
-      "recvTs": 1760926264505,
-      "latencyMs": 3
+      "sentTs": 1760927411716,
+      "recvTs": 1760927411718,
+      "latencyMs": 2
     },
     {
       "sequence": 8,
       "status": "gallery_ack",
       "attempt": 2,
       "replay": true,
-      "sentTs": 1760926264855,
-      "recvTs": 1760926264857,
+      "sentTs": 1760927412072,
+      "recvTs": 1760927412074,
       "latencyMs": 2
     }
   ],
@@ -88,9 +88,9 @@
     "replayedStages": 5,
     "latency": {
       "min": 2,
-      "max": 7,
+      "max": 3,
       "p50": 2,
-      "p95": 7
+      "p95": 3
     }
   }
 }

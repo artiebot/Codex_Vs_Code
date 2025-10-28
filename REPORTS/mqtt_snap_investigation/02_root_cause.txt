@@ -1,0 +1,78 @@
+=== Investigation Step 2: Root Cause - MQTT Keepalive Timeout ===
+Date: 2025-10-04
+
+ROOT CAUSE IDENTIFIED: MQTT connection times out during image capture
+
+EVIDENCE FROM SERIAL LOG:
+-------------------------
+[mqtt] attempting connection...
+[mqtt] connected!                          ← T=0: mqtt.connect() succeeds
+[snap] attempting capture...               ← T=0: enters captureStill()
+[snap] captured 11506 bytes                ← T=~1000ms: exits captureStill()
+[mqtt] publish snapshot → skipped (MQTT)   ← T=~1000ms: mqtt.connected() = FALSE
+
+TIMING ANALYSIS:
+---------------
+captureStill() blocks for approximately 1 second:
+- Loop: 40 attempts × 25ms delay = 1000ms maximum
+- During this time, mqtt.loop() WAS being called (via pumpMqtt() at line 90)
+- BUT: pumpMqtt() original implementation only called mqtt.loop() if already connected
+- If connection dropped, it did NOT attempt reconnect
+
+MQTT Keep-Alive Settings:
+-------------------------
+Line 252: mqtt.setKeepAlive(30);  // 30 seconds
+
+Keep-alive is 30 seconds, so that's not the issue.
+
+ACTUAL ISSUE:
+------------
+Looking at pumpMqtt() original implementation (line 50-54):
+```cpp
+void pumpMqtt() {
+  if (mqtt.connected()) {
+    mqtt.loop();
+  }
+}
+```
+
+This does NOT handle reconnection if connection drops during capture!
+
+FIX APPLIED:
+-----------
+Updated pumpMqtt() to handle reconnection:
+```cpp
+void pumpMqtt() {
+  if (!mqtt.connected()) {
+    reconnectMqtt();  // Attempt reconnect if disconnected
+  } else {
+    mqtt.loop();
+    processMessage();  // Also process any pending messages
+  }
+}
+```
+
+Also added connection state logging before publish attempt (line 131-132):
+```cpp
+Serial.print("[mqtt] connection state before publish: ");
+Serial.println(mqtt.connected() ? "CONNECTED" : "DISCONNECTED");
+```
+
+EXPECTED BEHAVIOR AFTER FIX:
+----------------------------
+1. MQTT command received
+2. captureStill() loops for ~1 second
+3. pumpMqtt() maintains connection OR reconnects if dropped
+4. publishSnapshot() finds mqtt.connected() == true
+5. Publishes metadata JSON successfully
+6. mosquitto_sub receives event
+
+VALIDATION REQUIRED:
+-------------------
+User must flash updated firmware and test MQTT snap command.
+Expected serial output:
+  [mqtt] connected!
+  [snap] attempting capture...
+  [snap] captured ... bytes
+  [mqtt] connection state before publish: CONNECTED
+  [mqtt] publish snapshot event -> OK

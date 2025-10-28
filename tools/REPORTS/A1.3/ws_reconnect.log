@@ -1,0 +1,22 @@
+2025-10-20T02:18:45.514Z App socket connected.
+2025-10-20T02:18:45.524Z Device socket connected.
+2025-10-20T02:18:45.525Z Sent status queued (sequence 1, attempt 1)
+2025-10-20T02:18:45.527Z App received queued (sequence 1, attempt 1)
+2025-10-20T02:18:45.881Z Sent status uploading (sequence 2, attempt 1)
+2025-10-20T02:18:45.883Z App received uploading (sequence 2, attempt 1)
+2025-10-20T02:18:46.236Z Sent status uploading (sequence 3, attempt 1)
+2025-10-20T02:18:46.238Z App received uploading (sequence 3, attempt 1)
+2025-10-20T02:18:46.591Z Simulating device socket drop
+2025-10-20T02:18:46.597Z Device socket closed (code=4000 reason=simulated-drop)
+2025-10-20T02:18:50.603Z Device socket connected.
+2025-10-20T02:18:50.604Z Sent status retry_scheduled (sequence 4, attempt 1)
+2025-10-20T02:18:50.606Z App received retry_scheduled (sequence 4, attempt 1)
+2025-10-20T02:18:50.966Z Sent status uploading (sequence 5, attempt 2)
+2025-10-20T02:18:50.968Z App received uploading (sequence 5, attempt 2)
+2025-10-20T02:18:51.325Z Sent status uploading (sequence 6, attempt 2)
+2025-10-20T02:18:51.327Z App received uploading (sequence 6, attempt 2)
+2025-10-20T02:18:51.683Z Sent status success (sequence 7, attempt 2)
+2025-10-20T02:18:51.685Z App received success (sequence 7, attempt 2)
+2025-10-20T02:18:52.039Z Sent status gallery_ack (sequence 8, attempt 2)
+2025-10-20T02:18:52.040Z App received gallery_ack (sequence 8, attempt 2)
+2025-10-20T02:18:53.404Z Device socket closed (code=1000 reason=test-complete)

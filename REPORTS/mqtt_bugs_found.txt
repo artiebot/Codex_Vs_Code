@@ -1,0 +1,248 @@
+================================================================================
+MQTT BUGS IDENTIFIED - AMB-MINI FIRMWARE
+================================================================================
+Date: 2025-10-09
+Diagnosed from serial output analysis
+
+================================================================================
+BUG #1: INFINITE RECONNECTION LOOP (CRITICAL)
+================================================================================
+SYMPTOM:
+- Massive spam of "[mqtt] throttled (last X.Xs ago)" messages
+- HTTP stops responding
+- Device essentially locks up
+
+ROOT CAUSE:
+pumpMqtt() function calls reconnectMqtt() when disconnected, creating reentrancy:
+
+1. Main loop() calls reconnectMqtt() at line 539
+2. HTTP client connects during MQTT connection attempt
+3. HTTP request reading loop calls pumpMqtt() (line 561)
+4. pumpMqtt() sees !mqtt.connected() (still connecting)
+5. pumpMqtt() calls reconnectMqtt() AGAIN (line 59)
+6. reconnectMqtt() throttles (line 274) - returns false
+7. Steps 3-6 repeat hundreds of times per second
+8. Original connection attempt never completes
+9. Serial floods with throttle messages
+10. Everything blocks
+
+CODE LOCATION:
+amb-mini.ino:57-64 (pumpMqtt function)
+Called from:
+- Line 561: HTTP request reading
+- Line 368: Stream servicing
+- Line 581: End of main loop
+
+FIX APPLIED:
+Changed pumpMqtt() to ONLY service existing connection:
+```cpp
+void pumpMqtt() {
+  // Only service existing connection, don't try to reconnect
+  // (reconnection is handled by main loop to avoid reentrancy)
+  if (mqtt.connected()) {
+    mqtt.loop();
+    processMessage();
+  }
+}
+```
+
+RATIONALE:
+- pumpMqtt() is meant to be called from anywhere to keep MQTT alive
+- Reconnection is a heavyweight operation that should only happen in main loop
+- Allowing reentrancy creates race conditions and infinite loops
+- Main loop already handles reconnection at line 539
+
+SERIAL EVIDENCE:
+```
+16:07:28.495 -> [INFO] Connect to Server successfully!  <- Connection started
+                                                         <- Missing: CONNECTED!, subscribing, etc
+16:07:43.656 -> [mqtt] throttled (last 0.2s ago)       <- Spam starts 15 seconds later
+16:07:43.656 -> [mqtt] throttled (last 0.2s ago)
+16:07:43.656 -> [mqtt] throttled (last 0.2s ago)
+[... hundreds more ...]
+```
+
+VALIDATION:
+After fix, device should:
+- Never spam throttle messages
+- Complete MQTT connections successfully
+- Maintain MQTT connection while serving HTTP
+- Respond to both HTTP and MQTT commands
+
+================================================================================
+BUG #2: SILENT MQTT DISCONNECTION (HIGH PRIORITY)
+================================================================================
+SYMPTOM:
+- MQTT connects successfully at boot (16:04:59)
+- MQTT silently disconnects after ~2.5 minutes (before 16:07:28)
+- No error messages, no warning
+- MQTT snap commands fail because connection is dead
+
+SERIAL EVIDENCE:
+```
+16:04:59.642 -> [mqtt] CONNECTED!
+16:04:59.642 -> [mqtt] subscribed to: skyfeeder/sf-mock01/amb/camera/cmd
+16:04:59.681 -> [mqtt] setup complete, callback ready
+... [2.5 minutes of silence] ...
+16:07:28.422 -> [mqtt] attempting connection...  <- Device notices disconnection
+```
+
+THEORIES:
+1. Broker keepalive timeout (30 seconds)
+   - mqtt.setKeepAlive(30) configured
+   - mqtt.loop() should send pings
+   - But if loop() not called frequently enough, connection dies
+
+2. Broker-side disconnect
+   - Duplicate client ID?
+   - Broker restart?
+   - Network issue?
+
+3. WiFi interruption
+   - Would show in serial if WiFi reconnected
+   - Not seen in logs
+
+4. Library bug
+   - PubSubClient may silently fail
+   - No error callback mechanism
+
+INVESTIGATION NEEDED:
+1. Check MQTT broker logs for disconnect reason
+2. Monitor mqtt.loop() call frequency
+3. Add periodic connection state logging
+4. Test with shorter keepalive (15 seconds?)
+5. Test with QoS 1 for subscription
+
+CURRENT MITIGATION:
+- Main loop() already checks !mqtt.connected() and reconnects
+- Works once Bug #1 is fixed
+- Not ideal: reactive rather than preventive
+
+POTENTIAL FIX (not implemented yet):
+Add periodic keepalive monitoring:
+```cpp
+void loop() {
+  static unsigned long lastMqttPing = 0;
+  if (mqtt.connected() && millis() - lastMqttPing > 10000) {
+    mqtt.loop();  // Force ping
+    lastMqttPing = millis();
+  }
+}
+```
+
+================================================================================
+BUG #3: MQTT CALLBACK NOT FIRING (BLOCKED BY BUG #1)
+================================================================================
+SYMPTOM:
+User sends MQTT snap command, listener shows message received, but:
+- No "=== MQTT CALLBACK FIRED ===" in serial
+- No snapshot capture
+- No processing
+
+ROOT CAUSE:
+Actually a consequence of Bug #2:
+- MQTT already disconnected when command sent
+- Broker receives publish
+- But client not subscribed anymore (disconnected)
+- Callback never fires
+
+NOT A BUG IN:
+- Callback registration (address logged: 0x7010E761)
+- Subscription (confirmed at boot)
+- Message routing
+
+FIX:
+Solving Bug #1 will prevent reconnection loops
+Solving Bug #2 will keep connection alive
+Together, callbacks should work
+
+================================================================================
+BUG #4: HTTP SNAPSHOT PUBLISH FAILURE (CONSEQUENCE)
+================================================================================
+SYMPTOM:
+```
+[http] test-snap triggered
+[snap] captured 11634 bytes
+[mqtt] connection state before publish: DISCONNECTED
+[mqtt] publish snapshot -> skipped (MQTT reconnect failed)
+```
+
+ROOT CAUSE:
+1. MQTT disconnected (Bug #2)
+2. captureStill() takes ~1 second
+3. publishSnapshot() tries ensureMqttConnected()
+4. reconnectMqtt() throttled because Bug #1 loop just called it 1000 times
+5. lastReconnect timestamp < 2 seconds ago
+6. Reconnect fails, publish skipped
+
+FIX:
+Solving Bug #1 will stop throttle spam
+This allows legitimate reconnect to succeed
+Publish should work after reconnection
+
+POTENTIAL IMPROVEMENT:
+Reset throttle timer when connection is stable:
+```cpp
+void loop() {
+  if (mqtt.connected()) {
+    static unsigned long lastConnectedCheck = 0;
+    if (millis() - lastConnectedCheck > 60000) {
+      lastReconnect = 0;  // Reset throttle after 1 min stable
+      lastConnectedCheck = millis();
+    }
+  }
+}
+```
+
+================================================================================
+TESTING PLAN AFTER BUG #1 FIX
+================================================================================
+1. Flash updated firmware
+2. Reboot device, monitor serial
+3. Wait 5 minutes without touching it
+   - MQTT should stay connected
+   - No throttle spam
+   - No reconnection attempts
+
+4. Send MQTT snap command
+   - Should see "=== MQTT CALLBACK FIRED ==="
+   - Should capture snapshot
+   - Should publish event
+   - Listener should show event message
+
+5. Open HTTP /stream
+   - Should stream video
+   - MQTT should stay connected during stream
+   - Send MQTT snap during stream
+   - Should process command
+
+6. Open HTTP /test-snap
+   - Should trigger snap
+   - Should publish event
+   - No "DISCONNECTED" messages
+
+7. Stress test: rapid MQTT commands
+   - Send 10 snap commands quickly
+   - All should process
+   - No throttle spam
+
+================================================================================
+SUMMARY
+================================================================================
+PRIMARY BUG: pumpMqtt() reentrancy causing infinite reconnection loop
+FIXED: Yes (changed pumpMqtt to not call reconnectMqtt)
+
+SECONDARY BUG: MQTT silent disconnection after 2-3 minutes
+FIXED: No (needs investigation)
+WORKAROUND: Main loop auto-reconnects (once Bug #1 fixed)
+
+BLOCKED SYMPTOMS: Callback not firing, publish failures
+RESOLUTION: Should resolve once Bug #1 fixed and MQTT stays connected
+
+NEXT STEPS:
+1. Test with Bug #1 fix
+2. Monitor for silent disconnections
+3. Investigate keepalive if disconnections continue
+4. Consider broker logs for disconnect reason
+
+================================================================================

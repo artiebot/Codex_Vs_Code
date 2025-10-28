@@ -15,7 +15,9 @@ std::string topicEvents;
 std::string topicVisit;
 std::string topicSnapshot;
 std::string topicLogs;
+std::string topicEventSys;
 std::string topicAck;
+std::string topicEventAck;
 std::string topicEventOta;
 std::string topicCmdRoot;
 std::string topicCmdAny;
@@ -46,7 +48,9 @@ void init(const char* id) {
   topicVisit = makeTopic("event/visit");
   topicSnapshot = makeTopic("event/camera/snapshot");
   topicLogs = makeTopic("event/log");
+  topicEventSys = makeTopic("event/sys");
   topicEventOta = makeTopic("event/ota");
+  topicEventAck = makeTopic("event/ack");
   topicAck = makeTopic("ack");
   topicCmdRoot = makeTopic("cmd");
   topicCmdAny = makeTopic("cmd/#");
@@ -66,7 +70,9 @@ const char* eventsRoot() { return topicEvents.c_str(); }
 const char* eventVisit() { return topicVisit.c_str(); }
 const char* eventCameraSnapshot() { return topicSnapshot.c_str(); }
 const char* eventLog() { return topicLogs.c_str(); }
+const char* eventSys() { return topicEventSys.c_str(); }
 const char* eventOta() { return topicEventOta.c_str(); }
+const char* eventAck() { return topicEventAck.c_str(); }
 const char* ack() { return topicAck.c_str(); }
 const char* cmdRoot() { return topicCmdRoot.c_str(); }
 const char* cmdAny() { return topicCmdAny.c_str(); }

@@ -9,13 +9,30 @@ param(
     [Parameter(Mandatory=$false)]
     [switch]$GenerateInfo,
     [Parameter(Mandatory=$false)]
-    [switch]$SendCommand
+    [switch]$SendCommand,
+    [Parameter(Mandatory=$false)]
+    [string]$DeviceId = "dev1",
+    [Parameter(Mandatory=$false)]
+    [string]$MqttHost = "localhost",
+    [Parameter(Mandatory=$false)]
+    [string]$MqttUsername = "dev1",
+    [Parameter(Mandatory=$false)]
+    [string]$MqttPassword = "dev1pass",
+    [Parameter(Mandatory=$false)]
+    [int]$MqttPort = 1883,
+    [Parameter(Mandatory=$false)]
+    [string]$HttpHost = "localhost",
+    [Parameter(Mandatory=$false)]
+    [int]$HttpPort = 9180,
+    [Parameter(Mandatory=$false)]
+    [string]$HttpPath = "/fw",
+    [Parameter(Mandatory=$false)]
+    [string]$FirmwareUrl,
+    [Parameter(Mandatory=$false)]
+    [bool]$Staged = $true,
+    [Parameter(Mandatory=$false)]
+    [bool]$Force = $false
 )
-
-$MqttHost = "10.0.0.4"
-$HttpHost = "10.0.0.4"
-$HttpPort = "8000"
-$DeviceId = "sf-mock01"
 
 function Get-FileHash256 {
     param([string]$Path)
@@ -60,31 +77,52 @@ function Show-FirmwareInfo {
     }
 }
 
+function Join-HttpPath {
+    param([string]$Host, [int]$Port, [string]$PathFragment)
+    $normalized = $PathFragment
+    if (-not $normalized.StartsWith("/")) {
+        $normalized = "/" + $normalized
+    }
+    return "http://$Host`:$Port$normalized"
+}
+
 function Send-OtaCommand {
     param($FirmwareInfo)
 
-    $url = "http://${HttpHost}:${HttpPort}/skyfeeder.ino.bin"
+    $urlToSend = $FirmwareUrl
+    if (-not $urlToSend) {
+        $relative = "/skyfeeder.ino.bin"
+        if ($FirmwareInfo -and $FirmwareInfo.ContainsKey("relative")) {
+            $relative = $FirmwareInfo.relative
+        } elseif ($HttpPath) {
+            $relative = (Join-Path -Path $HttpPath -ChildPath "skyfeeder.ino.bin")
+            $relative = $relative -replace "\\", "/"
+        }
+        $urlToSend = Join-HttpPath -Host $HttpHost -Port $HttpPort -PathFragment $relative
+    }
 
     # Create JSON payload
     $payload = @{
-        url = $url
+        url = $urlToSend
         version = $FirmwareInfo.version
         sha256 = $FirmwareInfo.sha256
         size = $FirmwareInfo.size
-    } | ConvertTo-Json -Compress
+        staged = $Staged
+    }
+    if ($Force) {
+        $payload.force = $true
+    }
 
-    # Escape for mosquitto_pub
-    $escapedPayload = $payload -replace '"', '\"'
+    $payloadJson = $payload | ConvertTo-Json -Compress
 
     Write-Host "Sending OTA command..." -ForegroundColor Yellow
-    Write-Host "Topic: skyfeeder/$DeviceId/command/ota" -ForegroundColor Gray
-    Write-Host "Payload: $payload" -ForegroundColor Gray
+    Write-Host "Topic: skyfeeder/$DeviceId/cmd/ota" -ForegroundColor Gray
+    Write-Host "Payload: $payloadJson" -ForegroundColor Gray
     Write-Host ""
 
     # Send command
-    $cmd = "mosquitto_pub -h $MqttHost -t `"skyfeeder/$DeviceId/command/ota`" -m `"$escapedPayload`""
-    Write-Host "Executing: $cmd" -ForegroundColor Gray
-    Invoke-Expression $cmd
+    Write-Host ("Executing: mosquitto_pub -h {0} -p {1} -t skyfeeder/{2}/cmd/ota -u <user> -P <pass> -m <payload>" -f $MqttHost, $MqttPort, $DeviceId) -ForegroundColor Gray
+    & mosquitto_pub -h $MqttHost -p $MqttPort -u $MqttUsername -P $MqttPassword -t ("skyfeeder/{0}/cmd/ota" -f $DeviceId) -m $payloadJson
 
     Write-Host "`nOTA command sent!" -ForegroundColor Green
     Write-Host "Monitor events with:" -ForegroundColor Yellow

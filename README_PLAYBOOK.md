@@ -24,7 +24,7 @@ _Last updated: 2025-10-20_
 | **A1.1** | [x] complete | Codex | Local stack validation + artifact capture. |
 | A1.2 | [x] complete | Codex | Discovery v0.2 + WS resilience validated with queue/replay metrics. |
 | A1.3 | [x] complete | Codex | WS upload-status broadcast + LOCAL gallery documentation. |
-| A1.4 | [x] complete | Codex | Fault injection + reliability artifacts ready; power soak TODO noted. |
+| A1.4 | [x] complete | Codex | Fault injection sims done; 24h power/soak still pending per `REPORTS/A1.4/reliability.md`. |
 | B-series | [ ] planned | Codex | App “Button-Up” milestones (B1-B6). |
 | A2 | [ ] planned | Codex | Field application pilot (1-3 units). |
 | C-series | [ ] planned | Codex | Post-deployment ops outline. |
@@ -84,6 +84,12 @@ The following validation items were skipped during simulation/software-only test
 **Required for:** Operator training, field deployment UX validation
 **Artifacts expected:** `REPORTS/B1/provisioning_demo.mp4` (video of full provisioning flow with LED transitions)
 **Status:** Firmware implementation complete; manual hardware testing and video recording needed
+
+---
+
+## Reference: MQTT status
+- **Audit summary:** `docs/MQTT_DE_SCOPE_AUDIT.md` confirms the active stack is HTTP/S3/WebSocket only; remaining MQTT references live in archived tooling/docs.
+- **Action:** Label legacy MQTT helpers when convenient; no validation changes required.
 
 ---
 
@@ -308,10 +314,13 @@ Exit: ✅ Fault injection and retry logic validated via simulation; hardware soa
 
 - Implement AP + captive portal when no Wi-Fi; triple power-cycle re-enters AP.
 - LED states: `PROVISIONING`, `CONNECTING_WIFI`, `ONLINE` without blocking main loop.
-- Produce operator quick guide.  
+- Produce operator quick guide and emergency `DEMO_DEFAULTS` instructions (see `docs/PROVISIONING.md`).
+- Validate snapshot guard fix on hardware and record provisioning/demo video (see Pending Hardware Validations).
   Artifacts: `/REPORTS/B1/provisioning_demo.mp4`, `docs/PROVISIONING.md`
 
 DoD: New device provisioned in ≤60 s; triple-cycle recovery verified.
+
+**Post-A2 configuration hardening:** De-hardcoding tasks are staged in `PROPOSAL_DEHARDCODING.md` and will begin after A2.
 
 ### B2 - Dashboard MVP (local)
 
@@ -411,6 +420,7 @@ Limit to read-only audit; no code changes.
 2. Verify triple power-cycle path on hardware and capture provisioning demo video.  
 3. Backfill soak/power data for A1.4 once bench time is available.  
 4. Prep downstream B-series tasks (dashboard polish, auth) while provisioning feedback rolls in.  
-5. Track gallery recording + field handoff follow-ups.
+5. Track gallery recording + field handoff follow-ups.  
+6. Review `PROPOSAL_DEHARDCODING.md` so the post-A2 configuration hardening wave is ready once validation completes.
 
 Stay aligned with this playbook; update sections as phases advance.

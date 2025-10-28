@@ -1,0 +1,119 @@
+=== A0.1 MQTT Debug Plan ===
+Date: 2025-10-04
+Issue: mosquitto_pub with -f flag shows no response on AMB serial or MQTT event
+
+Current Status:
+--------------
+✓ JSON file created correctly: {"action":"snap"} (verified hex dump)
+✓ AMB callback WAS working earlier (saw the {action:snap} parse error)
+✓ HTTP /test-snap still works
+? AMB may have disconnected from MQTT
+? mosquitto_pub may not be sending the message
+
+STEP-BY-STEP DEBUG PLAN:
+========================
+
+Step 1: Verify AMB is still connected to MQTT
+---------------------------------------------
+Check serial monitor - do you see recent:
+  "[mqtt] failed, state: -4" OR "[mqtt] connected"?
+
+If NO recent MQTT messages → AMB lost connection
+If YES → AMB is connected, proceed to Step 2
+
+
+Step 2: Verify broker receives the message
+------------------------------------------
+A) Open PowerShell Window 1:
+   cd d:\OneDrive\Etsy\Feeder-Project\SW\feeder-project\ESP32\Codex_Vs_Code\amb-mini\scripts
+   .\mqtt-test-broker.ps1
+
+B) Open PowerShell Window 2:
+   cd d:\OneDrive\Etsy\Feeder-Project\SW\feeder-project\ESP32\Codex_Vs_Code\amb-mini\scripts
+   .\mqtt-snap-stdin.ps1
+
+C) Check Window 1 output:
+   - If you SEE the message → Broker got it, AMB didn't receive it
+   - If you DON'T SEE it → mosquitto_pub is failing
+
+
+Step 3A: If broker gets it but AMB doesn't
+------------------------------------------
+Problem: AMB subscription broken or callback not firing
+
+Action:
+1. Reset AMB (power cycle or reset button)
+2. Wait for "[mqtt] subscribed: skyfeeder/sf-mock01/amb/camera/cmd"
+3. Try .\mqtt-snap-stdin.ps1 again
+4. If still fails → PubSubClient library bug, need alternative approach
+
+
+Step 3B: If broker doesn't get the message
+------------------------------------------
+Problem: mosquitto_pub command failing silently
+
+Action:
+1. Test basic pub/sub on different topic:
+   Window 1: mosquitto_sub -h 10.0.0.4 -u dev1 -P dev1pass -t "test/topic" -v
+   Window 2: echo "hello" | mosquitto_pub -h 10.0.0.4 -u dev1 -P dev1pass -t "test/topic" -l
+
+2. If this works → topic/credential issue
+3. If this fails → mosquitto_pub installation/network issue
+
+
+Step 4: Alternative test via HTTP
+---------------------------------
+Since HTTP works, we can verify snapshot functionality:
+1. Open browser: http://10.0.0.198/test-snap
+2. Monitor: mosquitto_sub -h 10.0.0.4 -u dev1 -P dev1pass -t "skyfeeder/sf-mock01/amb/camera/event/snapshot" -v
+3. Should see snapshot event published
+
+If this works → AMB MQTT publish works, only subscribe/receive broken
+
+
+Step 5: Nuclear option - simplify MQTT callback
+-----------------------------------------------
+If all else fails, modify amb-mini.ino to use simpler callback:
+- Remove ArduinoJson parsing
+- Just log raw payload
+- Test if callback fires at all
+
+
+COMMANDS TO RUN (in order):
+===========================
+
+1. Check AMB serial monitor for recent MQTT logs
+
+2. Terminal 1:
+   cd d:\OneDrive\Etsy\Feeder-Project\SW\feeder-project\ESP32\Codex_Vs_Code\amb-mini\scripts
+   .\mqtt-test-broker.ps1
+
+3. Terminal 2:
+   cd d:\OneDrive\Etsy\Feeder-Project\SW\feeder-project\ESP32\Codex_Vs_Code\amb-mini\scripts
+   .\mqtt-snap-stdin.ps1
+
+4. Check Terminal 1 - do you see the message?
+
+5. If NO, test basic MQTT:
+   Terminal 1: mosquitto_sub -h 10.0.0.4 -u dev1 -P dev1pass -t "test/topic" -v
+   Terminal 2: echo "hello" | mosquitto_pub -h 10.0.0.4 -u dev1 -P dev1pass -t "test/topic" -l
+
+6. Test AMB publish (via HTTP trigger):
+   Browser: http://10.0.0.198/test-snap
+   Terminal: mosquitto_sub -h 10.0.0.4 -u dev1 -P dev1pass -t "skyfeeder/sf-mock01/amb/camera/event/snapshot" -v
+
+
+EXPECTED OUTCOMES:
+==================
+
+Scenario A: Broker monitor sees message, AMB doesn't respond
+→ AMB subscription/callback broken → need to reset or fix PubSubClient
+
+Scenario B: Broker monitor doesn't see message
+→ mosquitto_pub failing → network/credential/command issue
+
+Scenario C: HTTP test-snap publishes event successfully
+→ AMB can publish but not receive → subscription issue
+
+Scenario D: Nothing works
+→ AMB disconnected from MQTT → check serial for connection errors

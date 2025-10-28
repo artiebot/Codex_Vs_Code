@@ -1,0 +1,58 @@
+SkyFeeder Phase A1.1 — RTSP→HLS Bridge Validation
+=================================================
+
+Operator: ___________________________        Date: ____________________
+
+Environment
+-----------
+- Mini RTSP URL: ___________________________
+- Bridge host: _____________________________
+- Docker compose project: hlsbridge
+
+Pre-checks
+----------
+[ ] Mini responds to `ping`/`snapshot` (ESP32 bridge active)
+[ ] `docker version` / `docker compose version` verified
+[ ] `.env` configured (RTSP_URL, port, stream name)
+
+Execution Log
+-------------
+1. `docker compose up -d` (or `tools/hls-bridge.ps1 start`)
+   - Timestamp: ____________    Result: ____________________________
+   - Notable FFmpeg log lines:
+     - _____________________________________________________________
+     - _____________________________________________________________
+
+2. Playlist fetch — `curl http://localhost:8080/hls/<stream>.m3u8`
+   - Timestamp: ____________    HTTP status: ________ (expect 200)
+   - First three EXTINF entries copied below:
+     ```
+     ```
+
+3. Segment fetch — `curl -I http://localhost:8080/hls/<segment>.ts`
+   - Timestamp: ____________    Content-Length: ____________________
+
+4. Live playback smoke test (ffplay/VLC)
+   - Tool used: _______________  Duration observed: ________________
+   - Notes:
+     - _____________________________________________________________
+     - _____________________________________________________________
+
+5. Bridge teardown — `docker compose down`
+   - Timestamp: ____________    Result: ____________________________
+
+Post-checks
+-----------
+[ ] Residual segments cleared (`output/` folder)
+[ ] ESP32 snapshot flow still operational (optional quick check)
+[ ] Attach FFmpeg log excerpt + playlist snippet to this report
+
+Observations / Issues
+---------------------
+- _________________________________________________________________
+- _________________________________________________________________
+- _________________________________________________________________
+
+Summary
+-------
+[ ] PASS    [ ] FAIL    Notes: _____________________________________
