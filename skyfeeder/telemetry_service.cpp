@@ -17,6 +17,7 @@
 #include "ws2812_service.h"
 #include "camera_service_esp.h"
 #include "provisioning.h"
+#include "ota_manager.h"
 
 namespace SF {
 Telemetry telemetry;
@@ -38,6 +39,13 @@ void Telemetry::loop() {
   StaticJsonDocument<512> doc;
   doc["schema"] = "v1";
   doc["ts_ms"] = now;
+
+  JsonObject firmware = doc.createNestedObject("firmware");
+  firmware["version"] = SF::OtaManager::runningVersion();
+  const char* channel = SF::OtaManager::lastAppliedChannel();
+  if (channel && channel[0]) {
+    firmware["channel"] = channel;
+  }
 
   if (SF::power.valid()) {
     doc["power"]["pack_v"] = SF::power.packV();

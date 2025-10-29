@@ -47,6 +47,34 @@ The initial scaffold keeps the UI alive with a placeholder `RootView` so the pro
 
 > **iOS 18 Compatibility:** The project targets iOS 17, but all APIs used are available on iOS 17+, so the build runs unmodified on iOS 18.x devices. Validate on-device with Xcode 15.4 or newer to exercise the gallery features.
 
+## Install via TestFlight
+
+1. Add the tester's Apple ID to App Store Connect (see below).
+2. Share the TestFlight public link or invitation email once the build is processed.
+3. On the device, install the latest TestFlight build and note the build number for the run log (`REPORTS/A1.3/ios_run_notes.md`).
+
+## Add an External Tester
+
+1. In App Store Connect, open **Users and Access → TestFlight**.
+2. Create (or select) the **“Pilot – Family”** tester group.
+3. Add external tester email addresses to the group; Apple will send the invite automatically.
+4. Confirm the tester accepts the invitation in TestFlight before distributing validation builds.
+
+## First-run Settings
+
+- Launch the app and open **Settings → Provider**.
+- For **Local Folder**, paste the path to `captures_index.json` on-device (Files app → long press → Copy Path).
+- For **Presigned HTTP**, set the Base URL (default `http://10.0.0.4:8080/gallery`) and Device ID. The manifest URL is derived as `<base>/<deviceId>/captures_index.json`.
+- Toggle **Auto-save downloads to Photos** if captures should be automatically added to the Photos library after the first download.
+- Pull to refresh after saving settings to prime the cache and badge counters.
+
+## Troubleshooting
+
+- **Same LAN:** Presigned HTTP requires the device and local stack to share the LAN. Disable cellular data if the device fails to resolve `10.0.0.4`.
+- **ATS exceptions:** The Info.plist allows insecure HTTP only for `10.0.0.4`; other hosts must serve HTTPS endpoints.
+- **Photos permission:** Auto-save requests *Add to Photos* permission on first use. Re-enable in **Settings → Privacy & Security → Photos** if denied.
+- **Offline banner:** The orange banner appears only when the Presigned HTTP provider is active and connectivity drops; Filesystem mode suppresses it by design.
+
 ## Tooling Expectations
 
 - **Xcode 15** or newer with iOS 17 SDK.

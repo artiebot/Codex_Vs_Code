@@ -15,6 +15,7 @@ void begin();
 const char* runningVersion();
 const char* lastGoodVersion();
 const char* pendingVersion();
+const char* lastAppliedChannel();
 bool hasPending();
 bool awaitingHealth();
 

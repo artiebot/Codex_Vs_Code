@@ -33,6 +33,7 @@ struct PersistedState {
   char lastGood[kVersionLen];
   char pending[kVersionLen];
   char pendingChannel[kChannelLen];
+  char lastChannel[kChannelLen];
 };
 
 PersistedState gState{};
@@ -112,6 +113,7 @@ void ensureStateLoaded() {
   } else {
     std::memset(&gState, 0, sizeof(gState));
     copyStr(gState.lastGood, sizeof(gState.lastGood), kFwVersion);
+    gState.lastChannel[0] = '\0';
   }
   gStateLoaded = true;
   saveState();
@@ -344,6 +346,11 @@ const char* pendingVersion() {
   return gState.pending;
 }
 
+const char* lastAppliedChannel() {
+  ensureStateLoaded();
+  return gState.lastChannel;
+}
+
 bool hasPending() {
   ensureStateLoaded();
   return gState.pending[0] != '\0';
@@ -441,6 +448,7 @@ void markApplySuccess() {
   char channelCopy[kChannelLen];
   copyStr(channelCopy, sizeof(channelCopy), gState.pendingChannel);
   copyStr(gState.lastGood, sizeof(gState.lastGood), runningVersion());
+  copyStr(gState.lastChannel, sizeof(gState.lastChannel), channelCopy);
   gState.pending[0] = '\0';
   gState.pendingChannel[0] = '\0';
   saveState();

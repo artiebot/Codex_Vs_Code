@@ -24,7 +24,7 @@ final class SampleCaptureProvider: CaptureProvider {
                 fileSizeBytes: sampleAssetData.count,
                 thumbnail: CaptureResource(location: .file(thumbURL), contentType: "image/png"),
                 asset: CaptureResource(location: .file(assetURL), contentType: "video/mp4"),
-                source: .sample,
+                source: .filesystem,
                 annotations: ["Sample"],
                 isFavorite: offset % 3 == 0
             )

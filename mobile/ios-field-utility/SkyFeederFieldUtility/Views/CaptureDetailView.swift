@@ -8,6 +8,8 @@ struct CaptureDetailView: View {
     @State private var assetURL: URL?
     @State private var isLoadingAsset = false
     @State private var assetError: String?
+    @State private var isSharePresented = false
+    @State private var didAutoSave = false
 
     init(capture: Capture, viewModel: GalleryViewModel) {
         self.capture = capture
@@ -59,7 +61,9 @@ struct CaptureDetailView: View {
                 }
 
                 if let assetURL {
-                    ShareLink(item: assetURL) {
+                    Button {
+                        isSharePresented = true
+                    } label: {
                         Label("Share capture", systemImage: "square.and.arrow.up")
                     }
                     .buttonStyle(.borderedProminent)
@@ -73,6 +77,11 @@ struct CaptureDetailView: View {
             await pipeline.load()
             await prepareAsset()
         }
+        .sheet(isPresented: $isSharePresented) {
+            if let assetURL {
+                ShareActivityView(activityItems: [assetURL])
+            }
+        }
     }
 
     private func prepareAsset() async {
@@ -80,7 +89,16 @@ struct CaptureDetailView: View {
         isLoadingAsset = true
         assetError = nil
         do {
-            assetURL = try await viewModel.assetURL(for: capture)
+            let url = try await viewModel.assetURL(for: capture)
+            assetURL = url
+            if !didAutoSave {
+                do {
+                    try await PhotoSaver.shared.saveIfNeeded(capture: capture, url: url, settings: viewModel.currentSettings())
+                    didAutoSave = true
+                } catch {
+                    assetError = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
+                }
+            }
         } catch {
             assetError = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
         }

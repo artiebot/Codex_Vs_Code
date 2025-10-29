@@ -1,7 +1,6 @@
 import Foundation
 
 enum CaptureProviderSelection: String, CaseIterable, Identifiable {
-    case sample
     case filesystem
     case presigned
 
@@ -9,12 +8,19 @@ enum CaptureProviderSelection: String, CaseIterable, Identifiable {
 
     var displayName: String {
         switch self {
-        case .sample:
-            return "Sample Data"
         case .filesystem:
-            return "Local Filesystem"
+            return "Local Folder"
         case .presigned:
             return "Presigned HTTP"
+        }
+    }
+
+    var requiresConnectivity: Bool {
+        switch self {
+        case .filesystem:
+            return false
+        case .presigned:
+            return true
         }
     }
 }
@@ -22,22 +28,25 @@ enum CaptureProviderSelection: String, CaseIterable, Identifiable {
 struct GallerySettings: Equatable {
     var provider: CaptureProviderSelection
     var filesystemRootPath: String
-    var presignedEndpoint: URL?
+    var baseURL: URL?
+    var deviceID: String
+    var autoSaveToPhotos: Bool
     var cacheTTL: TimeInterval
-    var enableFavoritesBadge: Bool
 
     init(
-        provider: CaptureProviderSelection = .sample,
+        provider: CaptureProviderSelection = .presigned,
         filesystemRootPath: String = "",
-        presignedEndpoint: URL? = nil,
-        cacheTTL: TimeInterval = 60 * 60 * 6,
-        enableFavoritesBadge: Bool = true
+        baseURL: URL? = URL(string: "http://10.0.0.4:8080/gallery"),
+        deviceID: String = "field-kit-1",
+        autoSaveToPhotos: Bool = false,
+        cacheTTL: TimeInterval = 60 * 60 * 6
     ) {
         self.provider = provider
         self.filesystemRootPath = filesystemRootPath
-        self.presignedEndpoint = presignedEndpoint
+        self.baseURL = baseURL
+        self.deviceID = deviceID
+        self.autoSaveToPhotos = autoSaveToPhotos
         self.cacheTTL = cacheTTL
-        self.enableFavoritesBadge = enableFavoritesBadge
     }
 }
 
@@ -45,9 +54,10 @@ extension GallerySettings {
     private enum Keys {
         static let provider = "gallery.provider"
         static let filesystemRoot = "gallery.filesystemRoot"
-        static let presignedEndpoint = "gallery.presignedEndpoint"
+        static let baseURL = "gallery.baseURL"
+        static let deviceID = "gallery.deviceID"
+        static let autoSave = "gallery.autoSave"
         static let cacheTTL = "gallery.cacheTTL"
-        static let favoritesBadge = "gallery.favoritesBadge"
     }
 
     init(userDefaults: UserDefaults = .standard) {
@@ -55,24 +65,33 @@ extension GallerySettings {
            let selection = CaptureProviderSelection(rawValue: stored) {
             provider = selection
         } else {
-            provider = .sample
+            provider = .presigned
         }
         filesystemRootPath = userDefaults.string(forKey: Keys.filesystemRoot) ?? ""
-        if let value = userDefaults.string(forKey: Keys.presignedEndpoint) {
-            presignedEndpoint = URL(string: value)
+        if let value = userDefaults.string(forKey: Keys.baseURL) {
+            baseURL = URL(string: value)
         } else {
-            presignedEndpoint = nil
+            baseURL = URL(string: "http://10.0.0.4:8080/gallery")
         }
+        deviceID = userDefaults.string(forKey: Keys.deviceID) ?? "field-kit-1"
+        autoSaveToPhotos = userDefaults.object(forKey: Keys.autoSave) as? Bool ?? false
         let ttl = userDefaults.double(forKey: Keys.cacheTTL)
         cacheTTL = ttl == 0 ? 60 * 60 * 6 : ttl
-        enableFavoritesBadge = userDefaults.object(forKey: Keys.favoritesBadge) as? Bool ?? true
     }
 
     func persist(userDefaults: UserDefaults = .standard) {
         userDefaults.set(provider.rawValue, forKey: Keys.provider)
         userDefaults.set(filesystemRootPath, forKey: Keys.filesystemRoot)
-        userDefaults.set(presignedEndpoint?.absoluteString, forKey: Keys.presignedEndpoint)
+        userDefaults.set(baseURL?.absoluteString, forKey: Keys.baseURL)
+        userDefaults.set(deviceID, forKey: Keys.deviceID)
+        userDefaults.set(autoSaveToPhotos, forKey: Keys.autoSave)
         userDefaults.set(cacheTTL, forKey: Keys.cacheTTL)
-        userDefaults.set(enableFavoritesBadge, forKey: Keys.favoritesBadge)
+    }
+
+    var manifestURL: URL? {
+        guard provider == .presigned, let baseURL else { return nil }
+        return baseURL
+            .appendingPathComponent(deviceID, isDirectory: true)
+            .appendingPathComponent("captures_index.json", isDirectory: false)
     }
 }

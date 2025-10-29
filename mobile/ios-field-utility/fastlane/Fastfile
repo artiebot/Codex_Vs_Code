@@ -1,0 +1,60 @@
+require "base64"
+
+default_platform(:ios)
+
+platform :ios do
+  desc "Upload an IPA to TestFlight"
+  lane :testflight do |options|
+    ipa_path = options[:ipa] || "build/SkyFeederFieldUtility.ipa"
+    UI.user_error!("IPA not found at #{ipa_path}") unless File.exist?(ipa_path)
+
+    api_key = resolve_api_key
+    app_id = ENV["ASC_APP_ID"]
+
+    build = pilot(
+      api_key: api_key,
+      ipa: ipa_path,
+      skip_submission: true,
+      skip_waiting_for_build_processing: true,
+      apple_id: app_id
+    )
+
+    if (summary_path = ENV["GITHUB_STEP_SUMMARY"]).to_s.strip.length > 0 && build
+      version = build.respond_to?(:app_version) ? build.app_version : "?"
+      build_number = build.respond_to?(:build_version) ? build.build_version : "?"
+      apple_id ||= build.respond_to?(:apple_id) ? build.apple_id : nil
+      link = apple_id ? "https://appstoreconnect.apple.com/apps/#{apple_id}/testflight/ios" : "https://appstoreconnect.apple.com/apps"
+      File.open(summary_path, "a") do |file|
+        file.puts("### TestFlight Upload")
+        file.puts("- Version: #{version}")
+        file.puts("- Build: #{build_number}")
+        file.puts("- [View in App Store Connect](#{link})")
+      end
+    end
+  end
+end
+
+def resolve_api_key
+  issuer = ENV["ASC_ISSUER_ID"]
+  key_id = ENV["ASC_KEY_ID"]
+  raw_key = ENV["ASC_API_KEY_P8"]
+
+  UI.user_error!("ASC_ISSUER_ID is required") if issuer.to_s.empty?
+  UI.user_error!("ASC_KEY_ID is required") if key_id.to_s.empty?
+  UI.user_error!("ASC_API_KEY_P8 is required") if raw_key.to_s.empty?
+
+  if File.exist?(raw_key)
+    app_store_connect_api_key(
+      key_id: key_id,
+      issuer_id: issuer,
+      key_filepath: raw_key
+    )
+  else
+    decoded = raw_key.include?("-----BEGIN") ? raw_key : Base64.decode64(raw_key)
+    app_store_connect_api_key(
+      key_id: key_id,
+      issuer_id: issuer,
+      key_content: decoded
+    )
+  end
+end
