@@ -1,0 +1,4 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+App.tsx(515,45): error TS2339: Property 'muted' does not exist on type '{ safeArea: { flex: number; backgroundColor: string; }; container: { flex: number; }; detailContent: { paddingHorizontal: number; paddingBottom: number; gap: number; }; section: { gap: number; }; sectionTitle: { ...; }; ... 25 more ...; historyLine: { ...; }; }'.
+src/shim.ts(3,21): error TS7016: Could not find a declaration file for module 'process/browser'. '/workspace/Codex_Vs_Code/app/skyfeeder-app/node_modules/process/browser.js' implicitly has an 'any' type.
+  Try `npm i --save-dev @types/process` if it exists or add a new declaration (.d.ts) file containing `declare module 'process/browser';`

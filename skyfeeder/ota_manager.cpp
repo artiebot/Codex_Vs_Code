@@ -23,6 +23,7 @@ namespace SF {
 namespace OtaManager {
 namespace {
 constexpr uint32_t kStateMagic = 0x53464F54;  // "SFOT"
+constexpr uint32_t kEventMagic = 0x53464556;  // "SFEV"
 constexpr size_t kVersionLen = 16;
 constexpr size_t kChannelLen = 16;
 constexpr size_t kReasonLen = 64;
@@ -44,9 +45,16 @@ struct PendingEvent {
   char fromVersion[kVersionLen];
   char toVersion[kVersionLen];
   char reason[kReasonLen];
+  char channel[kChannelLen];
+};
+
+struct PersistedEvent {
+  uint32_t magic;
+  PendingEvent event;
 };
 
 PendingEvent gEvent{};
+bool gEventLoaded = false;
 
 constexpr const char* kFwVersion = FW_VERSION;
 
@@ -109,14 +117,51 @@ void ensureStateLoaded() {
   saveState();
 }
 
-void queueEvent(const char* state, const char* version, const char* fromVersion, const char* toVersion, const char* reason, const char* channel = nullptr) {
+void clearPersistedEvent() {
+  PersistedEvent stored{};
+  SF::Storage::setBytes("ota", "pending_event", &stored, sizeof(stored));
+}
+
+void persistQueuedEvent() {
+  if (!gEvent.active) {
+    clearPersistedEvent();
+    return;
+  }
+  PersistedEvent stored{};
+  stored.magic = kEventMagic;
+  stored.event = gEvent;
+  SF::Storage::setBytes("ota", "pending_event", &stored, sizeof(stored));
+}
+
+void ensureEventLoaded() {
+  if (gEventLoaded) {
+    return;
+  }
+  PersistedEvent stored{};
+  if (SF::Storage::getBytes("ota", "pending_event", &stored, sizeof(stored)) &&
+      stored.magic == kEventMagic) {
+    gEvent = stored.event;
+  } else {
+    gEvent = PendingEvent{};
+  }
+  gEventLoaded = true;
+}
+
+void queueEvent(const char* state, const char* version, const char* fromVersion,
+                const char* toVersion, const char* reason, const char* channel = nullptr) {
+  ensureEventLoaded();
   gEvent.active = true;
   copyStr(gEvent.state, sizeof(gEvent.state), state);
   copyStr(gEvent.version, sizeof(gEvent.version), version);
   copyStr(gEvent.fromVersion, sizeof(gEvent.fromVersion), fromVersion);
   copyStr(gEvent.toVersion, sizeof(gEvent.toVersion), toVersion);
   copyStr(gEvent.reason, sizeof(gEvent.reason), reason);
-  // Channel parameter is ignored for now since PendingEvent doesn't store it
+  if (channel && channel[0]) {
+    copyStr(gEvent.channel, sizeof(gEvent.channel), channel);
+  } else {
+    gEvent.channel[0] = '\0';
+  }
+  persistQueuedEvent();
 }
 
 void publishEvent(PubSubClient& client, const char* state, const char* version, const char* reason = nullptr, const char* fromVersion = nullptr, const char* toVersion = nullptr, const char* channel = nullptr) {
@@ -145,9 +190,15 @@ void publishEvent(PubSubClient& client, const char* state, const char* version, 
 }
 
 bool flushQueued(PubSubClient& client) {
+  ensureEventLoaded();
   if (!gEvent.active) return false;
-  publishEvent(client, gEvent.state, gEvent.version, gEvent.reason, gEvent.fromVersion, gEvent.toVersion, gState.pendingChannel);
+  const char* channel =
+      (gEvent.channel[0] != '\0') ? gEvent.channel : gState.pendingChannel;
+  publishEvent(client, gEvent.state, gEvent.version, gEvent.reason,
+               gEvent.fromVersion, gEvent.toVersion, channel);
   gEvent.active = false;
+  gEvent.channel[0] = '\0';
+  persistQueuedEvent();
   return true;
 }
 
@@ -418,6 +469,43 @@ void clearPending() {
   gState.pendingChannel[0] = '\0';
   saveState();
 }
+
+#ifdef SF_OTA_MANAGER_SELF_TEST
+bool selfTestPendingEventChannel(PubSubClient& client) {
+  PendingEvent previousEvent = gEvent;
+  bool previousLoaded = gEventLoaded;
+  PersistedEvent persistedBackup{};
+  bool hadPersisted = SF::Storage::getBytes(
+      "ota", "pending_event", &persistedBackup, sizeof(persistedBackup));
+
+  queueEvent("self_test", "0.0.0", nullptr, nullptr, "self_test", "beta");
+  gEventLoaded = false;
+  ensureEventLoaded();
+  bool ok = gEvent.active && (std::strcmp(gEvent.channel, "beta") == 0);
+  if (ok) {
+    flushQueued(client);
+  } else {
+    gEvent.active = false;
+    persistQueuedEvent();
+  }
+
+  if (hadPersisted && persistedBackup.magic == kEventMagic) {
+    SF::Storage::setBytes("ota", "pending_event", &persistedBackup,
+                          sizeof(persistedBackup));
+  } else {
+    clearPersistedEvent();
+  }
+
+  gEventLoaded = false;
+  if (previousLoaded) {
+    ensureEventLoaded();
+  } else {
+    gEvent = previousEvent;
+  }
+
+  return ok;
+}
+#endif
 
 }  // namespace OtaManager
 }  // namespace SF

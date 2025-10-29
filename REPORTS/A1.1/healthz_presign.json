@@ -1,0 +1,8 @@
+{
+  "ok": true,
+  "env": "development",
+  "weakSecret": true,
+  "indexSafeAppendEnabled": false,
+  "maxEventsPerDay": 2000,
+  "ts": 1761688322654
+}

@@ -1,0 +1,9 @@
+# Risk Register
+
+| ID | Description | Likelihood | Impact | Detection signal | Mitigation | Owner | Status |
+|----|-------------|------------|--------|------------------|------------|-------|--------|
+| R1 | Default secrets (`dev-only`, `dev1/dev1pass`) allow forged presign/WS tokens and dashboard access. 【F:ops/local/presign-api/src/index.js†L17-L64】【F:app/skyfeeder-app/src/config.ts†L1-L17】 | High | High | Unexpected uploads or WS joins from unknown IPs; audit log anomalies. | Enforce strong secrets at startup, rotate credentials per deployment, monitor JWT issuer/audience. | Backend lead | Open |
+| R2 | Day index rewrites are non-atomic; concurrent uploads can clobber manifest entries. 【F:ops/local/presign-api/src/index.js†L107-L163】 | Medium | High | Missing thumbnails in gallery, mismatched byte counts. | Use conditional S3 writes or lock per device/day before append. | Backend lead | Open |
+| R3 | OTA queued events lose `channel` context, hiding phased rollout status after reboot. 【F:skyfeeder/ota_manager.cpp†L112-L151】 | Medium | Medium | OTA telemetry missing `channel` field following reset. | Persist channel in pending state and add regression test. | Firmware team | Open |
+| R4 | OTA heartbeat state resets on service restart, so rollback never triggers after repeated boot failures. 【F:ops/local/ota-server/src/index.js†L39-L56】 | Medium | High | Devices stuck cycling without rollback instructions; support escalations. | Persist heartbeat map to disk, alert if bootCount decreases unexpectedly. | Firmware/DevOps | Open |
+| R5 | Expo dashboard build currently fails TypeScript checks, blocking release packaging. 【F:app/skyfeeder-app/App.tsx†L510-L523】【ccc0af†L1-L9】 | High | Medium | CI `tsc` job failing; missing UI style at runtime. | Define missing style/type shim, add lint gate in pipeline. | App team | Open |

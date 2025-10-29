@@ -1,0 +1,11 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+npm warn deprecated inflight@1.0.6: This module is not supported, and leaks memory. Do not use it. Check out lru-cache if you want a good and tested way to coalesce async requests by a key value, which is much more comprehensive and powerful.
+npm warn deprecated glob@7.2.3: Glob versions prior to v9 are no longer supported
+- Finding files
+Processed 0 files (1.3s) 
+
+
+✖ Error: Graphviz could not be found. Ensure that "gvpr" is in your $PATH. Error: spawn gvpr ENOENT
+    at checkGraphvizInstalled (/root/.npm/_npx/483d2954a4c5190c/node_modules/madge/lib/graph.js:33:10)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+

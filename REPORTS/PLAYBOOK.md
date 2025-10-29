@@ -1,0 +1,24 @@
+# Review Playbook Log
+
+- 2025-10-28T20:13:30Z — Initialized review session. Recorded current HEAD (3e381b09bf6f011f7a3a4e48f680e7ed5f80b55b) and surveyed repository layout for backend, local stack, firmware, and app components.
+- 2025-10-28T20:14:10Z — Ran npx eslint across backend/app/local services; command failed due to missing configuration (see STATIC_ANALYSIS/eslint.txt).
+- 2025-10-28T20:16:50Z — Attempted depcheck for backend/app/local packages; npx prompt prevented non-interactive install (see STATIC_ANALYSIS/depcheck.txt).
+- 2025-10-28T20:17:40Z — Attempted madge circular dependency scan; npx install prompt blocked execution (see STATIC_ANALYSIS/madge.txt).
+- 2025-10-28T20:18:30Z — Ran npm audit --production for backend/app/local packages; captured results in STATIC_ANALYSIS/audit.txt.
+- 2025-10-28T20:19:00Z — Ran shellcheck across repository shell scripts; stored findings in STATIC_ANALYSIS/shellcheck.txt.
+- 2025-10-28T20:19:20Z — Ran hadolint against Dockerfiles; output in STATIC_ANALYSIS/hadolint.txt.
+- 2025-10-28T20:19:40Z — Attempted arduino-cli compile for skyfeeder sketch with warnings; results captured in STATIC_ANALYSIS/compile_firmware.txt.
+- 2025-10-28T20:20:00Z — Ran cppcheck on skyfeeder firmware sources; stored diagnostics in STATIC_ANALYSIS/cppcheck.txt.
+- 2025-10-28T20:20:30Z — Ran npx tsc --noEmit for Expo app; output saved to STATIC_ANALYSIS/tsc.txt.
+- 2025-10-28T20:21:40Z — Ran madge with --yes for Expo app; Graphviz missing prevented image generation (see STATIC_ANALYSIS/madge_app.txt).
+- 2025-10-28T20:22:20Z — Generated madge JSON dependency data for Expo app; stored in STATIC_ANALYSIS/madge_app.json.
+- 2025-10-28T20:23:20Z — Installed python packages (pillow, networkx, matplotlib) to build dependency visualizations.
+- 2025-10-28T20:24:00Z — Generated dependency graph PNG from madge JSON using networkx (REPORTS/DEPENDENCY_GRAPH.png).
+- 2025-10-28T20:24:50Z — Parsed madge JSON and rendered dependency graph to REPORTS/DEPENDENCY_GRAPH.png via Python.
+- 2025-10-28T20:25:40Z — Built dependency graph PNG from madge output (REPORTS/DEPENDENCY_GRAPH.png).
+- 2025-10-28T21:05:10Z — Ran `npm i --package-lock-only` + `npx tsc --noEmit` for the Expo dashboard; captured success in REPORTS/B2/tsc_pass.txt (screenshots deferred because headless CI cannot render Expo UI).
+- 2025-10-28T21:12:45Z — Started presign API locally with dummy S3 credentials, hit `/v1/healthz`, and saved payload to REPORTS/A1.1/healthz_presign.json; observed weak-secret warning in dev.
+- 2025-10-28T21:18:30Z — Exercised OTA heartbeat persistence by POSTing sample device data, restarting the service, and recording before/after snapshots in REPORTS/B4.
+- 2025-10-28T21:26:05Z — Enabled WS_STRICT_VALIDATION, used a throwaway WebSocket client to send a 256 KB payload, and logged the 1008 policy close plus metrics in REPORTS/A1.3.
+- 2025-10-28T21:30:20Z — Skipped INDEX_SAFE_APPEND concurrency validation because MinIO/S3 is unavailable; documented the limitation in REPORTS/A1.4/index_race_test.json.
+- 2025-10-29T02:15:00Z — Removed placeholder PNG artifacts (dashboard screenshots, dependency graph) per binary-free handoff request and updated validation notes to reflect the outstanding screenshot capture.

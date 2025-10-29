@@ -108,7 +108,6 @@ function buildKey({ deviceId, eventId, thing }) {
   const trimmed = sanitizedEvent.startsWith("evt-") ? sanitizedEvent.slice(4) : sanitizedEvent;
   const lastDash = trimmed.lastIndexOf("-");
   const isoPart = lastDash > 0 ? trimmed.slice(0, lastDash) : trimmed;
-  const slug = lastDash > 0 ? trimmed.slice(lastDash + 1) : "evt";
   const datePart = isoPart.slice(0, 10);
   const [yyyy, mm, dd] = (datePart.split("-").length === 3) ? datePart.split("-") : deriveDateFallback();
 
@@ -117,7 +116,7 @@ function buildKey({ deviceId, eventId, thing }) {
   const key = `u/${deviceId}/${basePath}/${yyyy}/${mm}/${dd}/${sanitizedEvent}/${filename}`;
   const contentType = thing === "thumb" ? "image/jpeg" : "video/mp4";
   const tagging = `type=${thing === "thumb" ? "photo" : "clip"}`;
-  return { key, contentType, tagging, slug };
+  return { key, contentType, tagging };
 }
 
 function deriveDateFallback() {
