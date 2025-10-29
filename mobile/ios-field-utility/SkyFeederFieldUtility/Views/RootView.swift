@@ -2,7 +2,7 @@ import SwiftUI
 
 struct RootView: View {
     @EnvironmentObject private var router: ApplicationRouter
-    @StateObject private var galleryViewModel = GalleryViewModel(provider: SampleCaptureProvider(), settings: GallerySettings(userDefaults: .standard))
+    @StateObject private var galleryViewModel = GalleryViewModel(settings: GallerySettings(userDefaults: .standard))
 
     var body: some View {
         NavigationStack(path: $router.path) {

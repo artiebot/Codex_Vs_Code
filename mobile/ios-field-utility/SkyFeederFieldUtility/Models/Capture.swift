@@ -4,7 +4,6 @@ struct Capture: Identifiable, Hashable, Codable {
     enum Source: String, Codable {
         case filesystem
         case presigned
-        case sample
     }
 
     let id: UUID

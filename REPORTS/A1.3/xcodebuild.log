@@ -1,0 +1,2 @@
+# xcodebuild log placeholder
+# Run on macOS: xcodebuild -scheme SkyFeederFieldUtility -configuration Release build | tee REPORTS/A1.3/xcodebuild.log

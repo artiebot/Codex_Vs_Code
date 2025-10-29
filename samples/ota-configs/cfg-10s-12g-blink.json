@@ -1,0 +1,8 @@
+{
+  "schema": "v1",
+  "type": "config",
+  "versionTag": "cfg-10s-12g-blink",
+  "cadenceSeconds": 10,
+  "weightThresholdGrams": 1200,
+  "ledPattern": "blink"
+}

@@ -57,14 +57,14 @@ final class PresignedCaptureProvider: CaptureProvider {
         case .file(let url):
             return try Data(contentsOf: url)
         case .remote(let url):
-            if let cached = diskCache.data(forKey: capture.thumbnail.cacheKey, ttl: cacheTTL) {
+            if let cached = diskCache.data(forKey: capture.thumbnail.cacheKey, ttl: cacheTTL, category: .thumbnails) {
                 return cached
             }
             let (data, response) = try await urlSession.data(from: url)
             guard let httpResponse = response as? HTTPURLResponse, (200..<300).contains(httpResponse.statusCode) else {
                 throw CaptureProviderError.networkFailure("Thumbnail download failed")
             }
-            _ = try diskCache.store(data: data, forKey: capture.thumbnail.cacheKey)
+            _ = try diskCache.store(data: data, forKey: capture.thumbnail.cacheKey, category: .thumbnails)
             return data
         }
     }
@@ -74,10 +74,10 @@ final class PresignedCaptureProvider: CaptureProvider {
         case .file(let url):
             return url
         case .remote(let url):
-            if let cachedData = diskCache.data(forKey: capture.asset.cacheKey, ttl: cacheTTL) {
-                let fileURL = diskCache.url(forKey: capture.asset.cacheKey)
+            if let cachedData = diskCache.data(forKey: capture.asset.cacheKey, ttl: cacheTTL, category: .assets) {
+                let fileURL = diskCache.url(forKey: capture.asset.cacheKey, category: .assets)
                 if !FileManager.default.fileExists(atPath: fileURL.path) {
-                    _ = try diskCache.store(data: cachedData, forKey: capture.asset.cacheKey)
+                    _ = try diskCache.store(data: cachedData, forKey: capture.asset.cacheKey, category: .assets)
                 }
                 return fileURL
             }
@@ -85,7 +85,7 @@ final class PresignedCaptureProvider: CaptureProvider {
             guard let httpResponse = response as? HTTPURLResponse, (200..<300).contains(httpResponse.statusCode) else {
                 throw CaptureProviderError.networkFailure("Asset download failed")
             }
-            let fileURL = try diskCache.store(data: data, forKey: capture.asset.cacheKey)
+            let fileURL = try diskCache.store(data: data, forKey: capture.asset.cacheKey, category: .assets)
             return fileURL
         }
     }

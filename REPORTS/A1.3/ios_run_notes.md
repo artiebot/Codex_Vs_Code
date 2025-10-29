@@ -1,8 +1,32 @@
-﻿# iOS LOCAL Gallery Validation Notes
+# iOS Field Utility Validation Notes
 
-Manual validation is still required to satisfy the A1.3 gallery DoD.
+- **Date:**
+- **Tester:**
+- **Device / OS:**
+- **Build (TestFlight build number):**
+- **Provider Mode:**
 
-1. Build the iOS LOCAL profile pointing at the current local stack (`API_BASE`, `WS_URL`, `S3_PHOTOS_BASE`, `S3_CLIPS_BASE`).
-2. Trigger an upload from the ESP32/Mini path so `event.upload_status` messages appear (see `REPORTS/A1.3/ws_capture.json` for the demo sequence).
-3. Confirm the gallery tiles update in real time, Save to Photos succeeds, and the 24h success badge reflects the final `success` status.
-4. Capture a short screen recording and place it at `REPORTS/A1.3/gallery_recording.mp4` when available.
+## Checklist
+- [ ] Gallery refresh pulls new captures without relaunching.
+  - Notes:
+- [ ] Auto-save downloaded asset to Photos (attach screenshot path).
+  - Screenshot: `REPORTS/A1.3/photos_permission.png`
+  - Notes:
+- [ ] Share sheet → *Save to Files* succeeds with cached asset.
+  - Notes:
+- [ ] Badge increments for new captures and clears when reopening the gallery.
+  - Before screenshot: `REPORTS/A1.3/badge_before.png`
+  - After screenshot: `REPORTS/A1.3/badge_after.png`
+- [ ] Offline banner appears for Presigned HTTP when Wi-Fi is disabled.
+  - Notes:
+
+## Evidence
+- Gallery walkthrough recording: `REPORTS/A1.3/gallery_walkthrough.mov`
+- Xcode build log: `REPORTS/A1.3/xcodebuild.log`
+- Additional screenshots:
+  - `REPORTS/A1.3/settings_screen.png`
+  - `REPORTS/A1.3/detail_share.png`
+
+## Observations
+- Issues observed:
+- Follow-up actions:

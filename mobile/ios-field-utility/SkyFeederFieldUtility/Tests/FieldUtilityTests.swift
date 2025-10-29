@@ -3,37 +3,55 @@ import XCTest
 
 final class FieldUtilityTests: XCTestCase {
     func testDiskCacheStoresAndExpiresData() throws {
-        let cache = DiskCache(directoryName: "TestCache-\(UUID().uuidString)")
+        let tempDir = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("TestCache-\(UUID().uuidString)", isDirectory: true)
+        let cache = DiskCache(baseDirectory: tempDir, limits: [.thumbnails: 1024 * 1024, .assets: 1024 * 1024])
         let key = "example"
         let payload = Data("hello".utf8)
-        let url = try cache.store(data: payload, forKey: key)
+        let url = try cache.store(data: payload, forKey: key, category: .thumbnails)
 
         XCTAssertTrue(FileManager.default.fileExists(atPath: url.path))
-        XCTAssertEqual(cache.data(forKey: key, ttl: 60), payload)
+        XCTAssertEqual(cache.data(forKey: key, ttl: 60, category: .thumbnails), payload)
 
         try FileManager.default.setAttributes([.modificationDate: Date(timeIntervalSince1970: 0)], ofItemAtPath: url.path)
-        XCTAssertNil(cache.data(forKey: key, ttl: 10))
+        XCTAssertNil(cache.data(forKey: key, ttl: 10, category: .thumbnails))
     }
 
-    func testSampleProviderProducesDeterministicCaptures() async throws {
-        let provider = SampleCaptureProvider(referenceDate: Date(timeIntervalSince1970: 0))
-        let captures = try await provider.loadCaptures()
-        XCTAssertEqual(captures.count, 8)
-        XCTAssertTrue(captures.first!.capturedAt > captures.last!.capturedAt)
+    func testGallerySettingsManifestURL() {
+        var settings = GallerySettings(
+            provider: .presigned,
+            filesystemRootPath: "",
+            baseURL: URL(string: "http://10.0.0.4:8080/gallery"),
+            deviceID: "kit-01",
+            autoSaveToPhotos: true,
+            cacheTTL: 7200
+        )
+        let expected = URL(string: "http://10.0.0.4:8080/gallery/kit-01/captures_index.json")
+        XCTAssertEqual(settings.manifestURL, expected)
+
+        settings.provider = .filesystem
+        XCTAssertNil(settings.manifestURL)
     }
 
     func testGallerySettingsPersistenceRoundTrip() {
         let suite = UserDefaults(suiteName: "test.gallery.settings")!
         suite.removePersistentDomain(forName: "test.gallery.settings")
 
-        var settings = GallerySettings(provider: .presigned, filesystemRootPath: "/tmp", presignedEndpoint: URL(string: "https://example.com/manifest.json"), cacheTTL: 7200, enableFavoritesBadge: false)
+        var settings = GallerySettings(
+            provider: .presigned,
+            filesystemRootPath: "/tmp",
+            baseURL: URL(string: "http://10.0.0.4:8080/gallery"),
+            deviceID: "device-123",
+            autoSaveToPhotos: true,
+            cacheTTL: 7200
+        )
         settings.persist(userDefaults: suite)
 
         let restored = GallerySettings(userDefaults: suite)
         XCTAssertEqual(restored.provider, .presigned)
         XCTAssertEqual(restored.filesystemRootPath, "/tmp")
-        XCTAssertEqual(restored.presignedEndpoint, URL(string: "https://example.com/manifest.json"))
+        XCTAssertEqual(restored.baseURL, URL(string: "http://10.0.0.4:8080/gallery"))
+        XCTAssertEqual(restored.deviceID, "device-123")
+        XCTAssertEqual(restored.autoSaveToPhotos, true)
         XCTAssertEqual(restored.cacheTTL, 7200)
-        XCTAssertEqual(restored.enableFavoritesBadge, false)
     }
 }

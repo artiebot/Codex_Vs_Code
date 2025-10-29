@@ -14,12 +14,31 @@
 	<string>$(PRODUCT_NAME)</string>
 	<key>CFBundlePackageType</key>
 	<string>$(PRODUCT_BUNDLE_PACKAGE_TYPE)</string>
-	<key>CFBundleShortVersionString</key>
-	<string>$(MARKETING_VERSION)</string>
-	<key>CFBundleVersion</key>
-	<string>$(CURRENT_PROJECT_VERSION)</string>
-	<key>LSRequiresIPhoneOS</key>
-	<true/>
+        <key>CFBundleShortVersionString</key>
+        <string>$(MARKETING_VERSION)</string>
+        <key>CFBundleVersion</key>
+        <string>$(CURRENT_PROJECT_VERSION)</string>
+        <key>NSAppTransportSecurity</key>
+        <dict>
+                <key>NSExceptionDomains</key>
+                <dict>
+                        <key>10.0.0.4</key>
+                        <dict>
+                                <key>NSExceptionAllowsInsecureHTTPLoads</key>
+                                <true/>
+                                <key>NSIncludesSubdomains</key>
+                                <false/>
+                                <key>NSTemporaryExceptionAllowsInsecureHTTPLoads</key>
+                                <true/>
+                        </dict>
+                </dict>
+        </dict>
+        <key>NSPhotoLibraryAddUsageDescription</key>
+        <string>Needed to save captures to Photos.</string>
+        <key>NSPhotoLibraryUsageDescription</key>
+        <string>Needed to access your Photos.</string>
+        <key>LSRequiresIPhoneOS</key>
+        <true/>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

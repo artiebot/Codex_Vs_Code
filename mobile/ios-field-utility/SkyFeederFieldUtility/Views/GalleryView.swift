@@ -51,7 +51,6 @@ struct GalleryView: View {
                                 ForEach(section.captures) { capture in
                                     Button {
                                         router.showDetail(for: capture)
-                                        viewModel.markSeen(capture)
                                     } label: {
                                         CaptureGridItemView(
                                             capture: capture,
@@ -85,6 +84,9 @@ struct GalleryView: View {
         }
         .refreshable {
             await viewModel.refresh()
+        }
+        .onAppear {
+            BadgeUpdater.markOpened()
         }
     }
 }

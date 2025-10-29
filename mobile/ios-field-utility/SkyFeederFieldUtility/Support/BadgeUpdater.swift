@@ -2,25 +2,19 @@ import Foundation
 import UIKit
 
 enum BadgeUpdater {
-    private static let seenKey = "gallery.seenCaptureIDs"
+    private static let lastOpenedKey = "gallery.lastOpenedAt"
 
-    static func updateBadgeIfNeeded(captures: [Capture], enableBadge: Bool) {
-        guard enableBadge else {
-            UIApplication.shared.applicationIconBadgeNumber = 0
-            return
-        }
-
+    static func updateBadge(with captures: [Capture]) {
         let defaults = UserDefaults.standard
-        let seen = defaults.array(forKey: seenKey) as? [String] ?? []
-        let seenSet = Set(seen)
-        let unseen = captures.filter { !seenSet.contains($0.id.uuidString) }
-        UIApplication.shared.applicationIconBadgeNumber = unseen.count
+        let lastOpened = defaults.object(forKey: lastOpenedKey) as? Date ?? .distantPast
+        let unseen = captures.filter { $0.capturedAt > lastOpened }
+        UIApplication.shared.applicationIconBadgeNumber = max(unseen.count, 0)
     }
 
-    static func markAsSeen(_ capture: Capture) {
+    static func markOpened() {
+        let now = Date()
         let defaults = UserDefaults.standard
-        var seen = Set(defaults.array(forKey: seenKey) as? [String] ?? [])
-        seen.insert(capture.id.uuidString)
-        defaults.set(Array(seen), forKey: seenKey)
+        defaults.set(now, forKey: lastOpenedKey)
+        UIApplication.shared.applicationIconBadgeNumber = 0
     }
 }

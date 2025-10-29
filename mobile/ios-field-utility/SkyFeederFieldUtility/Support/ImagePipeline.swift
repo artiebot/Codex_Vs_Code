@@ -17,7 +17,7 @@ final class ImagePipeline: ObservableObject {
     }
 
     func load() async {
-        if let cached = DiskCache.shared.data(forKey: capture.thumbnail.cacheKey, ttl: cacheTTL),
+        if let cached = DiskCache.shared.data(forKey: capture.thumbnail.cacheKey, ttl: cacheTTL, category: .thumbnails),
            let uiImage = UIImage(data: cached) {
             image = Image(uiImage: uiImage)
             return
@@ -26,7 +26,7 @@ final class ImagePipeline: ObservableObject {
             let data = try await provider.thumbnailData(for: capture)
             if let uiImage = UIImage(data: data) {
                 image = Image(uiImage: uiImage)
-                _ = try? DiskCache.shared.store(data: data, forKey: capture.thumbnail.cacheKey)
+                _ = try? DiskCache.shared.store(data: data, forKey: capture.thumbnail.cacheKey, category: .thumbnails)
             }
         } catch {
             image = Image(systemName: "exclamationmark.triangle")
