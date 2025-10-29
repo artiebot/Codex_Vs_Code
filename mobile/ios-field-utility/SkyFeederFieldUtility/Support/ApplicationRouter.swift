@@ -2,10 +2,22 @@ import Combine
 import Foundation
 
 final class ApplicationRouter: ObservableObject {
-    enum Destination {
-        case gallery
-        case placeholder
+    enum Destination: Hashable {
+        case detail(Capture)
+        case settings
     }
 
-    @Published var destination: Destination = .gallery
+    @Published var path: [Destination] = []
+
+    func showDetail(for capture: Capture) {
+        path.append(.detail(capture))
+    }
+
+    func showSettings() {
+        path.append(.settings)
+    }
+
+    func popToRoot() {
+        path.removeAll()
+    }
 }

@@ -26,13 +26,26 @@ The initial scaffold keeps the UI alive with a placeholder `RootView` so the pro
 - **SkyFeederFieldUtility** – iOS application targeting iOS 17.0 and Swift 5.9.
 - **SkyFeederFieldUtilityTests** – XCTest bundle that will house the unit/UI tests enumerated in milestone M4.
 
-## Next Steps
+## Milestone Progress
 
-- **M2 – Data Providers & Caching:** Introduce `DataProvider` protocols and local/presigned implementations, including disk-backed caches and eviction policies.
-- **M3 – App Features:** Implement the gallery grid, detail view, settings, offline banners, and application badge logic.
-- **M4 – Tests & Validation:** Add automated coverage and export Xcode build logs for reproducibility.
-- **M5 – Device Harness:** Connect the ESP32 uploader harness to make end-to-end validation trivial.
-- **M6 – Acceptance Artifacts:** Capture the iOS walkthrough, final checklist, and supporting outputs to close A1.3.
+### ✅ M2 – Data Providers & Caching
+- `CaptureProvider` protocol with concrete `SampleCaptureProvider`, `FilesystemCaptureProvider`, and `PresignedCaptureProvider` implementations.
+- Disk-backed cache (`DiskCache`) shared by thumbnails and asset downloads with TTL-driven eviction.
+- Settings bundle persistence for provider selection, filesystem root, presigned endpoint, cache TTL, and badge toggle.
+
+### ✅ M3 – App Features
+- Gallery grid with adaptive layout, offline banner, empty-state guidance, and pull-to-refresh.
+- Capture detail view with metadata, cached preview, and share/export hook for the resolved asset URL.
+- Settings form that updates provider configuration at runtime and persists to `UserDefaults`.
+- Application badge logic driven by unseen capture IDs.
+- Connectivity monitoring (NWPathMonitor) surfaced through the SwiftUI banner.
+
+### ⏭️ Upcoming
+- **M4 – Tests & Validation:** Expand XCTest coverage (HTTP stubs, provider error paths) and capture `xcodebuild` artifacts.
+- **M5 – Device Harness:** Hook the ESP32 uploader harness to populate `captures_index.json` and seed thumbnails/video files.
+- **M6 – Acceptance Artifacts:** Record iOS walkthrough, finalize checklist, and archive validation media for A1.3 close-out.
+
+> **iOS 18 Compatibility:** The project targets iOS 17, but all APIs used are available on iOS 17+, so the build runs unmodified on iOS 18.x devices. Validate on-device with Xcode 15.4 or newer to exercise the gallery features.
 
 ## Tooling Expectations
 
