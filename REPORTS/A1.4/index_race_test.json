@@ -1,0 +1,4 @@
+{
+  "status": "skipped",
+  "reason": "Concurrent presign index test requires S3/MinIO backend; environment lacks object storage for safe replay."
+}

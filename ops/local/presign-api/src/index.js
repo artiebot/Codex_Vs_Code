@@ -23,13 +23,33 @@ const {
   S3_BUCKET_INDICES = "photos",
   S3_ACCESS_KEY,
   S3_SECRET_KEY,
-  JWT_SECRET = "dev-only",
+  JWT_SECRET: PROVIDED_JWT_SECRET,
   PUBLIC_BASE = `http://localhost:${PORT}`,
   S3_PHOTOS_BASE = "http://localhost:9200/photos",
   S3_CLIPS_BASE = "http://localhost:9200/clips",
   WS_PUBLIC_BASE = "http://localhost:8081",
   OTA_BASE = "http://localhost:9180",
+  ENV_TIER,
+  INDEX_SAFE_APPEND,
+  INDEX_MAX_EVENTS,
+  INDEX_SAFE_RETRIES,
 } = process.env;
+
+const JWT_SECRET = PROVIDED_JWT_SECRET || "dev-only";
+const environmentLabel = (ENV_TIER || process.env.NODE_ENV || "development").toLowerCase();
+const productionLike = environmentLabel === "production" || environmentLabel === "prod";
+const weakJwtSecret = JWT_SECRET === "dev-only";
+
+if (weakJwtSecret) {
+  const warningMsg =
+    "JWT_SECRET is using the default 'dev-only' value; presigned tokens are forgeable.";
+  if (productionLike) {
+    console.error(`${warningMsg} Set JWT_SECRET before running in production.`);
+    process.exit(1);
+  } else {
+    console.warn(warningMsg);
+  }
+}
 
 if (!S3_ENDPOINT || !S3_ACCESS_KEY || !S3_SECRET_KEY) {
   console.error(
@@ -56,6 +76,14 @@ app.use(
   })
 );
 
+const parsePositiveInt = (value, fallback) => {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
+};
+
+const enableSafeIndexAppend = INDEX_SAFE_APPEND === "1";
+const maxEventsPerDay = parsePositiveInt(INDEX_MAX_EVENTS, 2000);
+const maxIndexRetries = parsePositiveInt(INDEX_SAFE_RETRIES, 5);
 const faultProfiles = new Map(); // deviceId -> { failPutRate, httpCode, untilTs }
 
 const signUploadToken = (payload) =>
@@ -104,6 +132,67 @@ const streamToBuffer = async (stream) => {
   });
 };
 
+const loadDayIndex = async (indexKey, baseDoc) => {
+  const result = {
+    doc: { ...baseDoc },
+    etag: null,
+    isNew: true,
+  };
+  try {
+    const existing = await s3.send(
+      new GetObjectCommand({
+        Bucket: S3_BUCKET_INDICES,
+        Key: indexKey,
+      })
+    );
+    const body = await streamToBuffer(existing.Body);
+    result.isNew = false;
+    result.etag = existing.ETag;
+    if (body.length) {
+      try {
+        const parsed = JSON.parse(body.toString());
+        result.doc = {
+          ...baseDoc,
+          ...parsed,
+          events: Array.isArray(parsed.events) ? parsed.events : [],
+        };
+        if (!result.doc.generatedTs) {
+          result.doc.generatedTs = baseDoc.generatedTs;
+        }
+      } catch (parseErr) {
+        console.warn("day index parse failed", {
+          indexKey,
+          error: parseErr?.message,
+        });
+        result.doc.events = [];
+      }
+    }
+  } catch (err) {
+    if (err.name !== "NoSuchKey" && err.$metadata?.httpStatusCode !== 404) {
+      console.warn("day index read failed", err);
+    }
+  }
+  return result;
+};
+
+const persistDayIndex = async (indexKey, doc, meta) => {
+  const putParams = {
+    Bucket: S3_BUCKET_INDICES,
+    Key: indexKey,
+    Body: JSON.stringify(doc, null, 2),
+    ContentType: "application/json",
+  };
+  if (enableSafeIndexAppend) {
+    if (meta.isNew) {
+      putParams.IfNoneMatch = "*";
+    } else if (meta.etag) {
+      putParams.IfMatch = meta.etag;
+    }
+  }
+
+  await s3.send(new PutObjectCommand(putParams));
+};
+
 // Write or append to the per-day manifest consumed by the gallery picker.
 const updateDayIndex = async ({
   deviceId,
@@ -114,57 +203,100 @@ const updateDayIndex = async ({
 }) => {
   const dateStr = new Date().toISOString().slice(0, 10);
   const indexKey = `${deviceId}/indices/day-${dateStr}.json`;
-
-  let indexDoc = {
+  const baseDoc = {
     deviceId,
     date: dateStr,
     generatedTs: Date.now(),
     events: [],
   };
 
-  try {
-    const existing = await s3.send(
-      new GetObjectCommand({
-        Bucket: S3_BUCKET_INDICES,
-        Key: indexKey,
-      })
-    );
-    const body = await streamToBuffer(existing.Body);
-    if (body.length) {
-      indexDoc = JSON.parse(body.toString());
-      if (!Array.isArray(indexDoc.events)) {
-        indexDoc.events = [];
-      }
+  const relativeKey = key.startsWith(`${deviceId}/`)
+    ? key.slice(deviceId.length + 1)
+    : key;
+  const dedupeKey = `${relativeKey}:${sha256 || ""}`;
+
+  const applyEvent = (doc) => {
+    if (!Array.isArray(doc.events)) {
+      doc.events = [];
     }
-  } catch (err) {
-    if (err.name !== "NoSuchKey" && err.$metadata?.httpStatusCode !== 404) {
-      console.warn("day index read failed", err);
+    const existingIndex = doc.events.findIndex((event) => {
+      const eventKey = `${event.key}:${event.sha256 || ""}`;
+      return eventKey === dedupeKey;
+    });
+
+    const record = {
+      id: nanoid(8),
+      ts: Date.now(),
+      key: relativeKey,
+      kind,
+      bytes,
+      sha256,
+    };
+
+    if (existingIndex >= 0) {
+      record.id = doc.events[existingIndex].id || record.id;
+      doc.events[existingIndex] = {
+        ...doc.events[existingIndex],
+        ...record,
+      };
+    } else {
+      doc.events.push(record);
+    }
+
+    if (doc.events.length > maxEventsPerDay) {
+      doc.events.splice(0, doc.events.length - maxEventsPerDay);
+    }
+
+    doc.updatedTs = Date.now();
+  };
+
+  if (!enableSafeIndexAppend) {
+    const meta = await loadDayIndex(indexKey, baseDoc);
+    applyEvent(meta.doc);
+    await persistDayIndex(indexKey, meta.doc, meta);
+    return;
+  }
+
+  let attempts = 0;
+  let lastError;
+  while (attempts < maxIndexRetries) {
+    attempts += 1;
+    const meta = await loadDayIndex(indexKey, baseDoc);
+    applyEvent(meta.doc);
+    try {
+      await persistDayIndex(indexKey, meta.doc, meta);
+      return;
+    } catch (err) {
+      if (err.$metadata?.httpStatusCode === 412 || err.name === "PreconditionFailed") {
+        lastError = err;
+        continue;
+      }
+      throw err;
     }
   }
 
-  indexDoc.updatedTs = Date.now();
-  const relativeKey = key.startsWith(`${deviceId}/`) ? key.slice(deviceId.length + 1) : key;
-  indexDoc.events.push({
-    id: nanoid(8),
-    ts: Date.now(),
-    key: relativeKey,
-    kind,
-    bytes,
-    sha256,
+  console.warn("day index update exhausted retries", {
+    indexKey,
+    attempts: maxIndexRetries,
+    error: lastError?.message,
   });
-
-  await s3.send(
-    new PutObjectCommand({
-      Bucket: S3_BUCKET_INDICES,
-      Key: indexKey,
-      Body: JSON.stringify(indexDoc, null, 2),
-      ContentType: "application/json",
-    })
-  );
 };
 
+const buildHealthPayload = () => ({
+  ok: true,
+  env: environmentLabel,
+  weakSecret: weakJwtSecret,
+  indexSafeAppendEnabled: enableSafeIndexAppend,
+  maxEventsPerDay,
+  ts: Date.now(),
+});
+
+app.get("/v1/healthz", (_req, res) => {
+  res.json(buildHealthPayload());
+});
+
 app.get("/healthz", (_req, res) => {
-  res.json({ ok: true });
+  res.json(buildHealthPayload());
 });
 
 app.post("/v1/presign/put", async (req, res) => {

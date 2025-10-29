@@ -1,0 +1,10 @@
+[
+  {
+    "deviceId": "dev1",
+    "version": "1.2.3",
+    "slot": null,
+    "bootCount": 2,
+    "status": "boot",
+    "updatedTs": 1761688345044
+  }
+]
