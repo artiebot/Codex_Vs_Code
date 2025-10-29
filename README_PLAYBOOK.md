@@ -40,17 +40,20 @@ _Last updated: 2025-10-20_
 The following validation items were skipped during simulation/software-only testing and require hardware or manual validation before field deployment:
 
 ### A1.3 - iOS Gallery Validation (Pending Manual Testing)
-**What was validated:** WebSocket upload-status telemetry flow end-to-end (8 events, reconnect handling, latency metrics)
+**What was validated:** Local-first gallery implementation (providers, caching, offline banner, settings, badge updates) compiles and runs with sample data on iOS 17+/18 devices.
 **What was NOT validated:**
-- [ ] iOS LOCAL gallery build shows uploads correctly
-- [ ] "Save to Photos" functionality works
-- [ ] Badge counts update correctly
-- [ ] Success tile displays properly
-- [ ] Gallery UI matches design specs
+- [ ] Physical device run with real capture bundle (filesystem or presigned)
+- [ ] Share/export flow exercised end-to-end with operator walkthrough
+- [ ] Badge behavior confirmed while backgrounding the app
+- [ ] Cache directory inspected on-device and artifacts archived
 
 **Required for:** User acceptance testing, iOS app validation
-**Artifacts expected:** `REPORTS/A1.3/ios_run_notes.md` (checklist), `REPORTS/A1.3/gallery_recording.mp4` (screen recording)
-**Status:** WebSocket telemetry fully validated and working; iOS app testing can be done independently
+**Artifacts expected:**
+- `REPORTS/A1.3/ios_gallery_run.md` (narrative checklist)
+- `REPORTS/A1.3/ios_gallery_screens.mov` (screen recording)
+- `REPORTS/A1.3/ios_badge_photo.jpg` (badge evidence)
+- `REPORTS/A1.3/xcodebuild_M4.log` (build log per VALIDATION doc)
+**Status:** App feature work landed; follow the updated `docs/VALIDATION_A1.3.md` to capture hardware artifacts and close the phase.
 
 ---
 
