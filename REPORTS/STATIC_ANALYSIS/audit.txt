@@ -1,0 +1,48 @@
+npm warn config production Use `--omit=dev` instead.
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+npm error code ENOLOCK
+npm error audit This command requires an existing lockfile.
+npm error audit Try creating one first with: npm i --package-lock-only
+npm error audit Original error: loadVirtual requires existing shrinkwrap file
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-28T20_14_31_353Z-debug-0.log
+npm warn config production Use `--omit=dev` instead.
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+npm error code ENOLOCK
+npm error audit This command requires an existing lockfile.
+npm error audit Try creating one first with: npm i --package-lock-only
+npm error audit Original error: loadVirtual requires existing shrinkwrap file
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-28T20_14_32_169Z-debug-0.log
+npm warn config production Use `--omit=dev` instead.
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+npm error code ENOLOCK
+npm error audit This command requires an existing lockfile.
+npm error audit Try creating one first with: npm i --package-lock-only
+npm error audit Original error: loadVirtual requires existing shrinkwrap file
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-28T20_14_32_973Z-debug-0.log
+npm warn config production Use `--omit=dev` instead.
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+npm error code ENOLOCK
+npm error audit This command requires an existing lockfile.
+npm error audit Try creating one first with: npm i --package-lock-only
+npm error audit Original error: loadVirtual requires existing shrinkwrap file
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-28T20_14_33_764Z-debug-0.log
+npm warn config production Use `--omit=dev` instead.
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+# npm audit report
+
+send  <0.19.0
+send vulnerable to template injection that can lead to XSS - https://github.com/advisories/GHSA-m6fv-jmcg-4jfg
+fix available via `npm audit fix --force`
+Will install expo@54.0.21, which is a breaking change
+node_modules/send
+  @expo/cli  <=0.0.0-canary-20231123-1b19f96-4 || 0.0.1-canary-20231125-d600e44 - 0.0.1-canary-20240418-8d74597 || 0.2.0 - 0.21.1 || 1.0.0-canary-20240927-ab8a962 - 1.0.0-canary-20241021-c4b5a93
+  Depends on vulnerable versions of send
+  node_modules/@expo/cli
+    expo  46.0.0-alpha.0 - 52.0.4
+    Depends on vulnerable versions of @expo/cli
+    node_modules/expo
+
+3 low severity vulnerabilities
+
+To address all issues (including breaking changes), run:
+  npm audit fix --force

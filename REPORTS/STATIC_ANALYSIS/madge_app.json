@@ -1,0 +1,13 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+{
+  "App.tsx": [
+    "src/config.ts",
+    "src/mdns.ts",
+    "src/shim.ts",
+    "src/types.ts"
+  ],
+  "src/config.ts": [],
+  "src/mdns.ts": [],
+  "src/shim.ts": [],
+  "src/types.ts": []
+}

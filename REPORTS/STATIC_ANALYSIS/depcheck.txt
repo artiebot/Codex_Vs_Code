@@ -1,0 +1,10 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+Need to install the following packages:
+depcheck@1.4.7
+Ok to proceed? (y) 
+npm error canceled
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-28T20_13_36_732Z-debug-0.log
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+Need to install the following packages:
+depcheck@1.4.7
+Ok to proceed? (y) 

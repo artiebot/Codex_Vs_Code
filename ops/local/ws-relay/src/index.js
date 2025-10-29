@@ -12,7 +12,61 @@ const {
   PORT = 8081,
   JWT_SECRET = "dev-only",
   HEARTBEAT_INTERVAL_MS = 30000,
+  WS_STRICT_VALIDATION,
+  WS_MAX_PAYLOAD_BYTES,
+  WS_MAX_MESSAGES_PER_INTERVAL,
+  WS_RATE_INTERVAL_MS,
 } = process.env;
+
+const parsePositiveNumber = (value, fallback) => {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
+};
+
+const strictValidationEnabled = WS_STRICT_VALIDATION === "1";
+const maxPayloadBytes = parsePositiveNumber(WS_MAX_PAYLOAD_BYTES, 16 * 1024);
+const rateLimitBurst = parsePositiveNumber(WS_MAX_MESSAGES_PER_INTERVAL, 20);
+const rateIntervalMs = parsePositiveNumber(WS_RATE_INTERVAL_MS, 1000);
+
+const allowedMessageTypes = new Set([
+  "telemetry",
+  "ack",
+  "command",
+  "event",
+  "ota",
+  "system",
+  "ping",
+  "error",
+  "status",
+  "log",
+]);
+
+const strictMetrics = {
+  oversized: 0,
+  invalidType: 0,
+  rateLimited: 0,
+};
+
+const createRateLimiter = () => ({
+  allowance: rateLimitBurst,
+  lastCheck: Date.now(),
+});
+
+const consumeRateToken = (limiter) => {
+  if (!limiter) return true;
+  const now = Date.now();
+  const elapsed = now - limiter.lastCheck;
+  limiter.lastCheck = now;
+  limiter.allowance += (elapsed / rateIntervalMs) * rateLimitBurst;
+  if (limiter.allowance > rateLimitBurst) {
+    limiter.allowance = rateLimitBurst;
+  }
+  if (limiter.allowance < 1) {
+    return false;
+  }
+  limiter.allowance -= 1;
+  return true;
+};
 
 const app = express();
 app.use(morgan("dev"));
@@ -44,6 +98,17 @@ app.get("/v1/metrics", (_req, res) => {
     totalClients,
     messageCount,
     ts: Date.now(),
+    strictValidation: {
+      enabled: strictValidationEnabled,
+      maxPayloadBytes,
+      rateLimitBurst,
+      rateIntervalMs,
+      drops: {
+        oversized: strictMetrics.oversized,
+        invalidType: strictMetrics.invalidType,
+        rateLimited: strictMetrics.rateLimited,
+      },
+    },
   });
 });
 
@@ -103,6 +168,9 @@ wss.on("connection", (ws, request) => {
 
   ws.deviceId = deviceId;
   ws.isAlive = true;
+  if (strictValidationEnabled) {
+    ws.rateLimiter = createRateLimiter();
+  }
   attachClientToRoom(deviceId, ws);
   console.log(`ws client joined device ${deviceId}, clients=${rooms.get(deviceId).size}`);
 
@@ -116,11 +184,37 @@ wss.on("connection", (ws, request) => {
   );
 
   ws.on("message", (data) => {
+    if (strictValidationEnabled) {
+      const size = Buffer.isBuffer(data)
+        ? data.length
+        : Buffer.byteLength(typeof data === "string" ? data : data.toString());
+      if (size > maxPayloadBytes) {
+        strictMetrics.oversized += 1;
+        ws.close(1008, "payload_too_large");
+        return;
+      }
+    }
+
     let msg;
     try {
       msg = JSON.parse(data.toString());
     } catch (err) {
-      ws.send(JSON.stringify({ type: "error", message: "invalid_json" }));
+      if (strictValidationEnabled) {
+        strictMetrics.invalidType += 1;
+        ws.close(1008, "invalid_json");
+      } else {
+        ws.send(JSON.stringify({ type: "error", message: "invalid_json" }));
+      }
+      return;
+    }
+
+    if (!msg || typeof msg !== "object") {
+      if (strictValidationEnabled) {
+        strictMetrics.invalidType += 1;
+        ws.close(1008, "invalid_payload");
+      } else {
+        ws.send(JSON.stringify({ type: "error", message: "invalid_payload" }));
+      }
       return;
     }
 
@@ -130,8 +224,28 @@ wss.on("connection", (ws, request) => {
     }
 
     if (!msg.type) {
-      ws.send(JSON.stringify({ type: "error", message: "missing_type" }));
+      if (strictValidationEnabled) {
+        strictMetrics.invalidType += 1;
+        ws.close(1008, "missing_type");
+      } else {
+        ws.send(JSON.stringify({ type: "error", message: "missing_type" }));
+      }
       return;
+    }
+
+    if (strictValidationEnabled && !allowedMessageTypes.has(msg.type)) {
+      strictMetrics.invalidType += 1;
+      ws.close(1008, "unsupported_type");
+      return;
+    }
+
+    if (strictValidationEnabled && msg.type !== "ping") {
+      ws.rateLimiter = ws.rateLimiter || createRateLimiter();
+      if (!consumeRateToken(ws.rateLimiter)) {
+        strictMetrics.rateLimited += 1;
+        ws.close(1008, "rate_limited");
+        return;
+      }
     }
 
     const envelope = {

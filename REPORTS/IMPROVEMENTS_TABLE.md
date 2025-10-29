@@ -1,0 +1,18 @@
+# Impact vs Effort Matrix
+
+| Impact\\Effort | Low | Medium | High |
+|----------------|-----|--------|------|
+| **High**        | 1   | 2      | 0    |
+| **Medium**      | 1   | 2      | 0    |
+| **Low**         | 0   | 0      | 0    |
+
+# Detailed Recommendations
+
+| Component | File:Line | Issue | Why it matters | Suggested improvement | Impact (H/M/L) | Effort (H/M/L) | Risk (H/M/L) | Quick test/metric | Links/refs |
+|-----------|-----------|-------|----------------|-----------------------|----------------|----------------|--------------|-------------------|------------|
+| Dashboard (Expo) | app/skyfeeder-app/App.tsx:510-523 | `styles.muted` is referenced but not defined, and `process/browser` lacks type definitions, causing `tsc --noEmit` to fail. | Blocks CI/builds and leaves UI with missing fallback style, preventing release of dashboard fixes. | Add a `muted` style entry and ship a local type shim or install `@types/process` so `tsc` succeeds. | H | L | L | `npx tsc --noEmit` | 【F:app/skyfeeder-app/App.tsx†L510-L523】【ccc0af†L1-L9】 |
+| Presign API | ops/local/presign-api/src/index.js:17-64 | `JWT_SECRET` defaults to `dev-only` in both code and Compose, so upload and WS tokens are trivially forgeable. | Allows any LAN actor to mint valid upload tokens or impersonate devices, undermining auth and telemetry integrity. | Require non-default secrets (env validation, startup fatal if `JWT_SECRET` is weak) and document rotation guidance. | H | L | M | Override secret and ensure previously issued tokens fail. | 【F:ops/local/presign-api/src/index.js†L17-L64】【F:ops/local/docker-compose.yml†L37-L65】 |
+| Presign API | ops/local/presign-api/src/index.js:107-163 | Day index writer rewrites the entire JSON blob for every upload without concurrency control or size guard. | Concurrent PUTs race and last write wins, corrupting manifests; large histories incur O(n²) JSON cost. | Switch to object locking (e.g., S3 conditional writes) or append via streaming, and prune history to a bounded window. | H | M | M | Simulate parallel uploads (curl in background) and confirm manifests retain all entries. | 【F:ops/local/presign-api/src/index.js†L107-L163】 |
+| OTA firmware | skyfeeder/ota_manager.cpp:112-151 | `queueEvent` discards the `channel` argument, so queued events after reboot lose rollout context. | Breaks staged channel reporting, making phased OTA campaigns untraceable post-reboot. | Extend `PendingEvent` to persist the channel (and flush it) or include channel in the MQTT topic. | M | M | L | Stage OTA, reboot, and verify event payload retains channel field. | 【F:skyfeeder/ota_manager.cpp†L112-L151】 |
+| WS relay | ops/local/ws-relay/src/index.js:69-158 | Relay rebroadcasts any client JSON without schema or rate limits; compromised clients can spam or inject system events. | Enables denial-of-service against operators and corrupts telemetry stream; violates trust boundary called out in README. | Add payload validation (allowed types + max payload), apply per-connection rate limiting, and log drops. | H | M | M | Connect rogue client sending large JSON, confirm relay rejects with 4xx/close. | 【F:ops/local/ws-relay/src/index.js†L69-L158】 |
+| OTA server | ops/local/ota-server/src/index.js:39-56 | Firmware heartbeat state lives only in memory; restart forgets failures and `entry` variable is unused. | Rollback decisions reset on restart, masking boot loops and wasting technician time. | Persist state (e.g., JSON file) and remove unused `entry` variable to clarify logic. | M | M | L | Restart container mid-heartbeat and confirm status persists. | 【F:ops/local/ota-server/src/index.js†L39-L56】 |

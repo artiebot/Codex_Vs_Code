@@ -1,0 +1,17 @@
+{
+  "rooms": [],
+  "totalClients": 0,
+  "messageCount": 0,
+  "ts": 1761688444877,
+  "strictValidation": {
+    "enabled": true,
+    "maxPayloadBytes": 16384,
+    "rateLimitBurst": 20,
+    "rateIntervalMs": 1000,
+    "drops": {
+      "oversized": 2,
+      "invalidType": 0,
+      "rateLimited": 0
+    }
+  }
+}
