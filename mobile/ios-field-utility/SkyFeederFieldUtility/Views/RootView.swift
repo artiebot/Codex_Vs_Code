@@ -2,34 +2,22 @@ import SwiftUI
 
 struct RootView: View {
     @EnvironmentObject private var router: ApplicationRouter
+    @StateObject private var galleryViewModel = GalleryViewModel(provider: SampleCaptureProvider(), settings: GallerySettings(userDefaults: .standard))
 
     var body: some View {
-        switch router.destination {
-        case .gallery:
-            GalleryPlaceholderView()
-        case .placeholder:
-            GalleryPlaceholderView()
+        NavigationStack(path: $router.path) {
+            GalleryView(viewModel: galleryViewModel)
+                .navigationDestination(for: ApplicationRouter.Destination.self) { destination in
+                    switch destination {
+                    case .detail(let capture):
+                        CaptureDetailView(capture: capture, viewModel: galleryViewModel)
+                    case .settings:
+                        SettingsView(viewModel: SettingsViewModel(settings: GallerySettings(userDefaults: .standard))) { newSettings in
+                            galleryViewModel.reloadWith(settings: newSettings)
+                            Task { await galleryViewModel.refresh() }
+                        }
+                    }
+                }
         }
-    }
-}
-
-struct GalleryPlaceholderView: View {
-    var body: some View {
-        VStack(spacing: 16) {
-            Image(systemName: "photo.on.rectangle.angled")
-                .resizable()
-                .scaledToFit()
-                .frame(width: 96, height: 96)
-                .foregroundStyle(.secondary)
-            Text("SkyFeeder Field Utility")
-                .font(.title3.weight(.semibold))
-            Text("SwiftUI scaffolding ready. Upcoming milestones will replace this placeholder with the full gallery, detail, and settings experience.")
-                .multilineTextAlignment(.center)
-                .font(.callout)
-                .foregroundStyle(.secondary)
-                .padding(.horizontal, 24)
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color(uiColor: .systemBackground))
     }
 }
