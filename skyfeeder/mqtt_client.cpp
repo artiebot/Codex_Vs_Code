@@ -1,6 +1,7 @@
 #include "mqtt_client.h"
 
 #include <Arduino.h>
+#include <cstdio>
 
 #include "command_handler.h"
 #include "health_service.h"
@@ -49,7 +50,10 @@ bool Mqtt::ensureMqtt() {
   client.setKeepAlive(10);
   client.setCallback(handleMqttMessage);
 
-  String clientId = String("sf-") + SF::Topics::device() + "-" + String(static_cast<uint32_t>(ESP.getEfuseMac()), HEX);
+  const uint64_t mac = ESP.getEfuseMac();
+  char macHex[13];
+  snprintf(macHex, sizeof(macHex), "%012llX", static_cast<unsigned long long>(mac));
+  String clientId = String("sf-") + SF::Topics::device() + "-" + String(macHex);
   const bool ok = client.connect(clientId.c_str(), cfg.mqtt_user, cfg.mqtt_pass, SF::Topics::status(), 1, true, "offline");
   if (ok) {
     publishStatusOnline();
