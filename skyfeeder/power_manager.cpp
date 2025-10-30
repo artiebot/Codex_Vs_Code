@@ -21,7 +21,7 @@ void PowerManager::begin(){
 }
 void PowerManager::loop(){
   const unsigned long now=millis();
-  if(now-last_poll_<SAMPLE_INTERVAL_MS) return;
+  if(last_poll_!=0 && now-last_poll_<SAMPLE_INTERVAL_MS) return;
   if(ledsBusy()) return;
   if(!power_read(last_)){ return; }
   last_poll_=now;

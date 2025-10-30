@@ -491,12 +491,14 @@ function DeviceListScreen({
             refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
             renderItem={({ item }) => {
               const latest = telemetryByDevice.get(item.id)?.[0];
-              const socDisplay = latest
-                ? ` | SoC ${latest.payload.power.soc_pct.toFixed(0)}%`
-                : "";
-              const weightDisplay = latest
-                ? latest.payload.weight_g.toFixed(0)
-                : undefined;
+              const battery = latest?.payload.battery;
+              const socDisplay =
+                typeof battery === "number"
+                  ? ` | SoC ${battery.toFixed(0)}%`
+                  : "";
+              const weightValue = latest?.payload.weight_g;
+              const weightDisplay =
+                typeof weightValue === "number" ? weightValue.toFixed(0) : undefined;
               return (
                 <List.Item
                   title={item.id}
@@ -568,6 +570,33 @@ function DeviceDetailScreen({
   const ackChipStyle = ackPayload?.ok ? styles.ackSuccess : styles.ackError;
   const latestTelemetry = telemetry?.[0];
   const telemetryHistory = telemetry?.slice(0, 5) ?? [];
+
+  const formatWithUnit = (value: number | undefined, unit: string, digits = 2) =>
+    typeof value === "number" ? `${value.toFixed(digits)} ${unit}` : "n/a";
+  const latestPower = latestTelemetry?.payload.power;
+  const voltageDisplay =
+    latestPower && typeof latestPower.pack_v === "number"
+      ? `${latestPower.pack_v.toFixed(2)} V pack${
+          typeof latestPower.cell_v === "number"
+            ? ` (${latestPower.cell_v.toFixed(2)} V/cell)`
+            : ""
+        }`
+      : "n/a";
+  const currentDisplay = formatWithUnit(latestPower?.amps, "A");
+  const powerDisplay = formatWithUnit(latestPower?.watts, "W");
+  const batteryDisplay =
+    typeof latestTelemetry?.payload.battery === "number"
+      ? `${latestTelemetry.payload.battery.toFixed(0)}%`
+      : "n/a";
+  const weightDisplayDetailed = formatWithUnit(
+    latestTelemetry?.payload.weight_g,
+    "g",
+    1,
+  );
+  const rssiDisplay =
+    typeof latestTelemetry?.payload.health?.rssi === "number"
+      ? `${latestTelemetry.payload.health.rssi} dBm`
+      : "n/a";
 
   const formatIso = (iso?: string) =>
     iso ? new Date(iso).toLocaleString() : "";
@@ -680,36 +709,34 @@ function DeviceDetailScreen({
               <View style={styles.metricCard}>
                 <Text style={styles.metricLabel}>Voltage</Text>
                 <Text style={styles.metricValue}>
-                  {latestTelemetry.payload.power.volts.toFixed(2)} V
+                  {voltageDisplay}
                 </Text>
               </View>
               <View style={styles.metricCard}>
                 <Text style={styles.metricLabel}>Current</Text>
                 <Text style={styles.metricValue}>
-                  {latestTelemetry.payload.power.amps.toFixed(2)} A
+                  {currentDisplay}
                 </Text>
               </View>
               <View style={styles.metricCard}>
                 <Text style={styles.metricLabel}>Power</Text>
                 <Text style={styles.metricValue}>
-                  {latestTelemetry.payload.power.watts.toFixed(2)} W
+                  {powerDisplay}
                 </Text>
               </View>
               <View style={styles.metricCard}>
-                <Text style={styles.metricLabel}>State of Charge</Text>
-                <Text style={styles.metricValue}>
-                  {latestTelemetry.payload.power.soc_pct.toFixed(0)}%
-                </Text>
+                <Text style={styles.metricLabel}>Battery</Text>
+                <Text style={styles.metricValue}>{batteryDisplay}</Text>
               </View>
               <View style={styles.metricCard}>
                 <Text style={styles.metricLabel}>Weight</Text>
                 <Text style={styles.metricValue}>
-                  {latestTelemetry.payload.weight_g.toFixed(1)} g
+                  {weightDisplayDetailed}
                 </Text>
               </View>
               <View style={styles.metricCard}>
                 <Text style={styles.metricLabel}>RSSI</Text>
-                <Text style={styles.metricValue}>{latestTelemetry.payload.rssi} dBm</Text>
+                <Text style={styles.metricValue}>{rssiDisplay}</Text>
               </View>
             </View>
           ) : (
@@ -718,18 +745,36 @@ function DeviceDetailScreen({
 
           {telemetryHistory.length > 1 ? (
             <View style={styles.historyList}>
-              {telemetryHistory.map((sample) => (
-                <Text key={sample.receivedAt} style={styles.historyLine}>
-                  {new Date(sample.receivedAt).toLocaleTimeString()} — {sample.payload.power.watts.toFixed(2)} W, {" "}
-                  {sample.payload.weight_g.toFixed(1)} g, RSSI {sample.payload.rssi} dBm
-                </Text>
-              ))}
+              {telemetryHistory.map((sample) => {
+                const time = new Date(sample.receivedAt).toLocaleTimeString();
+                const watts =
+                  typeof sample.payload.power.watts === "number"
+                    ? `${sample.payload.power.watts.toFixed(2)} W`
+                    : "n/a";
+                const weight =
+                  typeof sample.payload.weight_g === "number"
+                    ? `${sample.payload.weight_g.toFixed(1)} g`
+                    : "n/a";
+                const rssi =
+                  typeof sample.payload.health?.rssi === "number"
+                    ? `${sample.payload.health.rssi} dBm`
+                    : "n/a";
+                return (
+                  <Text key={sample.receivedAt} style={styles.historyLine}>
+                    {`${time} — ${watts}, ${weight}, RSSI ${rssi}`}
+                  </Text>
+                );
+              })}
             </View>
           ) : null}
 
           {latestTelemetry ? (
             <Text style={styles.detailHint}>
-              Last telemetry at {formatIso(latestTelemetry.receivedAt)} (uptime {latestTelemetry.payload.uptime_s}s)
+              Last telemetry at {formatIso(latestTelemetry.receivedAt)} (uptime {
+                typeof latestTelemetry.payload.health?.uptime_ms === "number"
+                  ? `${Math.round(latestTelemetry.payload.health.uptime_ms / 1000)}s`
+                  : "n/a"
+              })
             </Text>
           ) : null}
         </View>

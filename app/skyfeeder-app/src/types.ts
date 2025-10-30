@@ -31,17 +31,40 @@ export interface AckPayload {
 
 export interface TelemetryPayload {
   schema: string;
-  ts: string;
-  rssi: number;
-  uptime_s: number;
-  power: {
-    volts: number;
-    amps: number;
-    watts: number;
-    soc_pct: number;
+  ts_ms: number;
+  firmware: {
+    version: string;
+    channel?: string;
   };
-  weight_g: number;
-  motion?: boolean;
-  temperature_c?: number;
-  humidity_pct?: number;
+  power: {
+    pack_v?: number;
+    cell_v?: number;
+    amps?: number;
+    watts?: number;
+    state?: number;
+    bmax?: number;
+    ok?: boolean;
+  };
+  weight_g?: number;
+  weight?: {
+    raw?: number;
+    cal?: number;
+    ok?: boolean;
+  };
+  led: {
+    pattern?: string;
+    brightness?: number;
+  };
+  camera: {
+    status?: string;
+  };
+  battery?: number;
+  health?: {
+    uptime_ms?: number;
+    last_seen_ms?: number;
+    telemetry_count?: number;
+    mqtt_retries?: number;
+    since_last_ms?: number;
+    rssi?: number;
+  };
 }
