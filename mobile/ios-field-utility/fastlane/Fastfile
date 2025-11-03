@@ -8,6 +8,7 @@ platform :ios do
     # Find the Xcode project (fastlane runs from fastlane/ subdirectory, so check parent)
     project_path = Dir["../*.xcodeproj"].first
     UI.user_error!("No Xcode project found") if project_path.nil?
+    project_path = File.expand_path(project_path)  # Convert to absolute path
 
     scheme_name = ENV["IOS_SCHEME"] || "SkyFeederFieldUtility"
     api_key = resolve_api_key
