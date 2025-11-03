@@ -22,7 +22,8 @@ platform :ios do
       output_directory: "../build",
       output_name: "SkyFeederFieldUtility.ipa",
       clean: true,
-      xcargs: "PRODUCT_BUNDLE_IDENTIFIER=com.skyfeeder.field"
+      export_xcargs: "-allowProvisioningUpdates",
+      xcargs: "PRODUCT_BUNDLE_IDENTIFIER=com.skyfeeder.field DEVELOPMENT_TEAM=#{ENV['TEAM_ID'] || ''} CODE_SIGN_STYLE=Automatic"
     )
 
     # Upload to TestFlight
