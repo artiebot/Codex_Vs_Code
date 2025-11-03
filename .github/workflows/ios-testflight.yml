@@ -33,46 +33,6 @@ jobs:
           ruby-version: "3.2"
           bundler-cache: true
 
-      - name: Detect scheme
-        run: |
-          set -eo pipefail
-          DEFAULT_SCHEME="${IOS_SCHEME:-SkyFeederFieldUtility}"
-
-          WORKSPACE=$(ls -d ./*.xcworkspace 2>/dev/null | head -n 1)
-          if [ -z "$WORKSPACE" ]; then
-            WORKSPACE=$(find . -name "*.xcworkspace" -print | head -n 1)
-          fi
-
-          PROJECT=$(ls -d ./*.xcodeproj 2>/dev/null | head -n 1)
-          if [ -z "$PROJECT" ]; then
-            PROJECT=$(find . -name "*.xcodeproj" -print | head -n 1)
-          fi
-
-          if [ -n "$WORKSPACE" ]; then
-            echo "Using workspace $WORKSPACE for scheme detection."
-            SCHEME_JSON=$(xcodebuild -workspace "$WORKSPACE" -list -json)
-          elif [ -n "$PROJECT" ]; then
-            echo "Using project $PROJECT for scheme detection."
-            SCHEME_JSON=$(xcodebuild -project "$PROJECT" -list -json)
-          else
-            echo "No workspace or project found for scheme detection." >&2
-            exit 1
-          fi
-
-          DETECTED="$(printf "%s" "$SCHEME_JSON" | DEFAULT_SCHEME="$DEFAULT_SCHEME" python3 -c 'import json, os, sys; data=json.load(sys.stdin); schemes=data.get("workspace", {}).get("schemes") or data.get("project", {}).get("schemes") or []; default=os.environ.get("DEFAULT_SCHEME") or ""; print(default if default and default in schemes else (schemes[0] if schemes else default))')"
-
-          if [ -z "$DETECTED" ]; then
-            DETECTED="$DEFAULT_SCHEME"
-          fi
-
-          if [ "$DETECTED" != "$DEFAULT_SCHEME" ]; then
-            echo "Detected scheme: $DETECTED (default was $DEFAULT_SCHEME)"
-          else
-            echo "Using scheme: $DETECTED"
-          fi
-
-          echo "IOS_SCHEME=$DETECTED" >> "$GITHUB_ENV"
-
       - name: Install fastlane
         run: bundle install --path vendor/bundle
 
