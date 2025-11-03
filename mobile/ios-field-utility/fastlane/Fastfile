@@ -42,8 +42,8 @@ platform :ios do
       output_directory: "../build",
       output_name: "SkyFeederFieldUtility.ipa",
       clean: true,
-      export_xcargs: "-allowProvisioningUpdates",
-      xcargs: xcargs.join(" ")
+      xcargs: "#{xcargs.join(' ')} -allowProvisioningUpdates",
+      export_xcargs: "-allowProvisioningUpdates"
     )
 
     # Upload to TestFlight
