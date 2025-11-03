@@ -6,8 +6,11 @@ platform :ios do
   desc "Build and upload to TestFlight"
   lane :testflight_upload do
     # Find the Xcode project
+    UI.message("Current directory: #{Dir.pwd}")
+    UI.message("Files in current directory: #{Dir.entries('.')}")
     project_path = Dir["*.xcodeproj"].first
-    UI.user_error!("No Xcode project found") if project_path.nil?
+    UI.message("Found project: #{project_path.inspect}")
+    UI.user_error!("No Xcode project found in #{Dir.pwd}") if project_path.nil?
 
     scheme_name = ENV["IOS_SCHEME"] || "SkyFeederFieldUtility"
     api_key = resolve_api_key
