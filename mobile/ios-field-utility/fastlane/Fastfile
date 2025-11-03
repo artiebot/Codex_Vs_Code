@@ -13,6 +13,26 @@ platform :ios do
     scheme_name = ENV["IOS_SCHEME"] || "SkyFeederFieldUtility"
     api_key = resolve_api_key
 
+    # Build xcargs from environment variables
+    xcargs = []
+    if (bundle_id = ENV["PRODUCT_BUNDLE_IDENTIFIER"] || ENV["APP_BUNDLE_IDENTIFIER"] || ENV["IOS_PRODUCT_BUNDLE_IDENTIFIER"])
+      xcargs << "PRODUCT_BUNDLE_IDENTIFIER=#{bundle_id}"
+    else
+      xcargs << "PRODUCT_BUNDLE_IDENTIFIER=com.skyfeeder.field"
+    end
+
+    if (team_id = ENV["DEVELOPMENT_TEAM"] || ENV["APP_DEVELOPMENT_TEAM"] || ENV["TEAM_ID"])
+      xcargs << "DEVELOPMENT_TEAM=#{team_id}"
+    end
+
+    if (code_sign_style = ENV["CODE_SIGN_STYLE"] || ENV["APP_CODE_SIGN_STYLE"] || ENV["IOS_CODE_SIGN_STYLE"])
+      xcargs << "CODE_SIGN_STYLE=#{code_sign_style}"
+    else
+      xcargs << "CODE_SIGN_STYLE=Automatic"
+    end
+
+    UI.message("Building with xcargs: #{xcargs.join(' ')}")
+
     # Build the app
     gym(
       project: project_path,
@@ -23,7 +43,7 @@ platform :ios do
       output_name: "SkyFeederFieldUtility.ipa",
       clean: true,
       export_xcargs: "-allowProvisioningUpdates",
-      xcargs: "PRODUCT_BUNDLE_IDENTIFIER=com.skyfeeder.field DEVELOPMENT_TEAM=#{ENV['TEAM_ID'] || ''} CODE_SIGN_STYLE=Automatic"
+      xcargs: xcargs.join(" ")
     )
 
     # Upload to TestFlight
