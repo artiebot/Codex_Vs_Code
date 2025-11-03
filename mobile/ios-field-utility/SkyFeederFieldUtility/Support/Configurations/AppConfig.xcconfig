@@ -1,8 +1,4 @@
-APP_BUNDLE_IDENTIFIER ?= com.skyfeeder.field
-PRODUCT_BUNDLE_IDENTIFIER = $(APP_BUNDLE_IDENTIFIER)
-
-APP_DEVELOPMENT_TEAM ?=
-DEVELOPMENT_TEAM = $(APP_DEVELOPMENT_TEAM)
-
-APP_CODE_SIGN_STYLE ?= Automatic
-CODE_SIGN_STYLE = $(APP_CODE_SIGN_STYLE)
+// Default values - can be overridden via xcodebuild command line
+PRODUCT_BUNDLE_IDENTIFIER = com.skyfeeder.field
+DEVELOPMENT_TEAM =
+CODE_SIGN_STYLE = Automatic
