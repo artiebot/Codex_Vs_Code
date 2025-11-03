@@ -59,6 +59,22 @@ platform :ios do
       fallback: scheme_name
     )
 
+    xcargs = []
+    if (bundle_id = ENV["PRODUCT_BUNDLE_IDENTIFIER"] || ENV["APP_BUNDLE_IDENTIFIER"] || ENV["IOS_PRODUCT_BUNDLE_IDENTIFIER"])
+      xcargs << "PRODUCT_BUNDLE_IDENTIFIER=#{bundle_id}"
+      xcargs << "APP_BUNDLE_IDENTIFIER=#{bundle_id}"
+    end
+
+    if (team_id = ENV["DEVELOPMENT_TEAM"] || ENV["APP_DEVELOPMENT_TEAM"] || ENV["TEAM_ID"])
+      xcargs << "DEVELOPMENT_TEAM=#{team_id}"
+      xcargs << "APP_DEVELOPMENT_TEAM=#{team_id}"
+    end
+
+    if (code_sign_style = ENV["CODE_SIGN_STYLE"] || ENV["APP_CODE_SIGN_STYLE"] || ENV["IOS_CODE_SIGN_STYLE"])
+      xcargs << "CODE_SIGN_STYLE=#{code_sign_style}"
+      xcargs << "APP_CODE_SIGN_STYLE=#{code_sign_style}"
+    end
+
     FileUtils.mkdir_p("build")
 
     gym(
@@ -69,7 +85,8 @@ platform :ios do
       export_method: "app-store",
       output_directory: "build",
       output_name: "SkyFeederField.ipa",
-      clean: true
+      clean: true,
+      xcargs: xcargs.join(" ")
     )
 
     uploaded_build = pilot(
