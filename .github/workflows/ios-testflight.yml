@@ -37,13 +37,14 @@ jobs:
         run: bundle install --path vendor/bundle
 
       - name: Build & Upload to TestFlight
-        run: bundle exec fastlane testflight_upload
+        working-directory: mobile/ios-field-utility
+        run: BUNDLE_GEMFILE=../../Gemfile bundle exec fastlane testflight_upload
 
       - name: Publish build summary
         if: success()
         run: |
-          if [ -f build/build_info.json ]; then
-            SUMMARY="$(python3 -c 'import json, pathlib; info=json.loads(pathlib.Path("build/build_info.json").read_text()); print("### TestFlight Upload"); print(f"- Version: {info.get(\"version\", \"n/a\")}"); print(f"- Build: {info.get(\"build_number\", \"n/a\")}"); print(f"- [View in App Store Connect]({info.get(\"app_store_connect_link\", \"https://appstoreconnect.apple.com/apps\")})")')"
+          if [ -f mobile/ios-field-utility/build/build_info.json ]; then
+            SUMMARY="$(python3 -c 'import json, pathlib; info=json.loads(pathlib.Path("mobile/ios-field-utility/build/build_info.json").read_text()); print("### TestFlight Upload"); print(f"- Version: {info.get(\"version\", \"n/a\")}"); print(f"- Build: {info.get(\"build_number\", \"n/a\")}"); print(f"- [View in App Store Connect]({info.get(\"app_store_connect_link\", \"https://appstoreconnect.apple.com/apps\")})")')"
             if [ -n "${GITHUB_STEP_SUMMARY:-}" ]; then
               printf "%s\n" "$SUMMARY" >> "$GITHUB_STEP_SUMMARY"
             fi
