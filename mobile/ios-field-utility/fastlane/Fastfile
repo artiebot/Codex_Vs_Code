@@ -12,26 +12,13 @@ platform :ios do
 
     scheme_name = ENV["IOS_SCHEME"] || "SkyFeederFieldUtility"
     api_key = resolve_api_key
+    bundle_id = "com.skyfeeder.field"
 
-    # Build xcargs from environment variables
-    xcargs = []
-    if (bundle_id = ENV["PRODUCT_BUNDLE_IDENTIFIER"] || ENV["APP_BUNDLE_IDENTIFIER"] || ENV["IOS_PRODUCT_BUNDLE_IDENTIFIER"])
-      xcargs << "PRODUCT_BUNDLE_IDENTIFIER=#{bundle_id}"
-    else
-      xcargs << "PRODUCT_BUNDLE_IDENTIFIER=com.skyfeeder.field"
-    end
-
-    if (team_id = ENV["DEVELOPMENT_TEAM"] || ENV["APP_DEVELOPMENT_TEAM"] || ENV["TEAM_ID"])
-      xcargs << "DEVELOPMENT_TEAM=#{team_id}"
-    end
-
-    if (code_sign_style = ENV["CODE_SIGN_STYLE"] || ENV["APP_CODE_SIGN_STYLE"] || ENV["IOS_CODE_SIGN_STYLE"])
-      xcargs << "CODE_SIGN_STYLE=#{code_sign_style}"
-    else
-      xcargs << "CODE_SIGN_STYLE=Automatic"
-    end
-
-    UI.message("Building with xcargs: #{xcargs.join(' ')}")
+    # Setup code signing with match
+    setup_code_signing(
+      bundle_id: bundle_id,
+      readonly: is_ci
+    )
 
     # Build the app
     gym(
@@ -42,8 +29,11 @@ platform :ios do
       output_directory: "../build",
       output_name: "SkyFeederFieldUtility.ipa",
       clean: true,
-      xcargs: "#{xcargs.join(' ')} -allowProvisioningUpdates",
-      export_xcargs: "-allowProvisioningUpdates"
+      export_options: {
+        provisioningProfiles: {
+          bundle_id => ENV["sigh_#{bundle_id}_appstore_profile-name"]
+        }
+      }
     )
 
     # Upload to TestFlight
@@ -108,4 +98,21 @@ def resolve_api_key
       key_content: decoded
     )
   end
+end
+
+def setup_code_signing(bundle_id:, readonly:)
+  match_git_url = ENV["MATCH_GIT_URL"]
+  match_password = ENV["MATCH_PASSWORD"]
+
+  UI.user_error!("MATCH_GIT_URL is required") if match_git_url.to_s.empty?
+  UI.user_error!("MATCH_PASSWORD is required") if match_password.to_s.empty?
+
+  match(
+    type: "appstore",
+    app_identifier: bundle_id,
+    git_url: match_git_url,
+    readonly: readonly,
+    keychain_name: "fastlane_tmp_keychain",
+    keychain_password: ""
+  )
 end

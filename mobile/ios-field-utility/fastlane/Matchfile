@@ -1,0 +1,16 @@
+# Fastlane Match Configuration
+# https://docs.fastlane.tools/actions/match/
+
+git_url(ENV["MATCH_GIT_URL"])
+storage_mode("git")
+type("appstore")
+
+app_identifier(["com.skyfeeder.field"])
+username(ENV["FASTLANE_USER"] || ENV["APPLE_ID"])
+
+# Don't create a new certificate/profile if one already exists
+readonly(is_ci)
+
+# For CI: use a temporary keychain
+keychain_name("fastlane_tmp_keychain")
+keychain_password("")

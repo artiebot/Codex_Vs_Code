@@ -20,6 +20,8 @@ jobs:
       ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
       ASC_API_KEY_P8: ${{ secrets.ASC_API_KEY_P8 }}
       TEAM_ID: ${{ secrets.TEAM_ID }}
+      MATCH_GIT_URL: ${{ secrets.MATCH_GIT_URL }}
+      MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
       IOS_SCHEME: SkyFeederFieldUtility
     steps:
       - name: Checkout
