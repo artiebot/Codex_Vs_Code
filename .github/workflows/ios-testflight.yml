@@ -59,22 +59,7 @@ jobs:
             exit 1
           fi
 
-          export DEFAULT_SCHEME="$DEFAULT_SCHEME"
-          DETECTED="$(printf "%s" "$SCHEME_JSON" | python3 <<'PY'
-import json, os, sys
-data = json.load(sys.stdin)
-workspace = data.get("workspace", {})
-project = data.get("project", {})
-schemes = workspace.get("schemes") or project.get("schemes") or []
-default = os.environ.get("DEFAULT_SCHEME")
-if default and default in schemes:
-    print(default)
-elif schemes:
-    print(schemes[0])
-elif default:
-    print(default)
-PY
-)"
+          DETECTED="$(printf "%s" "$SCHEME_JSON" | DEFAULT_SCHEME="$DEFAULT_SCHEME" python3 -c 'import json, os, sys; data=json.load(sys.stdin); schemes=data.get("workspace", {}).get("schemes") or data.get("project", {}).get("schemes") or []; default=os.environ.get("DEFAULT_SCHEME") or ""; print(default if default and default in schemes else (schemes[0] if schemes else default))')"
 
           if [ -z "$DETECTED" ]; then
             DETECTED="$DEFAULT_SCHEME"
@@ -98,25 +83,10 @@ PY
         if: success()
         run: |
           if [ -f build/build_info.json ]; then
-            python3 <<'PY'
-import json
-import os
-
-path = "build/build_info.json"
-with open(path, "r", encoding="utf-8") as handle:
-    info = json.load(handle)
-
-summary = os.environ.get("GITHUB_STEP_SUMMARY")
-if summary:
-    lines = [
-        "### TestFlight Upload",
-        f"- Version: {info.get('version', 'n/a')}",
-        f"- Build: {info.get('build_number', 'n/a')}",
-        f"- [View in App Store Connect]({info.get('app_store_connect_link', 'https://appstoreconnect.apple.com/apps')})",
-    ]
-    with open(summary, "a", encoding="utf-8") as out:
-        out.write("\n".join(lines) + "\n")
-PY
+            SUMMARY="$(python3 -c 'import json, pathlib; info=json.loads(pathlib.Path("build/build_info.json").read_text()); print("### TestFlight Upload"); print(f"- Version: {info.get(\"version\", \"n/a\")}"); print(f"- Build: {info.get(\"build_number\", \"n/a\")}"); print(f"- [View in App Store Connect]({info.get(\"app_store_connect_link\", \"https://appstoreconnect.apple.com/apps\")})")')"
+            if [ -n "${GITHUB_STEP_SUMMARY:-}" ]; then
+              printf "%s\n" "$SUMMARY" >> "$GITHUB_STEP_SUMMARY"
+            fi
           else
             echo "No build/build_info.json generated; skipping summary export."
           fi
