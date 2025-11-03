@@ -5,12 +5,9 @@ default_platform(:ios)
 platform :ios do
   desc "Build and upload to TestFlight"
   lane :testflight_upload do
-    # Find the Xcode project
-    UI.message("Current directory: #{Dir.pwd}")
-    UI.message("Files in current directory: #{Dir.entries('.')}")
-    project_path = Dir["*.xcodeproj"].first
-    UI.message("Found project: #{project_path.inspect}")
-    UI.user_error!("No Xcode project found in #{Dir.pwd}") if project_path.nil?
+    # Find the Xcode project (fastlane runs from fastlane/ subdirectory, so check parent)
+    project_path = Dir["../*.xcodeproj"].first
+    UI.user_error!("No Xcode project found") if project_path.nil?
 
     scheme_name = ENV["IOS_SCHEME"] || "SkyFeederFieldUtility"
     api_key = resolve_api_key
@@ -21,7 +18,7 @@ platform :ios do
       scheme: scheme_name,
       configuration: "Release",
       export_method: "app-store",
-      output_directory: "build",
+      output_directory: "../build",
       output_name: "SkyFeederFieldUtility.ipa",
       clean: true
     )
@@ -29,7 +26,7 @@ platform :ios do
     # Upload to TestFlight
     build = pilot(
       api_key: api_key,
-      ipa: "build/SkyFeederFieldUtility.ipa",
+      ipa: "../build/SkyFeederFieldUtility.ipa",
       skip_submission: true,
       skip_waiting_for_build_processing: false,
       distribute_external: true
@@ -44,13 +41,13 @@ platform :ios do
       # Write build_info.json for GitHub Actions summary
       require "json"
       require "fileutils"
-      FileUtils.mkdir_p("build")
+      FileUtils.mkdir_p("../build")
       build_info = {
         version: version,
         build_number: build_number,
         app_store_connect_link: link
       }.compact
-      File.write(File.join("build", "build_info.json"), JSON.pretty_generate(build_info))
+      File.write(File.join("../build", "build_info.json"), JSON.pretty_generate(build_info))
 
       # Write to GitHub step summary if available
       if (summary_path = ENV["GITHUB_STEP_SUMMARY"]).to_s.strip.length > 0
