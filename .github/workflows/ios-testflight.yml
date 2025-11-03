@@ -1,0 +1,122 @@
+name: iOS TestFlight
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ "main" ]
+    paths:
+      - "**/*.swift"
+      - "**/*.xcodeproj"
+      - "**/*.xcworkspace"
+      - "fastlane/**"
+      - ".github/workflows/ios-testflight.yml"
+      - "Gemfile*"
+
+jobs:
+  build-upload:
+    runs-on: macos-latest
+    env:
+      ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+      ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+      ASC_API_KEY_P8: ${{ secrets.ASC_API_KEY_P8 }}
+      IOS_SCHEME: SkyFeederFieldUtility
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Select Xcode
+        run: sudo xcode-select -s /Applications/Xcode.app
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.2"
+          bundler-cache: true
+
+      - name: Detect scheme
+        run: |
+          set -eo pipefail
+          DEFAULT_SCHEME="${IOS_SCHEME:-SkyFeederFieldUtility}"
+
+          WORKSPACE=$(ls -d ./*.xcworkspace 2>/dev/null | head -n 1)
+          if [ -z "$WORKSPACE" ]; then
+            WORKSPACE=$(find . -name "*.xcworkspace" -print | head -n 1)
+          fi
+
+          PROJECT=$(ls -d ./*.xcodeproj 2>/dev/null | head -n 1)
+          if [ -z "$PROJECT" ]; then
+            PROJECT=$(find . -name "*.xcodeproj" -print | head -n 1)
+          fi
+
+          if [ -n "$WORKSPACE" ]; then
+            echo "Using workspace $WORKSPACE for scheme detection."
+            SCHEME_JSON=$(xcodebuild -workspace "$WORKSPACE" -list -json)
+          elif [ -n "$PROJECT" ]; then
+            echo "Using project $PROJECT for scheme detection."
+            SCHEME_JSON=$(xcodebuild -project "$PROJECT" -list -json)
+          else
+            echo "No workspace or project found for scheme detection." >&2
+            exit 1
+          fi
+
+          export DEFAULT_SCHEME="$DEFAULT_SCHEME"
+          DETECTED="$(printf "%s" "$SCHEME_JSON" | python3 <<'PY'
+import json, os, sys
+data = json.load(sys.stdin)
+workspace = data.get("workspace", {})
+project = data.get("project", {})
+schemes = workspace.get("schemes") or project.get("schemes") or []
+default = os.environ.get("DEFAULT_SCHEME")
+if default and default in schemes:
+    print(default)
+elif schemes:
+    print(schemes[0])
+elif default:
+    print(default)
+PY
+)"
+
+          if [ -z "$DETECTED" ]; then
+            DETECTED="$DEFAULT_SCHEME"
+          fi
+
+          if [ "$DETECTED" != "$DEFAULT_SCHEME" ]; then
+            echo "Detected scheme: $DETECTED (default was $DEFAULT_SCHEME)"
+          else
+            echo "Using scheme: $DETECTED"
+          fi
+
+          echo "IOS_SCHEME=$DETECTED" >> "$GITHUB_ENV"
+
+      - name: Install fastlane
+        run: bundle install --path vendor/bundle
+
+      - name: Build & Upload to TestFlight
+        run: bundle exec fastlane testflight_upload
+
+      - name: Publish build summary
+        if: success()
+        run: |
+          if [ -f build/build_info.json ]; then
+            python3 <<'PY'
+import json
+import os
+
+path = "build/build_info.json"
+with open(path, "r", encoding="utf-8") as handle:
+    info = json.load(handle)
+
+summary = os.environ.get("GITHUB_STEP_SUMMARY")
+if summary:
+    lines = [
+        "### TestFlight Upload",
+        f"- Version: {info.get('version', 'n/a')}",
+        f"- Build: {info.get('build_number', 'n/a')}",
+        f"- [View in App Store Connect]({info.get('app_store_connect_link', 'https://appstoreconnect.apple.com/apps')})",
+    ]
+    with open(summary, "a", encoding="utf-8") as out:
+        out.write("\n".join(lines) + "\n")
+PY
+          else
+            echo "No build/build_info.json generated; skipping summary export."
+          fi

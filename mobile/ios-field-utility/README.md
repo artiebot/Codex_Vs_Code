@@ -49,9 +49,9 @@ The initial scaffold keeps the UI alive with a placeholder `RootView` so the pro
 
 ## Install via TestFlight
 
-1. Add the tester's Apple ID to App Store Connect (see below).
-2. Share the TestFlight public link or invitation email once the build is processed.
-3. On the device, install the latest TestFlight build and note the build number for the run log (`REPORTS/A1.3/ios_run_notes.md`).
+1. Trigger the `iOS TestFlight` GitHub Actions workflow (push to `main` or run it manually) to archive the app with the `SkyFeederFieldUtility` scheme and upload to TestFlight. The job summary prints the build number and deep link into App Store Connect once the run finishes.
+2. After App Store Connect finishes processing the build, share the TestFlight public link or invitation email with approved testers.
+3. On the device, install the latest TestFlight build and capture the reported build number in `REPORTS/A1.3/ios_run_notes.md`.
 
 ## Add an External Tester
 

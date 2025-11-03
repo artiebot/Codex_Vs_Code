@@ -1,0 +1,106 @@
+require "json"
+require "fileutils"
+
+default_platform(:ios)
+
+def infer_workspace
+  Dir["*.xcworkspace"].first || Dir["**/*.xcworkspace"].sort.find { |path| !path.include?("Pods/") }
+end
+
+def infer_project
+  Dir["*.xcodeproj"].first || Dir["**/*.xcodeproj"].sort.find { |path| !path.include?("Pods/") }
+end
+
+def fetch_schemes(container_path, type)
+  return [] if container_path.nil?
+
+  command = "xcodebuild -#{type} \"#{container_path}\" -list -json"
+  json_output = sh(command, print_command: false)
+  data = JSON.parse(json_output)
+  container = data[type] || {}
+  container["schemes"] || []
+rescue StandardError => e
+  UI.error("Unable to inspect schemes for #{container_path}: #{e}")
+  []
+end
+
+def resolve_scheme(workspace:, project:, fallback:)
+  schemes = fetch_schemes(workspace, "workspace")
+  schemes = fetch_schemes(project, "project") if schemes.empty?
+  return fallback if schemes.empty?
+
+  return fallback if schemes.include?(fallback)
+
+  detected = schemes.first
+  UI.important("Scheme '#{fallback}' not found. Using detected scheme '#{detected}'.")
+  ENV["IOS_SCHEME"] = detected
+  detected
+end
+
+platform :ios do
+  desc "Build and upload to TestFlight"
+  lane :testflight_upload do
+    api_key = app_store_connect_api_key(
+      key_id: ENV["ASC_KEY_ID"],
+      issuer_id: ENV["ASC_ISSUER_ID"],
+      key_content: ENV["ASC_API_KEY_P8"],
+      duration: 1200,
+      in_house: false
+    )
+
+    inferred_workspace = infer_workspace
+    inferred_project   = infer_project
+    UI.user_error!("No Xcode workspace or project found") if inferred_workspace.nil? && inferred_project.nil?
+
+    scheme_name = ENV["IOS_SCHEME"] || "SkyFeederFieldUtility"
+    scheme_name = resolve_scheme(
+      workspace: inferred_workspace,
+      project: inferred_project,
+      fallback: scheme_name
+    )
+
+    FileUtils.mkdir_p("build")
+
+    gym(
+      workspace: inferred_workspace,
+      project: inferred_project,
+      scheme: scheme_name,
+      configuration: "Release",
+      export_method: "app-store",
+      output_directory: "build",
+      output_name: "SkyFeederField.ipa",
+      clean: true
+    )
+
+    uploaded_build = pilot(
+      api_key: api_key,
+      app_identifier: "com.skyfeeder.field",
+      skip_waiting_for_build_processing: false,
+      distribute_external: true
+    )
+
+    if uploaded_build
+      build_number = uploaded_build.respond_to?(:build_version) ? uploaded_build.build_version : nil
+      version = uploaded_build.respond_to?(:app_version) ? uploaded_build.app_version : nil
+      apple_id = uploaded_build.respond_to?(:apple_id) ? uploaded_build.apple_id : nil
+      link = apple_id ? "https://appstoreconnect.apple.com/apps/#{apple_id}/testflight/ios" : "https://appstoreconnect.apple.com/apps"
+
+      build_info = {
+        version: version,
+        build_number: build_number,
+        app_store_connect_link: link
+      }.compact
+
+      File.write(File.join("build", "build_info.json"), JSON.pretty_generate(build_info))
+
+      if (summary_path = ENV["GITHUB_STEP_SUMMARY"]).to_s.strip.length.positive?
+        File.open(summary_path, "a") do |file|
+          file.puts("### TestFlight Upload")
+          file.puts("- Version: #{version || 'n/a'}")
+          file.puts("- Build: #{build_number || 'n/a'}")
+          file.puts("- [View in App Store Connect](#{link})")
+        end
+      end
+    end
+  end
+end

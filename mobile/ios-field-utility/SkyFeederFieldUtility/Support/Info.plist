@@ -24,8 +24,6 @@
                 <dict>
                         <key>10.0.0.4</key>
                         <dict>
-                                <key>NSExceptionAllowsInsecureHTTPLoads</key>
-                                <true/>
                                 <key>NSIncludesSubdomains</key>
                                 <false/>
                                 <key>NSTemporaryExceptionAllowsInsecureHTTPLoads</key>
