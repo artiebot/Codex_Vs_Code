@@ -15,6 +15,14 @@ For _fastlane_ installation instructions, see [Installing _fastlane_](https://do
 
 ## iOS
 
+### ios bootstrap
+
+```sh
+[bundle exec] fastlane ios bootstrap
+```
+
+Bootstrap certificates and profiles with match
+
 ### ios testflight_upload
 
 ```sh

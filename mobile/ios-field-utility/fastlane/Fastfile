@@ -3,6 +3,21 @@ require "base64"
 default_platform(:ios)
 
 platform :ios do
+  desc "Bootstrap certificates and profiles with match"
+  lane :bootstrap do
+    api_key = resolve_api_key
+    bundle_id = ENV["PRODUCT_BUNDLE_IDENTIFIER"] || "com.skyfeeder.field"
+
+    # Setup code signing with match in write mode
+    setup_code_signing(
+      bundle_id: bundle_id,
+      readonly: false,
+      api_key: api_key
+    )
+
+    UI.success("✅ Successfully bootstrapped certificates and profiles for #{bundle_id}")
+  end
+
   desc "Build and upload to TestFlight"
   lane :testflight_upload do
     # Find the Xcode project (fastlane runs from fastlane/ subdirectory, so check parent)
