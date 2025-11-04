@@ -39,9 +39,26 @@ jobs:
       - name: Install fastlane
         run: bundle install --path vendor/bundle
 
+      - name: Pull signing (match)
+        working-directory: mobile/ios-field-utility
+        env:
+          BUNDLE_GEMFILE: ../../Gemfile
+        run: |
+          bundle exec fastlane run match \
+            git_url:$MATCH_GIT_URL \
+            type:appstore \
+            readonly:true \
+            app_identifier:com.skyfeeder.field \
+            api_key_path:/dev/null \
+            key_id:$ASC_KEY_ID \
+            issuer_id:$ASC_ISSUER_ID \
+            key_content:"$ASC_API_KEY_P8"
+
       - name: Build & Upload to TestFlight
         working-directory: mobile/ios-field-utility
-        run: BUNDLE_GEMFILE=../../Gemfile bundle exec fastlane testflight_upload
+        env:
+          BUNDLE_GEMFILE: ../../Gemfile
+        run: bundle exec fastlane testflight_upload
 
       - name: Publish build summary
         if: success()

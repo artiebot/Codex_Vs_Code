@@ -12,13 +12,21 @@ platform :ios do
 
     scheme_name = ENV["IOS_SCHEME"] || "SkyFeederFieldUtility"
     api_key = resolve_api_key
-    bundle_id = "com.skyfeeder.field"
+    bundle_id = ENV["PRODUCT_BUNDLE_IDENTIFIER"] || "com.skyfeeder.field"
+    team_id = ENV["TEAM_ID"]
+    UI.user_error!("TEAM_ID is required") if team_id.to_s.empty?
 
-    # Setup code signing with match
+    # Setup code signing with match using the App Store Connect API key
     setup_code_signing(
       bundle_id: bundle_id,
-      readonly: is_ci
+      readonly: is_ci,
+      api_key: api_key
     )
+
+    xcargs = "-allowProvisioningUpdates CODE_SIGN_STYLE=Automatic DEVELOPMENT_TEAM=#{team_id}"
+    if (custom_bundle = ENV["PRODUCT_BUNDLE_IDENTIFIER"]).to_s.length > 0
+      xcargs += " PRODUCT_BUNDLE_IDENTIFIER=#{custom_bundle}"
+    end
 
     # Build the app
     gym(
@@ -26,14 +34,11 @@ platform :ios do
       scheme: scheme_name,
       configuration: "Release",
       export_method: "app-store",
+      export_team_id: team_id,
       output_directory: "../build",
       output_name: "SkyFeederFieldUtility.ipa",
       clean: true,
-      export_options: {
-        provisioningProfiles: {
-          bundle_id => ENV["sigh_#{bundle_id}_appstore_profile-name"]
-        }
-      }
+      xcargs: xcargs
     )
 
     # Upload to TestFlight
@@ -100,7 +105,7 @@ def resolve_api_key
   end
 end
 
-def setup_code_signing(bundle_id:, readonly:)
+def setup_code_signing(bundle_id:, readonly:, api_key:)
   match_git_url = ENV["MATCH_GIT_URL"]
   match_password = ENV["MATCH_PASSWORD"]
 
@@ -112,7 +117,6 @@ def setup_code_signing(bundle_id:, readonly:)
     app_identifier: bundle_id,
     git_url: match_git_url,
     readonly: readonly,
-    keychain_name: "fastlane_tmp_keychain",
-    keychain_password: ""
+    api_key: api_key
   )
 end

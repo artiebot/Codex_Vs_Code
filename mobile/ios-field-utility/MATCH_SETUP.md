@@ -1,179 +1,54 @@
 # Fastlane Match Setup for TestFlight Automation
 
-This guide will set up automated code signing for TestFlight uploads from GitHub Actions.
+SkyFeeder Field Utility now manages signing assets entirely through fastlane match and GitHub Actions. You no longer need access to a local Mac to create or refresh certificates—everything can be bootstrapped and maintained from CI.
 
-## Prerequisites
+## Required GitHub Secrets
 
-- Xcode installed on your Mac
-- Apple Developer account with admin access
-- Git installed
-- Fastlane installed (`gem install fastlane` or `brew install fastlane`)
+Add the following repository secrets (Settings → Secrets and variables → Actions):
 
-## One-Time Setup (Run on Your Mac)
+| Secret | Description |
+| --- | --- |
+| `MATCH_GIT_URL` | HTTPS or SSH URL of the private certificates repo (fastlane match storage). |
+| `MATCH_PASSWORD` | Passphrase used to encrypt the match repository. |
+| `ASC_ISSUER_ID` | App Store Connect API key issuer UUID. |
+| `ASC_KEY_ID` | App Store Connect API key identifier. |
+| `ASC_API_KEY_P8` | Contents of the `.p8` App Store Connect API key (can be raw PEM or base64). |
+| `TEAM_ID` | Ten-character Apple Developer Team ID (e.g., `ABC123XYZA`). |
 
-### Step 1: Create a Private Git Repository for Certificates
+> Optional: if your certificates repo uses deploy keys or a PAT, bake the credential into `MATCH_GIT_URL` (HTTPS token) or configure the runner to inject an SSH key.
 
-1. Go to https://github.com/new
-2. Create a **private** repository named `skyfeeder-certificates` (or any name you prefer)
-3. **Important:** Must be private to protect your certificates
-4. Initialize with a README
-5. Copy the repository URL (e.g., `https://github.com/yourusername/skyfeeder-certificates.git`)
+## CI Bootstrap (Recommended)
 
-### Step 2: Initialize Match
+1. Ensure the secrets above are present.
+2. Navigate to **Actions → Match Bootstrap → Run workflow**.
+3. Confirm the run succeeds. It will:
+   - Select Xcode on the hosted macOS runner.
+   - Install fastlane (using the root Gemfile).
+   - Execute `fastlane match` with `readonly:false`, which creates the App Store distribution certificate + provisioning profile, encrypts them with `MATCH_PASSWORD`, and pushes to `MATCH_GIT_URL`.
 
-Open Terminal and navigate to the project:
+After the bootstrap completes, the standard **iOS TestFlight** workflow automatically:
 
-```bash
-cd /path/to/Codex_Vs_Code/mobile/ios-field-utility
-```
+1. Calls `fastlane match` in `readonly:true` mode to pull certs/profiles for each build.
+2. Runs the `testflight_upload` lane, which now:
+   - Generates an App Store Connect API key on the fly.
+   - Invokes `match` again (safety for local runs).
+   - Builds with `gym export_team_id:$TEAM_ID` and `xcargs "-allowProvisioningUpdates CODE_SIGN_STYLE=Automatic DEVELOPMENT_TEAM=$TEAM_ID"`.
+   - Uploads the IPA to TestFlight with the same API key.
 
-Run match init (if not already done):
+## Manual Bootstrap (Optional Legacy Path)
 
-```bash
-fastlane match init
-```
+If you prefer to stage certs locally you can still:
 
-- Choose `git` as storage mode
-- Enter your private repository URL when prompted
+1. Clone this repo and `cd mobile/ios-field-utility`.
+2. Run `fastlane match appstore --app_identifier com.skyfeeder.field`.
+3. Push the generated files to your private certificates repo.
 
-### Step 3: Generate Certificates and Profiles
+This manual approach requires Xcode + fastlane on a Mac and is no longer necessary unless you are debugging certificates offline.
 
-```bash
-# This will create and store App Store certificates/profiles
-fastlane match appstore --app_identifier com.skyfeeder.field
-```
+## Maintenance & Troubleshooting
 
-You'll be prompted to:
-1. **Enter a passphrase** - Choose a strong password and save it securely (you'll need this for GitHub secrets)
-2. **Sign in with Apple ID** - Use your Apple Developer account
-3. **Confirm team** - Select your development team
+- **Renewals:** Re-run the **Match Bootstrap** workflow (or `fastlane match nuke distribution` locally followed by the bootstrap) when Apple revokes/renews distribution certs.
+- **Secret Rotation:** Update `MATCH_PASSWORD`, tokens embedded in `MATCH_GIT_URL`, or the App Store Connect API key at any time; rerun the bootstrap workflow afterward.
+- **CI Failures:** Inspect the `Pull signing (match)` step in the **iOS TestFlight** workflow. Common causes are incorrect repo URL, missing passphrase, or expired API keys.
 
-Match will:
-- Create an App Store Distribution certificate (if needed)
-- Create an App Store provisioning profile
-- Encrypt everything with your passphrase
-- Store it in your private git repository
-
-### Step 4: Add GitHub Secrets
-
-Go to your repository settings:
-https://github.com/artiebot/Codex_Vs_Code/settings/secrets/actions
-
-Add these secrets:
-
-1. **MATCH_GIT_URL**
-   - Value: Your certificates repository URL
-   - Example: `https://github.com/yourusername/skyfeeder-certificates.git`
-
-2. **MATCH_PASSWORD**
-   - Value: The passphrase you chose in Step 3
-
-3. **FASTLANE_USER** (optional but recommended)
-   - Value: Your Apple ID email
-   - Example: `you@example.com`
-
-### Step 5: Configure Git Access for GitHub Actions
-
-For the GitHub Actions runner to access your private certificates repo, you need to provide authentication.
-
-**Option A: Personal Access Token (Recommended)**
-
-1. Go to https://github.com/settings/tokens/new
-2. Name: "Fastlane Match Access"
-3. Expiration: Choose appropriate duration
-4. Select scopes: `repo` (full control)
-5. Generate token
-6. Update `MATCH_GIT_URL` secret to include the token:
-   ```
-   https://<TOKEN>@github.com/yourusername/skyfeeder-certificates.git
-   ```
-   Replace `<TOKEN>` with your personal access token
-
-**Option B: Deploy Key (More secure)**
-
-1. Generate SSH key pair:
-   ```bash
-   ssh-keygen -t ed25519 -C "github-actions-match" -f ~/.ssh/match_deploy_key
-   ```
-
-2. Add public key to certificates repo:
-   - Go to your certificates repo settings
-   - Deploy keys → Add deploy key
-   - Title: "GitHub Actions"
-   - Key: Contents of `~/.ssh/match_deploy_key.pub`
-   - ✅ Allow write access
-
-3. Add private key as GitHub secret:
-   - Name: `MATCH_GIT_PRIVATE_KEY`
-   - Value: Contents of `~/.ssh/match_deploy_key`
-
-4. Use SSH URL for `MATCH_GIT_URL`:
-   ```
-   git@github.com:yourusername/skyfeeder-certificates.git
-   ```
-
-### Step 6: Test Locally (Optional but Recommended)
-
-Before pushing to CI, test that match works:
-
-```bash
-cd mobile/ios-field-utility
-fastlane testflight_upload
-```
-
-This will:
-- Fetch certificates from your match repo
-- Build the app
-- Upload to TestFlight
-
-If this succeeds locally, it should work in CI.
-
-### Step 7: Trigger GitHub Actions Workflow
-
-Once all secrets are added:
-
-1. Push any change to trigger the workflow, or
-2. Manually trigger from GitHub Actions tab
-3. Go to https://github.com/artiebot/Codex_Vs_Code/actions
-4. Watch the "iOS TestFlight" workflow run
-
-## Troubleshooting
-
-### "No Accounts" Error
-Make sure `FASTLANE_USER` secret is set with your Apple ID.
-
-### "Authentication failed" for Match Repo
-- Verify `MATCH_GIT_URL` includes the token or uses SSH with deploy key
-- Check that the token/key has access to the certificates repository
-
-### "Wrong password" for Match
-- Verify `MATCH_PASSWORD` matches the passphrase you set during `fastlane match appstore`
-
-### "No provisioning profiles found"
-Run `fastlane match appstore` again to regenerate profiles.
-
-## Maintenance
-
-### Renewing Certificates (Annual)
-Certificates expire after 1 year. To renew:
-
-```bash
-fastlane match nuke distribution
-fastlane match appstore --app_identifier com.skyfeeder.field
-```
-
-### Adding New Team Members
-They need to run:
-```bash
-fastlane match appstore --app_identifier com.skyfeeder.field --readonly
-```
-
-This installs the shared certificates on their machine.
-
-## Security Notes
-
-- **Never commit** the match passphrase or certificates to your main repository
-- The certificates repo must remain **private**
-- Rotate the `MATCH_PASSWORD` if compromised
-- Use organization secrets if this is a team project
-- Consider using a dedicated Apple ID for CI/CD
+With these workflows in place, every TestFlight upload uses the exact same signing artifacts, and the entire fleet can be re-provisioned from GitHub Actions without touching a local machine.

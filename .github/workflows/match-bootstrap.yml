@@ -1,0 +1,44 @@
+name: Match Bootstrap
+
+on:
+  workflow_dispatch:
+
+jobs:
+  bootstrap:
+    runs-on: macos-latest
+    env:
+      MATCH_GIT_URL: ${{ secrets.MATCH_GIT_URL }}
+      MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
+      ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+      ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+      ASC_API_KEY_P8: ${{ secrets.ASC_API_KEY_P8 }}
+      TEAM_ID: ${{ secrets.TEAM_ID }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Select Xcode
+        run: sudo xcode-select -s /Applications/Xcode.app
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.2"
+          bundler-cache: true
+
+      - name: Install fastlane
+        run: bundle install --path vendor/bundle || sudo gem install fastlane
+
+      - name: Bootstrap match (create certs & profiles)
+        working-directory: mobile/ios-field-utility
+        env:
+          BUNDLE_GEMFILE: ../../Gemfile
+        run: |
+          bundle exec fastlane run match \
+            git_url:$MATCH_GIT_URL \
+            type:appstore \
+            readonly:false \
+            app_identifier:com.skyfeeder.field \
+            api_key_path:/dev/null \
+            key_id:$ASC_KEY_ID \
+            issuer_id:$ASC_ISSUER_ID \
+            key_content:"$ASC_API_KEY_P8"
