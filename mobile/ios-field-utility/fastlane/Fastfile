@@ -23,7 +23,7 @@ platform :ios do
       api_key: api_key
     )
 
-    xcargs = "-allowProvisioningUpdates CODE_SIGN_STYLE=Automatic DEVELOPMENT_TEAM=#{team_id}"
+    xcargs = "CODE_SIGN_STYLE=Manual DEVELOPMENT_TEAM=#{team_id}"
     if (custom_bundle = ENV["PRODUCT_BUNDLE_IDENTIFIER"]).to_s.length > 0
       xcargs += " PRODUCT_BUNDLE_IDENTIFIER=#{custom_bundle}"
     end
