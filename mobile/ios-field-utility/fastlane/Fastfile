@@ -26,7 +26,7 @@ platform :ios do
     # Get the provisioning profile name from match
     profile_name = ENV["SIGH_#{bundle_id.gsub('.', '_')}_PROFILE_NAME"] || "match AppStore #{bundle_id}"
 
-    xcargs = "CODE_SIGN_STYLE=Manual DEVELOPMENT_TEAM=#{team_id} PROVISIONING_PROFILE_SPECIFIER='#{profile_name}'"
+    xcargs = "CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY='Apple Distribution' DEVELOPMENT_TEAM=#{team_id} PROVISIONING_PROFILE_SPECIFIER='#{profile_name}'"
     if (custom_bundle = ENV["PRODUCT_BUNDLE_IDENTIFIER"]).to_s.length > 0
       xcargs += " PRODUCT_BUNDLE_IDENTIFIER=#{custom_bundle}"
     end
