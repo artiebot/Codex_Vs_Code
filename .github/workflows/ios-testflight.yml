@@ -40,6 +40,11 @@ jobs:
       - name: Install fastlane
         run: bundle install --path vendor/bundle
 
+      - name: Debug - show URL and header length (safe)
+        run: |
+          echo "URL: $MATCH_GIT_URL"
+          echo "Auth header length: ${#MATCH_GIT_BASIC_AUTHORIZATION}"
+
       - name: Pull signing (match)
         working-directory: mobile/ios-field-utility
         env:

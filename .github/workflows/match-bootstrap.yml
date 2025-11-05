@@ -29,6 +29,11 @@ jobs:
       - name: Install fastlane
         run: bundle install --path vendor/bundle || sudo gem install fastlane
 
+      - name: Debug - show URL and header length (safe)
+        run: |
+          echo "URL: $MATCH_GIT_URL"
+          echo "Auth header length: ${#MATCH_GIT_BASIC_AUTHORIZATION}"
+
       - name: Bootstrap match (create certs & profiles)
         working-directory: mobile/ios-field-utility
         env:
