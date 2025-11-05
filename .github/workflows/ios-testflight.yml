@@ -22,6 +22,7 @@ jobs:
       TEAM_ID: ${{ secrets.TEAM_ID }}
       MATCH_GIT_URL: ${{ secrets.MATCH_GIT_URL }}
       MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
+      MATCH_GIT_BASIC_AUTHORIZATION: ${{ secrets.MATCH_GIT_BASIC_AUTHORIZATION }}
       IOS_SCHEME: SkyFeederFieldUtility
     steps:
       - name: Checkout
