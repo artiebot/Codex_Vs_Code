@@ -105,6 +105,15 @@ def resolve_api_key
   end
 end
 
+def is_ci
+  # Check if running in a CI environment
+  ENV["CI"] == "true" ||
+    ENV["GITHUB_ACTIONS"] == "true" ||
+    ENV["JENKINS_HOME"] ||
+    ENV["CIRCLECI"] == "true" ||
+    ENV["GITLAB_CI"] == "true"
+end
+
 def setup_code_signing(bundle_id:, readonly:, api_key:)
   match_git_url = ENV["MATCH_GIT_URL"]
   match_password = ENV["MATCH_PASSWORD"]

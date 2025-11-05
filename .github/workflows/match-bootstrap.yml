@@ -37,8 +37,4 @@ jobs:
             git_url:$MATCH_GIT_URL \
             type:appstore \
             readonly:false \
-            app_identifier:com.skyfeeder.field \
-            api_key_path:/dev/null \
-            key_id:$ASC_KEY_ID \
-            issuer_id:$ASC_ISSUER_ID \
-            key_content:"$ASC_API_KEY_P8"
+            app_identifier:com.skyfeeder.field
