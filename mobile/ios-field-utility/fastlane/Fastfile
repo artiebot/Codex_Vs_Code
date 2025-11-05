@@ -23,7 +23,10 @@ platform :ios do
       api_key: api_key
     )
 
-    xcargs = "-allowProvisioningUpdates CODE_SIGN_STYLE=Automatic DEVELOPMENT_TEAM=#{team_id}"
+    # Get the provisioning profile name from match
+    profile_name = ENV["SIGH_#{bundle_id.gsub('.', '_')}_PROFILE_NAME"] || "match AppStore #{bundle_id}"
+
+    xcargs = "CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY='Apple Distribution' DEVELOPMENT_TEAM=#{team_id} PROVISIONING_PROFILE_SPECIFIER='#{profile_name}'"
     if (custom_bundle = ENV["PRODUCT_BUNDLE_IDENTIFIER"]).to_s.length > 0
       xcargs += " PRODUCT_BUNDLE_IDENTIFIER=#{custom_bundle}"
     end
@@ -38,7 +41,14 @@ platform :ios do
       output_directory: "../build",
       output_name: "SkyFeederFieldUtility.ipa",
       clean: true,
-      xcargs: xcargs
+      xcargs: xcargs,
+      export_options: {
+        method: "app-store",
+        teamID: team_id,
+        provisioningProfiles: {
+          bundle_id => ENV["SIGH_#{bundle_id.gsub('.', '_')}_PROFILE_NAME"] || "match AppStore #{bundle_id}"
+        }
+      }
     )
 
     # Upload to TestFlight
@@ -77,6 +87,21 @@ platform :ios do
         end
       end
     end
+  end
+
+  desc "Bootstrap match certificates (create if missing)"
+  lane :match_bootstrap do
+    api_key = resolve_api_key
+    bundle_id = ENV["PRODUCT_BUNDLE_IDENTIFIER"] || "com.skyfeeder.field"
+
+    # Create certificates and profiles using match with API key
+    setup_code_signing(
+      bundle_id: bundle_id,
+      readonly: false,  # Allow creation of new certificates
+      api_key: api_key
+    )
+
+    UI.success("Successfully bootstrapped match certificates!")
   end
 end
 

@@ -9,6 +9,7 @@ jobs:
     env:
       MATCH_GIT_URL: ${{ secrets.MATCH_GIT_URL }}
       MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
+      MATCH_GIT_BASIC_AUTHORIZATION: ${{ secrets.MATCH_GIT_BASIC_AUTHORIZATION }}
       ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
       ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
       ASC_API_KEY_P8: ${{ secrets.ASC_API_KEY_P8 }}
@@ -28,13 +29,13 @@ jobs:
       - name: Install fastlane
         run: bundle install --path vendor/bundle || sudo gem install fastlane
 
+      - name: Debug - show URL and header length (safe)
+        run: |
+          echo "URL: $MATCH_GIT_URL"
+          echo "Auth header length: ${#MATCH_GIT_BASIC_AUTHORIZATION}"
+
       - name: Bootstrap match (create certs & profiles)
         working-directory: mobile/ios-field-utility
         env:
           BUNDLE_GEMFILE: ../../Gemfile
-        run: |
-          bundle exec fastlane run match \
-            git_url:$MATCH_GIT_URL \
-            type:appstore \
-            readonly:false \
-            app_identifier:com.skyfeeder.field
+        run: bundle exec fastlane match_bootstrap

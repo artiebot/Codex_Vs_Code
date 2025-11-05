@@ -22,6 +22,7 @@ jobs:
       TEAM_ID: ${{ secrets.TEAM_ID }}
       MATCH_GIT_URL: ${{ secrets.MATCH_GIT_URL }}
       MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
+      MATCH_GIT_BASIC_AUTHORIZATION: ${{ secrets.MATCH_GIT_BASIC_AUTHORIZATION }}
       IOS_SCHEME: SkyFeederFieldUtility
     steps:
       - name: Checkout
@@ -38,6 +39,11 @@ jobs:
 
       - name: Install fastlane
         run: bundle install --path vendor/bundle
+
+      - name: Debug - show URL and header length (safe)
+        run: |
+          echo "URL: $MATCH_GIT_URL"
+          echo "Auth header length: ${#MATCH_GIT_BASIC_AUTHORIZATION}"
 
       - name: Pull signing (match)
         working-directory: mobile/ios-field-utility
