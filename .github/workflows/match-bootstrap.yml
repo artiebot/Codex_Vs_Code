@@ -38,9 +38,4 @@ jobs:
         working-directory: mobile/ios-field-utility
         env:
           BUNDLE_GEMFILE: ../../Gemfile
-        run: |
-          bundle exec fastlane run match \
-            git_url:$MATCH_GIT_URL \
-            type:appstore \
-            readonly:false \
-            app_identifier:com.skyfeeder.field
+        run: bundle exec fastlane match_bootstrap

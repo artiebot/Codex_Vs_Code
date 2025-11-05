@@ -78,6 +78,21 @@ platform :ios do
       end
     end
   end
+
+  desc "Bootstrap match certificates (create if missing)"
+  lane :match_bootstrap do
+    api_key = resolve_api_key
+    bundle_id = ENV["PRODUCT_BUNDLE_IDENTIFIER"] || "com.skyfeeder.field"
+
+    # Create certificates and profiles using match with API key
+    setup_code_signing(
+      bundle_id: bundle_id,
+      readonly: false,  # Allow creation of new certificates
+      api_key: api_key
+    )
+
+    UI.success("Successfully bootstrapped match certificates!")
+  end
 end
 
 def resolve_api_key
