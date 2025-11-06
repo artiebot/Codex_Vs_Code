@@ -31,6 +31,13 @@ platform :ios do
     team_id = ENV["TEAM_ID"]
     UI.user_error!("TEAM_ID is required") if team_id.to_s.empty?
 
+    UI.header("📋 Build Configuration")
+    UI.message("  Project: #{File.basename(project_path)}")
+    UI.message("  Scheme: #{scheme_name}")
+    UI.message("  Bundle ID: #{bundle_id}")
+    UI.message("  Team ID: #{team_id}")
+    UI.message("  Note: App name in App Store Connect (e.g., 'SkyFeeder Field') doesn't need to match scheme name")
+
     # Setup code signing with match using the App Store Connect API key
     setup_code_signing(
       bundle_id: bundle_id,
@@ -57,13 +64,18 @@ platform :ios do
     )
 
     # Upload to TestFlight
+    UI.message("📤 Uploading to TestFlight...")
     build = pilot(
       api_key: api_key,
       ipa: "../build/SkyFeederFieldUtility.ipa",
       skip_submission: true,
-      skip_waiting_for_build_processing: false,
-      distribute_external: true
+      skip_waiting_for_build_processing: true,  # Don't wait - can take hours!
+      distribute_external: false,                # Don't auto-distribute to external testers
+      changelog: "Automated build from CI"
     )
+
+    UI.success("✅ Upload complete! Build will process in App Store Connect.")
+    UI.important("⏳ Note: Build processing can take 10-30 minutes. Check App Store Connect for status.")
 
     if build
       version = build.respond_to?(:app_version) ? build.app_version : nil
