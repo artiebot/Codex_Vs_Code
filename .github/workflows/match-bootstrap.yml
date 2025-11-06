@@ -32,4 +32,14 @@ jobs:
         working-directory: mobile/ios-field-utility
         env:
           BUNDLE_GEMFILE: ../../Gemfile
-        run: bundle exec fastlane bootstrap
+          FASTLANE_VERBOSE: "true"
+        run: |
+          echo "Starting match bootstrap..."
+          timeout 300 bundle exec fastlane bootstrap || {
+            echo "❌ Match timed out after 5 minutes - this indicates a stuck process"
+            echo "Common causes:"
+            echo "  1. MATCH_GIT_URL authentication failing"
+            echo "  2. MATCH_PASSWORD prompt waiting for input"
+            echo "  3. Network/firewall blocking git clone"
+            exit 1
+          }
