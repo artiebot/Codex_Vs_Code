@@ -31,7 +31,7 @@ final class PhotoSaver {
             throw PhotoSaveError.authorizationDenied
         }
 
-        try await withCheckedThrowingContinuation { continuation in
+        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
             PHPhotoLibrary.shared().performChanges {
                 if capture.asset.contentType.lowercased().contains("video") || url.pathExtension.lowercased() == "mp4" {
                     PHAssetCreationRequest.creationRequestForAssetFromVideo(atFileURL: url)

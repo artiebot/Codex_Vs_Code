@@ -5,6 +5,7 @@ struct SettingsView: View {
     @StateObject private var viewModel: SettingsViewModel
     private let onSave: (GallerySettings) -> Void
 
+    @MainActor
     init(viewModel: SettingsViewModel = SettingsViewModel(), onSave: @escaping (GallerySettings) -> Void) {
         _viewModel = StateObject(wrappedValue: viewModel)
         self.onSave = onSave

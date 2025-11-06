@@ -13,8 +13,8 @@ final class SampleCaptureProvider: CaptureProvider {
             let captureDate = Calendar.current.date(byAdding: .hour, value: -offset * 3, to: referenceDate) ?? referenceDate
             let thumbKey = "sample-thumb-\(offset)"
             let assetKey = "sample-asset-\(offset)"
-            let thumbURL = (try? diskCache.store(data: sampleThumbnailData, forKey: thumbKey)) ?? diskCache.url(forKey: thumbKey)
-            let assetURL = (try? diskCache.store(data: sampleAssetData, forKey: assetKey)) ?? diskCache.url(forKey: assetKey)
+            let thumbURL = (try? diskCache.store(data: sampleThumbnailData, forKey: thumbKey, category: .thumbnails)) ?? diskCache.url(forKey: thumbKey, category: .thumbnails)
+            let assetURL = (try? diskCache.store(data: sampleAssetData, forKey: assetKey, category: .assets)) ?? diskCache.url(forKey: assetKey, category: .assets)
 
             let capture = Capture(
                 id: UUID(),
