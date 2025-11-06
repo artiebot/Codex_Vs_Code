@@ -43,12 +43,21 @@ jobs:
         working-directory: mobile/ios-field-utility
         env:
           BUNDLE_GEMFILE: ../../Gemfile
+          FASTLANE_VERBOSE: "true"
+        timeout-minutes: 5
         run: |
+          echo "⏳ Pulling certificates from match (timeout: 5 min)..."
           bundle exec fastlane run match \
             git_url:$MATCH_GIT_URL \
             type:appstore \
             readonly:true \
-            app_identifier:com.skyfeeder.field
+            app_identifier:com.skyfeeder.field || {
+            echo "❌ Match failed - common issues:"
+            echo "  1. MATCH_GIT_URL authentication (needs token embedded)"
+            echo "  2. MATCH_PASSWORD incorrect"
+            echo "  3. Certificates not yet created (run Match Bootstrap first)"
+            exit 1
+          }
 
       - name: Build & Upload to TestFlight
         working-directory: mobile/ios-field-utility
