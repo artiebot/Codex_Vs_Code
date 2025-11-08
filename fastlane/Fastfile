@@ -39,7 +39,7 @@ platform :ios do
       scheme: APP_SCHEME,
       export_method: "app-store",
       export_team_id: team_id,
-      xcargs: "-showBuildTimingSummary CODE_SIGN_STYLE=Automatic DEVELOPMENT_TEAM=#{team_id}",
+      xcargs: "-showBuildTimingSummary CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY='Apple Distribution' DEVELOPMENT_TEAM=#{team_id} PROVISIONING_PROFILE_SPECIFIER='match AppStore com.skyfeeder.field'",
       output_directory: "build",
       output_name: "SkyFeederFieldUtility.ipa"
     )
