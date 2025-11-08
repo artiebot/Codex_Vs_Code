@@ -59,6 +59,41 @@ After fixing the Fastfile:
 2. Verify build succeeds with Manual signing
 3. Check if icon validation issues remain (separate from signing)
 
+## UPDATE - Fix Applied and Tested
+
+### Signing Fix: SUCCESS ✓
+
+**Commit:** 33af635 - "Fix iOS code signing conflict - switch to Manual signing for Match"
+
+**Changes Made:**
+- Changed `CODE_SIGN_STYLE=Automatic` to `CODE_SIGN_STYLE=Manual` (line 46)
+- Changed `APP_CODE_SIGN_STYLE=Automatic` to `APP_CODE_SIGN_STYLE=Manual` (line 47)
+
+**Results from Run #19197101715:**
+- ✓ Match step completed successfully
+- ✓ Certificate installed: Apple Distribution (valid until 2026-11-05)
+- ✓ Provisioning profile installed: match AppStore com.skyfeeder.field
+- ✓ Build succeeded with Manual signing
+- ✓ Archive created and signed correctly
+
+**SIGNING ISSUE RESOLVED** - No more conflicting provisioning settings error!
+
+### New Issue Discovered: Missing App Icons
+
+**Error:**
+```
+Missing required icon file. The bundle does not contain an app icon
+for iPhone / iPod Touch of exactly '120x120' pixels, in .png format.
+```
+
+**Root Cause:**
+The `Contents.json` in AppIcon.appiconset defines icon sizes but doesn't specify actual image filenames. Only the 1024x1024 marketing icon has a filename.
+
+**Next Steps:**
+1. Create actual PNG files for all required icon sizes
+2. Add filenames to Contents.json for each size
+3. Ensure files exist in the AppIcon.appiconset directory
+
 ### Related Files
 
 - `/fastlane/Fastfile` - Root Fastfile (used by CI workflow) - **NEEDS FIX**
