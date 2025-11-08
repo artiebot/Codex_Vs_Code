@@ -1,123 +1,99 @@
+require "base64"
 require "json"
 require "fileutils"
 
+APP_SCHEME  = "SkyFeederFieldUtility".freeze
+APP_PROJECT = "mobile/ios-field-utility/SkyFeederFieldUtility.xcodeproj".freeze
+
 default_platform(:ios)
 
-def infer_workspace
-  Dir["*.xcworkspace"].first || Dir["**/*.xcworkspace"].sort.find { |path| !path.include?("Pods/") }
-end
-
-def infer_project
-  Dir["*.xcodeproj"].first || Dir["**/*.xcodeproj"].sort.find { |path| !path.include?("Pods/") }
-end
-
-def fetch_schemes(container_path, type)
-  return [] if container_path.nil?
-
-  command = "xcodebuild -#{type} \"#{container_path}\" -list -json"
-  json_output = sh(command, print_command: false)
-  data = JSON.parse(json_output)
-  container = data[type] || {}
-  container["schemes"] || []
-rescue StandardError => e
-  UI.error("Unable to inspect schemes for #{container_path}: #{e}")
-  []
-end
-
-def resolve_scheme(workspace:, project:, fallback:)
-  schemes = fetch_schemes(workspace, "workspace")
-  schemes = fetch_schemes(project, "project") if schemes.empty?
-  return fallback if schemes.empty?
-
-  return fallback if schemes.include?(fallback)
-
-  detected = schemes.first
-  UI.important("Scheme '#{fallback}' not found. Using detected scheme '#{detected}'.")
-  ENV["IOS_SCHEME"] = detected
-  detected
-end
-
 platform :ios do
-  desc "Build and upload to TestFlight"
+  desc "Build & Upload to TestFlight"
   lane :testflight_upload do
-    api_key = app_store_connect_api_key(
-      key_id: ENV["ASC_KEY_ID"],
-      issuer_id: ENV["ASC_ISSUER_ID"],
-      key_content: ENV["ASC_API_KEY_P8"],
-      duration: 1200,
-      in_house: false
-    )
+    setup_ci
 
-    inferred_workspace = infer_workspace
-    inferred_project   = infer_project
-    UI.user_error!("No Xcode workspace or project found") if inferred_workspace.nil? && inferred_project.nil?
+    api_key = resolve_api_key
 
-    scheme_name = ENV["IOS_SCHEME"] || "SkyFeederFieldUtility"
-    scheme_name = resolve_scheme(
-      workspace: inferred_workspace,
-      project: inferred_project,
-      fallback: scheme_name
-    )
+    keychain_name = ENV["MATCH_KEYCHAIN_NAME"] || (ENV["CI"] ? "build.keychain" : nil)
+    keychain_password = ENV["KEYCHAIN_PASSWORD"] || ""
 
-    xcargs = []
-    if (bundle_id = ENV["PRODUCT_BUNDLE_IDENTIFIER"] || ENV["APP_BUNDLE_IDENTIFIER"] || ENV["IOS_PRODUCT_BUNDLE_IDENTIFIER"])
-      xcargs << "PRODUCT_BUNDLE_IDENTIFIER=#{bundle_id}"
-      xcargs << "APP_BUNDLE_IDENTIFIER=#{bundle_id}"
+    match_params = {
+      type: "appstore",
+      readonly: true,
+      api_key: api_key
+    }
+    match_params[:git_url] = ENV["MATCH_GIT_URL"] if ENV["MATCH_GIT_URL"]
+    match_params[:git_basic_authorization] = ENV["MATCH_GIT_BASIC_AUTHORIZATION"] if ENV["MATCH_GIT_BASIC_AUTHORIZATION"]
+    if keychain_name
+      match_params[:keychain_name] = keychain_name
+      match_params[:keychain_password] = keychain_password
     end
 
-    if (team_id = ENV["DEVELOPMENT_TEAM"] || ENV["APP_DEVELOPMENT_TEAM"] || ENV["TEAM_ID"])
-      xcargs << "DEVELOPMENT_TEAM=#{team_id}"
-      xcargs << "APP_DEVELOPMENT_TEAM=#{team_id}"
-    end
+    match(match_params)
 
-    if (code_sign_style = ENV["CODE_SIGN_STYLE"] || ENV["APP_CODE_SIGN_STYLE"] || ENV["IOS_CODE_SIGN_STYLE"])
-      xcargs << "CODE_SIGN_STYLE=#{code_sign_style}"
-      xcargs << "APP_CODE_SIGN_STYLE=#{code_sign_style}"
-    end
-
-    FileUtils.mkdir_p("build")
-
-    gym(
-      workspace: inferred_workspace,
-      project: inferred_project,
-      scheme: scheme_name,
-      configuration: "Release",
+    build_app(
+      project: APP_PROJECT,
+      scheme: APP_SCHEME,
       export_method: "app-store",
+      xcargs: "-showBuildTimingSummary",
       output_directory: "build",
-      output_name: "SkyFeederField.ipa",
-      clean: true,
-      xcargs: xcargs.join(" ")
+      output_name: "SkyFeederFieldUtility.ipa"
     )
 
-    uploaded_build = pilot(
+    uploaded_build = upload_to_testflight(
       api_key: api_key,
-      app_identifier: "com.skyfeeder.field",
-      skip_waiting_for_build_processing: false,
-      distribute_external: true
+      skip_waiting_for_build_processing: true
     )
 
-    if uploaded_build
-      build_number = uploaded_build.respond_to?(:build_version) ? uploaded_build.build_version : nil
-      version = uploaded_build.respond_to?(:app_version) ? uploaded_build.app_version : nil
-      apple_id = uploaded_build.respond_to?(:apple_id) ? uploaded_build.apple_id : nil
-      link = apple_id ? "https://appstoreconnect.apple.com/apps/#{apple_id}/testflight/ios" : "https://appstoreconnect.apple.com/apps"
+    write_build_summary(uploaded_build) if uploaded_build
+  end
+end
 
-      build_info = {
-        version: version,
-        build_number: build_number,
-        app_store_connect_link: link
-      }.compact
+def resolve_api_key
+  issuer = ENV["ASC_ISSUER_ID"]
+  key_id = ENV["ASC_KEY_ID"]
+  raw_key = ENV["ASC_API_KEY_P8"]
 
-      File.write(File.join("build", "build_info.json"), JSON.pretty_generate(build_info))
+  UI.user_error!("ASC_ISSUER_ID is required") if issuer.to_s.empty?
+  UI.user_error!("ASC_KEY_ID is required") if key_id.to_s.empty?
+  UI.user_error!("ASC_API_KEY_P8 is required") if raw_key.to_s.empty?
 
-      if (summary_path = ENV["GITHUB_STEP_SUMMARY"]).to_s.strip.length.positive?
-        File.open(summary_path, "a") do |file|
-          file.puts("### TestFlight Upload")
-          file.puts("- Version: #{version || 'n/a'}")
-          file.puts("- Build: #{build_number || 'n/a'}")
-          file.puts("- [View in App Store Connect](#{link})")
-        end
-      end
+  if File.exist?(raw_key)
+    app_store_connect_api_key(
+      key_id: key_id,
+      issuer_id: issuer,
+      key_filepath: raw_key
+    )
+  else
+    decoded = raw_key.include?("-----BEGIN") ? raw_key : Base64.decode64(raw_key)
+    app_store_connect_api_key(
+      key_id: key_id,
+      issuer_id: issuer,
+      key_content: decoded
+    )
+  end
+end
+
+def write_build_summary(build)
+  version = build.respond_to?(:app_version) ? build.app_version : nil
+  build_number = build.respond_to?(:build_version) ? build.build_version : nil
+  apple_id = build.respond_to?(:apple_id) ? build.apple_id : nil
+  link = apple_id ? "https://appstoreconnect.apple.com/apps/#{apple_id}/testflight/ios" : "https://appstoreconnect.apple.com/apps"
+
+  FileUtils.mkdir_p("build")
+  info = {
+    version: version,
+    build_number: build_number,
+    app_store_connect_link: link
+  }.compact
+  File.write(File.join("build", "build_info.json"), JSON.pretty_generate(info))
+
+  if (summary_path = ENV["GITHUB_STEP_SUMMARY"]).to_s.strip.length.positive?
+    File.open(summary_path, "a") do |file|
+      file.puts("### TestFlight Upload")
+      file.puts("- Version: #{version || 'n/a'}")
+      file.puts("- Build: #{build_number || 'n/a'}")
+      file.puts("- [View in App Store Connect](#{link})")
     end
   end
 end
