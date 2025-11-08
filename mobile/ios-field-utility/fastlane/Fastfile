@@ -21,6 +21,12 @@ platform :ios do
     if keychain_name.to_s.empty?
       keychain_name = ENV["CI"] == "true" ? "build.keychain" : "login.keychain"
     end
+    resolved_keychain = resolve_keychain_path(keychain_name)
+    if resolved_keychain.nil?
+      UI.important("Requested keychain '#{keychain_name}' was not found; falling back to login.keychain.")
+      keychain_name = "login.keychain"
+      resolved_keychain = resolve_keychain_path(keychain_name)
+    end
 
     match_params = {
       type: "appstore",
@@ -34,7 +40,7 @@ platform :ios do
       match_params[:keychain_name] = keychain_name
       match_params[:keychain_password] = keychain_password
       if keychain_password.to_s.length.positive?
-        sh("security set-key-partition-list -S apple-tool:,apple: -s -k #{Shellwords.escape(keychain_password)} #{Shellwords.escape(keychain_name)}")
+        sh("security set-key-partition-list -S apple-tool:,apple: -s -k #{Shellwords.escape(keychain_password)} #{Shellwords.escape(resolved_keychain)}")
       end
     end
 
@@ -108,6 +114,18 @@ platform :ios do
       end
     end
   end
+end
+
+def resolve_keychain_path(name)
+  return nil if name.to_s.empty?
+  base = File.expand_path("~/Library/Keychains")
+  candidates = [
+    File.join(base, "#{name}-db"),
+    File.join(base, "#{name}.keychain-db"),
+    File.join(base, name.to_s),
+    File.join(base, "#{name}.keychain")
+  ]
+  candidates.find { |path| File.exist?(path) }
 end
 
 def resolve_api_key
