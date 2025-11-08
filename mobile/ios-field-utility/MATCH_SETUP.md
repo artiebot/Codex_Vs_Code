@@ -52,3 +52,7 @@ This manual approach requires Xcode + fastlane on a Mac and is no longer necessa
 - **CI Failures:** Inspect the `Pull signing (match)` step in the **iOS TestFlight** workflow. Common causes are incorrect repo URL, missing passphrase, or expired API keys.
 
 With these workflows in place, every TestFlight upload uses the exact same signing artifacts, and the entire fleet can be re-provisioned from GitHub Actions without touching a local machine.
+
+## Troubleshooting Log
+
+- **2025-11-08 — CI signing conflict:** Pipeline failed with “SkyFeederFieldUtility has conflicting provisioning settings” because the project was in automatic signing while `PROVISIONING_PROFILE_SPECIFIER` was set by fastlane. Resolved by forcing manual signing (`CODE_SIGN_STYLE=Manual`) in both `AppConfig.xcconfig` and the fastlane lane so the explicit provisioning profile matches the signing mode.

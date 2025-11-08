@@ -36,7 +36,7 @@ platform :ios do
     profile_specifier = ENV["APP_PROVISIONING_PROFILE_SPECIFIER"] || ENV["SIGH_#{bundle_id.gsub('.', '_')}_PROFILE_NAME"] || "match AppStore #{bundle_id}"
 
     xcargs = [
-      "CODE_SIGN_STYLE=Automatic",
+      "CODE_SIGN_STYLE=Manual",
       "CODE_SIGN_IDENTITY='Apple Distribution'",
       "DEVELOPMENT_TEAM=#{team_id}",
       "PROVISIONING_PROFILE_SPECIFIER='#{profile_specifier}'",
@@ -44,7 +44,7 @@ platform :ios do
       "APP_BUNDLE_IDENTIFIER=#{bundle_id}",
       "APP_DEVELOPMENT_TEAM=#{team_id}",
       "APP_PROVISIONING_PROFILE_SPECIFIER='#{profile_specifier}'",
-      "APP_CODE_SIGN_STYLE=Automatic",
+      "APP_CODE_SIGN_STYLE=Manual",
       "-showBuildTimingSummary"
     ].join(" ")
 
