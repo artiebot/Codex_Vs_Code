@@ -23,7 +23,8 @@ platform :ios do
     match_params = {
       type: "appstore",
       readonly: true,
-      api_key: api_key
+      api_key: api_key,
+      clone_branch_directly: true
     }
     match_params[:git_url] = ENV["MATCH_GIT_URL"] if ENV["MATCH_GIT_URL"]
     match_params[:git_basic_authorization] = ENV["MATCH_GIT_BASIC_AUTHORIZATION"] if ENV["MATCH_GIT_BASIC_AUTHORIZATION"]
