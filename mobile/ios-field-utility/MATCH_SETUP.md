@@ -56,3 +56,4 @@ With these workflows in place, every TestFlight upload uses the exact same signi
 ## Troubleshooting Log
 
 - **2025-11-08 — CI signing conflict:** Pipeline failed with “SkyFeederFieldUtility has conflicting provisioning settings” because the project was in automatic signing while `PROVISIONING_PROFILE_SPECIFIER` was set by fastlane. Resolved by forcing manual signing (`CODE_SIGN_STYLE=Manual`) in both `AppConfig.xcconfig` and the fastlane lane so the explicit provisioning profile matches the signing mode.
+- **2025-11-08 — Signing hang (Keychain mismatch):** `bundle exec fastlane testflight_upload` kept stalling at “Signing …” because `match` silently imported certs into `login.keychain`, while the workflow unlocked `build.keychain`. Fastlane now defaults to `build.keychain` on CI and re-applies `security set-key-partition-list` whenever `MATCH_KEYCHAIN_NAME/PASSWORD` aren’t provided, preventing the prompt that was blocking codesign.

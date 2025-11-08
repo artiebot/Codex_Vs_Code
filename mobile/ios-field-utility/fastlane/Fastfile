@@ -1,4 +1,5 @@
 require "base64"
+require "shellwords"
 
 default_platform(:ios)
 
@@ -17,6 +18,9 @@ platform :ios do
 
     keychain_name = ENV["MATCH_KEYCHAIN_NAME"]
     keychain_password = ENV["MATCH_KEYCHAIN_PASSWORD"] || ENV["KEYCHAIN_PASSWORD"] || ""
+    if keychain_name.to_s.empty?
+      keychain_name = ENV["CI"] == "true" ? "build.keychain" : "login.keychain"
+    end
 
     match_params = {
       type: "appstore",
@@ -29,6 +33,9 @@ platform :ios do
     if keychain_name
       match_params[:keychain_name] = keychain_name
       match_params[:keychain_password] = keychain_password
+      if keychain_password.to_s.length.positive?
+        sh("security set-key-partition-list -S apple-tool:,apple: -s -k #{Shellwords.escape(keychain_password)} #{Shellwords.escape(keychain_name)}")
+      end
     end
 
     match(match_params)
