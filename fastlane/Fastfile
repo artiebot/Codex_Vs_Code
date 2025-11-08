@@ -43,8 +43,8 @@ platform :ios do
       "APP_BUNDLE_IDENTIFIER=#{bundle_id}",
       "DEVELOPMENT_TEAM=#{team_id}",
       "APP_DEVELOPMENT_TEAM=#{team_id}",
-      "CODE_SIGN_STYLE=Automatic",
-      "APP_CODE_SIGN_STYLE=Automatic",
+      "CODE_SIGN_STYLE=Manual",
+      "APP_CODE_SIGN_STYLE=Manual",
       "CODE_SIGN_IDENTITY='Apple Distribution'",
       "PROVISIONING_PROFILE_SPECIFIER='#{profile_specifier}'",
       "APP_PROVISIONING_PROFILE_SPECIFIER='#{profile_specifier}'"
