@@ -5,10 +5,9 @@ default_platform(:ios)
 platform :ios do
   desc "Build and upload to TestFlight"
   lane :testflight_upload do
-    # Find the Xcode project (fastlane runs from fastlane/ subdirectory, so check parent)
     project_path = Dir["../*.xcodeproj"].first
     UI.user_error!("No Xcode project found") if project_path.nil?
-    project_path = File.expand_path(project_path)  # Convert to absolute path
+    project_path = File.expand_path(project_path)
 
     scheme_name = ENV["IOS_SCHEME"] || "SkyFeederFieldUtility"
     api_key = resolve_api_key
@@ -16,22 +15,39 @@ platform :ios do
     team_id = ENV["TEAM_ID"]
     UI.user_error!("TEAM_ID is required") if team_id.to_s.empty?
 
-    # Setup code signing with match using the App Store Connect API key
-    setup_code_signing(
-      bundle_id: bundle_id,
-      readonly: is_ci,
-      api_key: api_key
-    )
+    keychain_name = ENV["MATCH_KEYCHAIN_NAME"]
+    keychain_password = ENV["MATCH_KEYCHAIN_PASSWORD"] || ENV["KEYCHAIN_PASSWORD"] || ""
 
-    # Get the provisioning profile name from match
-    profile_name = ENV["SIGH_#{bundle_id.gsub('.', '_')}_PROFILE_NAME"] || "match AppStore #{bundle_id}"
-
-    xcargs = "CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY='Apple Distribution' DEVELOPMENT_TEAM=#{team_id} PROVISIONING_PROFILE_SPECIFIER='#{profile_name}'"
-    if (custom_bundle = ENV["PRODUCT_BUNDLE_IDENTIFIER"]).to_s.length > 0
-      xcargs += " PRODUCT_BUNDLE_IDENTIFIER=#{custom_bundle}"
+    match_params = {
+      type: "appstore",
+      readonly: true,
+      api_key: api_key,
+      app_identifier: bundle_id
+    }
+    match_params[:git_url] = ENV["MATCH_GIT_URL"] if ENV["MATCH_GIT_URL"]
+    match_params[:git_basic_authorization] = ENV["MATCH_GIT_BASIC_AUTHORIZATION"] if ENV["MATCH_GIT_BASIC_AUTHORIZATION"]
+    if keychain_name
+      match_params[:keychain_name] = keychain_name
+      match_params[:keychain_password] = keychain_password
     end
 
-    # Build the app
+    match(match_params)
+
+    profile_specifier = ENV["APP_PROVISIONING_PROFILE_SPECIFIER"] || ENV["SIGH_#{bundle_id.gsub('.', '_')}_PROFILE_NAME"] || "match AppStore #{bundle_id}"
+
+    xcargs = [
+      "CODE_SIGN_STYLE=Automatic",
+      "CODE_SIGN_IDENTITY='Apple Distribution'",
+      "DEVELOPMENT_TEAM=#{team_id}",
+      "PROVISIONING_PROFILE_SPECIFIER='#{profile_specifier}'",
+      "PRODUCT_BUNDLE_IDENTIFIER=#{bundle_id}",
+      "APP_BUNDLE_IDENTIFIER=#{bundle_id}",
+      "APP_DEVELOPMENT_TEAM=#{team_id}",
+      "APP_PROVISIONING_PROFILE_SPECIFIER='#{profile_specifier}'",
+      "APP_CODE_SIGN_STYLE=Automatic",
+      "-showBuildTimingSummary"
+    ].join(" ")
+
     gym(
       project: project_path,
       scheme: scheme_name,
@@ -46,12 +62,11 @@ platform :ios do
         method: "app-store",
         teamID: team_id,
         provisioningProfiles: {
-          bundle_id => ENV["SIGH_#{bundle_id.gsub('.', '_')}_PROFILE_NAME"] || "match AppStore #{bundle_id}"
+          bundle_id => profile_specifier
         }
       }
     )
 
-    # Upload to TestFlight
     build = pilot(
       api_key: api_key,
       ipa: "../build/SkyFeederFieldUtility.ipa",
@@ -66,7 +81,6 @@ platform :ios do
       apple_id = build.respond_to?(:apple_id) ? build.apple_id : nil
       link = apple_id ? "https://appstoreconnect.apple.com/apps/#{apple_id}/testflight/ios" : "https://appstoreconnect.apple.com/apps"
 
-      # Write build_info.json for GitHub Actions summary
       require "json"
       require "fileutils"
       FileUtils.mkdir_p("../build")
@@ -77,7 +91,6 @@ platform :ios do
       }.compact
       File.write(File.join("../build", "build_info.json"), JSON.pretty_generate(build_info))
 
-      # Write to GitHub step summary if available
       if (summary_path = ENV["GITHUB_STEP_SUMMARY"]).to_s.strip.length > 0
         File.open(summary_path, "a") do |file|
           file.puts("### TestFlight Upload")
@@ -87,21 +100,6 @@ platform :ios do
         end
       end
     end
-  end
-
-  desc "Bootstrap match certificates (create if missing)"
-  lane :match_bootstrap do
-    api_key = resolve_api_key
-    bundle_id = ENV["PRODUCT_BUNDLE_IDENTIFIER"] || "com.skyfeeder.field"
-
-    # Create certificates and profiles using match with API key
-    setup_code_signing(
-      bundle_id: bundle_id,
-      readonly: false,  # Allow creation of new certificates
-      api_key: api_key
-    )
-
-    UI.success("Successfully bootstrapped match certificates!")
   end
 end
 
