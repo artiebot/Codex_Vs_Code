@@ -17,6 +17,9 @@ platform :ios do
     keychain_name = ENV["MATCH_KEYCHAIN_NAME"] || (ENV["CI"] ? "build.keychain" : nil)
     keychain_password = ENV["KEYCHAIN_PASSWORD"] || ""
 
+    team_id = ENV["TEAM_ID"]
+    UI.user_error!("TEAM_ID is required") if team_id.to_s.empty?
+
     match_params = {
       type: "appstore",
       readonly: true,
@@ -35,7 +38,8 @@ platform :ios do
       project: APP_PROJECT,
       scheme: APP_SCHEME,
       export_method: "app-store",
-      xcargs: "-showBuildTimingSummary",
+      export_team_id: team_id,
+      xcargs: "-showBuildTimingSummary CODE_SIGN_STYLE=Automatic DEVELOPMENT_TEAM=#{team_id}",
       output_directory: "build",
       output_name: "SkyFeederFieldUtility.ipa"
     )
