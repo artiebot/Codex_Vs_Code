@@ -92,7 +92,11 @@ final class GalleryViewModel: ObservableObject {
             guard let endpoint = settings.manifestURL else {
                 throw CaptureProviderError.invalidConfiguration("Manifest URL is not set.")
             }
-            return PresignedCaptureProvider(endpoint: endpoint, cacheTTL: settings.cacheTTL)
+            return PresignedCaptureProvider(
+                endpoint: endpoint,
+                fallbackEndpoint: settings.legacyManifestURL,
+                cacheTTL: settings.cacheTTL
+            )
         }
     }
 }
