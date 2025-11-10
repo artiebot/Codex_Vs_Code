@@ -24,6 +24,7 @@ _Last updated: 2025-10-20_
 | **A1.1** | [x] complete | Codex | Local stack validation + artifact capture. |
 | A1.2 | [x] complete | Codex | Discovery v0.2 + WS resilience validated with queue/replay metrics. |
 | A1.3 | [x] complete | Codex | WS upload-status broadcast + LOCAL gallery documentation. |
+| **A1.3.5** | [ ] in progress | Codex | iOS Dashboard Polish - production-ready app with full feature parity. |
 | A1.4 | [x] complete | Codex | Fault injection sims done; 24h power/soak still pending per `REPORTS/A1.4/reliability.md`. |
 | B-series | [ ] planned | Codex | App “Button-Up” milestones (B1-B6). |
 | A2 | [ ] planned | Codex | Field application pilot (1-3 units). |
@@ -293,6 +294,185 @@ Exit: ✅ Discovery payloads accurate, reconnection stable, metrics recorded in 
 - Documentation: Complete iOS gallery troubleshooting guide in `ops/local/README.md`
 
 Exit: ✅ Upload telemetry visible end-to-end through ws-relay; iOS gallery fully functional with photos loading successfully.
+
+### A1.3.5 - iOS Dashboard Polish (Production-Ready App) [ ] IN PROGRESS (2025-11-09)
+
+**Status:** Comprehensive iOS app polish to match HTML dashboard features with production-ready architecture
+
+**Goal:** Ship iOS build robust enough for production architecture (no throwaway code) with feature parity to HTML dashboard including weight monitoring, live camera view, event log, system health, and storage management.
+
+#### A) App Features (SwiftUI) - Dashboard Parity
+
+**Dashboard Layout:**
+- [ ] Implement card-based layout: Weight Monitor, Visit Status, Live Camera, Recent Videos, Recent Photos, Event Log, System Health, Storage Info, Settings, Storage Management
+- [ ] Light performance mode: virtualized lists, no jank on older devices
+
+**Weight Monitor Card:**
+- [ ] Display: current weight (g), rolling average (g), total visits today
+- [ ] Data source: `GET /api/health` metrics
+
+**Visit Status Card:**
+- [ ] "Bird present" banner with state transitions (present/absent)
+- [ ] Controls: "Turn Camera On/Off", "Take Photo" buttons
+
+**Live Camera View:**
+- [ ] Render from `GET /camera/stream` (proxy via presign-api)
+- [ ] Auto-retry on load error (2s delay with cache-buster query)
+- [ ] Manual toggle keeps stream active even in "no bird" state
+
+**Recent Videos/Photos Carousels:**
+- [ ] Data providers: `GET /api/photos`, `GET /api/videos`
+- [ ] Horizontal scroll, tap to open native viewer
+- [ ] Lazy thumbnail loading
+- [ ] Show counts, friendly copy for empty states
+
+**Event Log:**
+- [ ] Display recent events: time, icon, message (50 max, trim older)
+- [ ] Append from WebSocket messages and local actions
+- [ ] Auto-scroll to newest
+
+**System Health Card:**
+- [ ] Status + component health (camera, sensor)
+- [ ] Uptime, disk stats
+- [ ] Color-coded (healthy/unhealthy)
+
+**Storage Info Card:**
+- [ ] Display: free space, photo count, video count, log size
+- [ ] Data source: `/api/health`
+
+**Settings Screen:**
+- [ ] Weight Trigger Threshold (slider + live value)
+- [ ] Cooldown period (read-only if server-enforced)
+- [ ] "Test Trigger" and "Save Settings" buttons
+
+**Storage Management:**
+- [ ] Actions: "Delete All Photos", "Delete All Videos", "Download Logs"
+- [ ] Confirmation dialogs
+- [ ] Success/error toasts
+
+**Toasts/Notifications:**
+- [ ] Reusable banner component (info/success/error)
+- [ ] Use for: WS connect/disconnect, upload_status, action results
+
+**Badging + Offline Banner:**
+- [ ] App badge for new captures (increment on `upload_status:success`)
+- [ ] Offline banner when WS or HTTP unreachable
+
+**Config (Settings):**
+- [ ] Base URL (default: `http://10.0.0.4:8080/gallery`)
+- [ ] Device ID (default: `dev1`)
+- [ ] Persist to UserDefaults, apply without relaunch
+
+#### B) Networking & Real-time
+
+**Gallery Manifest:**
+- [ ] Primary: `GET /gallery/:deviceId/indices/latest.json`
+- [ ] Fallback on 404: `GET /gallery/:deviceId/captures_index.json`
+- [ ] JSONDecoder iso8601 (no milliseconds)
+- [ ] Fail closed on malformed dates
+
+**Photo Proxy:**
+- [ ] Load images via `/gallery/:deviceId/photo/:filename` (NEVER presigned URLs)
+- [ ] Disk caching with exponential backoff on errors
+
+**WebSocket:**
+- [ ] Connect to `ws://10.0.0.4:8081` (dev mode, no auth)
+- [ ] Reconnect backoff: 1s, 2s, 4s, 8s, 16s (max)
+- [ ] Queue message replay on reconnect
+- [ ] Handle: `upload_status`, `gallery_ack`, `ping/pong`
+
+**Settings API:**
+- [ ] `GET /api/settings`, `POST /api/settings`
+- [ ] `POST /api/trigger/manual`
+- [ ] `POST /api/snapshot`
+
+**Cleanup + Logs:**
+- [ ] `POST /api/cleanup/photos`, `POST /api/cleanup/videos`
+- [ ] Logs download with share sheet
+
+#### C) Production-Rep Constraints (DO NOT REGRESS)
+
+**Critical Rules:**
+- ✅ Gallery data source: presign-api transforms day indices (no direct MinIO access from app)
+- ✅ GALLERY_PREFIX: empty string, GALLERY_BUCKET: photos
+- ✅ Date format: ISO8601 without milliseconds
+- ✅ Proxy pattern: all images through API proxy (no presigned URLs)
+- ✅ Ports: 8080 (API), 8081 (WS), 9200/9201 (MinIO)
+
+#### D) Backend Endpoints (ops/local/presign-api)
+
+Add if missing (small, additive changes only):
+- [ ] `GET /camera/stream` - proxy to active stream (image/mjpeg or HLS)
+- [ ] `GET /api/photos` - list recent photos with proxy URLs
+- [ ] `GET /api/videos` - list recent clips with proxy URLs
+- [ ] `GET /api/health` - service status + MinIO stats (uptime, disk, counts)
+- [ ] `GET /api/settings` - current device settings
+- [ ] `POST /api/settings` - update settings with validation
+- [ ] `POST /api/trigger/manual` - manual trigger (emit WS event)
+- [ ] `POST /api/snapshot` - capture snapshot (emit WS event)
+- [ ] `POST /api/cleanup/photos` - delete all photos
+- [ ] `POST /api/cleanup/videos` - delete all videos
+- [ ] `GET /api/logs` - download logs
+
+#### E) Testing & Validation
+
+**Local Stack (PowerShell):**
+```powershell
+cd ops\local
+docker compose up -d --build
+docker ps --format "table {{.Names}}\t{{.Ports}}\t{{.Status}}"
+curl -i http://localhost:8080/healthz
+curl -i http://localhost:8080/api/health
+curl -i http://localhost:8080/api/photos
+curl -i http://localhost:8080/api/videos
+curl -i http://localhost:8080/camera/stream
+curl -i http://localhost:8081
+curl -i http://localhost:9180/healthz
+```
+
+**iOS Functional Tests (Simulator/Device):**
+- [ ] Settings: Change Base URL/Device ID → data reloads without relaunch
+- [ ] Live view: error → auto retry with cache buster
+- [ ] Offline: disable API → offline banner → re-enable → recover
+- [ ] WebSocket: kill ws-relay → queue → restore → replay
+- [ ] Carousels: paginated load, smooth scroll, tap to open
+- [ ] Delete all → refresh counts → verify empty
+- [ ] Save settings → persist → verify UI shows saved values
+- [ ] Snapshot/Trigger → event log updates → new photo appears
+
+**Stability Tests:**
+- [ ] Memory: no growth after 5 min carousel scrolling
+- [ ] Battery: streaming throttles when backgrounded
+
+#### F) Code Structure
+
+**iOS Paths:**
+- `mobile/ios-field-utility/SkyFeederFieldUtility/` (main app)
+- `mobile/ios-field-utility/SkyFeederUI/` (UI components)
+
+**New Components:**
+- Providers: `HealthProvider`, `PhotosProvider`, `VideosProvider`, `SettingsProvider`, `LogsProvider`
+- Views: `LiveStreamView`, `ToastBanner`, `OfflineBanner`, `EventLogView`, `WeightMonitorCard`, `VisitStatusCard`, `SystemHealthCard`, `StorageInfoCard`, `StorageManagementView`
+- Utilities: `BadgeManager`, `ConnectivityMonitor`
+
+**API Path:**
+- `ops/local/presign-api/src/index.js` (add missing endpoints)
+
+#### G) Deliverables
+
+- [ ] PR: `feature/ios-dashboard-polish-a1_3_5`
+- [ ] Updated docs: `ops/local/README.md` (endpoints + curl examples)
+- [ ] Updated: `ARCHITECTURE.md` (new endpoints documented)
+- [ ] Test plan: `REPORTS/A1.3.5/ios_dashboard_polish.md`
+- [ ] Screenshots/GIFs for each card
+- [ ] TestFlight build tagged and deployed
+
+**Artifacts:**
+- `/REPORTS/A1.3.5/test_plan.md`
+- `/REPORTS/A1.3.5/screenshots/` (all cards)
+- `/REPORTS/A1.3.5/validation_results.md`
+
+Exit: ✅ Production-ready iOS app with full dashboard feature parity, tested and deployed to TestFlight.
 
 ### A1.4 - Fault Injection + Reliability ✅ COMPLETE (Simulation) - Hardware Pending (2025-10-20)
 
