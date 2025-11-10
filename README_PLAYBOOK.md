@@ -304,31 +304,31 @@ Exit: ✅ Upload telemetry visible end-to-end through ws-relay; iOS gallery full
 #### A) App Features (SwiftUI) - Dashboard Parity
 
 **Dashboard Layout:**
-- [ ] Implement card-based layout: Weight Monitor, Visit Status, Live Camera, Recent Videos, Recent Photos, Event Log, System Health, Storage Info, Settings, Storage Management
+- [x] Implement card-based layout: Weight Monitor, Visit Status, Live Camera, Recent Videos, Recent Photos, Event Log, System Health, Storage Info, Settings, Storage Management
 - [ ] Light performance mode: virtualized lists, no jank on older devices
 
 **Weight Monitor Card:**
-- [ ] Display: current weight (g), rolling average (g), total visits today
-- [ ] Data source: `GET /api/health` metrics
+- [x] Display: current weight (g), rolling average (g), total visits today
+- [x] Data source: `GET /api/health` metrics
 
 **Visit Status Card:**
-- [ ] "Bird present" banner with state transitions (present/absent)
-- [ ] Controls: "Turn Camera On/Off", "Take Photo" buttons
+- [x] "Bird present" banner with state transitions (present/absent)
+- [x] Controls: "Turn Camera On/Off", "Take Photo" buttons
 
 **Live Camera View:**
-- [ ] Render from `GET /camera/stream` (proxy via presign-api)
-- [ ] Auto-retry on load error (2s delay with cache-buster query)
-- [ ] Manual toggle keeps stream active even in "no bird" state
+- [x] Render from `GET /camera/stream` (proxy via presign-api)
+- [x] Auto-retry on load error (2s delay with cache-buster query)
+- [x] Manual toggle keeps stream active even in "no bird" state
 
 **Recent Videos/Photos Carousels:**
-- [ ] Data providers: `GET /api/photos`, `GET /api/videos`
-- [ ] Horizontal scroll, tap to open native viewer
-- [ ] Lazy thumbnail loading
-- [ ] Show counts, friendly copy for empty states
+- [x] Data providers: `GET /api/photos`, `GET /api/videos`
+- [x] Horizontal scroll, tap to open native viewer
+- [x] Lazy thumbnail loading
+- [x] Show counts, friendly copy for empty states
 
 **Event Log:**
-- [ ] Display recent events: time, icon, message (50 max, trim older)
-- [ ] Append from WebSocket messages and local actions
+- [x] Display recent events: time, icon, message (50 max, trim older)
+- [x] Append from WebSocket messages and local actions
 - [ ] Auto-scroll to newest
 
 **System Health Card:**
@@ -443,6 +443,55 @@ curl -i http://localhost:9180/healthz
 **Stability Tests:**
 - [ ] Memory: no growth after 5 min carousel scrolling
 - [ ] Battery: streaming throttles when backgrounded
+
+#### Validation Tracker (A1.3.5)
+
+**Backend Validation — Complete ✅ (2025-11-09):**
+- [x] CLI: All 11 endpoints validated (health, photos, videos, settings GET/POST, trigger/manual, snapshot, cleanup photos/videos, logs, camera/stream stub)
+- [x] Services: All 4 containers healthy (presign-api, ws-relay, minio, ota-server)
+- [x] Response validation: Status codes, JSON schemas, ISO8601 dates, proxy URLs
+- [x] Error handling: 400/500 paths validated for missing deviceId, invalid settings
+- [x] Documentation: ops/local/README.md updated with all endpoints + troubleshooting
+- [x] Validation artifact: REPORTS/A1.3.5/validation_status.md created with 12-step iOS checklist
+
+**iOS Implementation — Slices 1-4 Complete (2025-11-09):**
+- [x] Models: MediaItem, EventLogEntry, HealthSnapshot, DashboardCardState
+- [x] Providers: MediaProvider, HealthProvider, DashboardActionProvider, EventLogWebSocketClient
+- [x] ViewModels: DashboardViewModel, MediaCarouselViewModel, EventLogViewModel, LiveStreamViewModel
+- [x] Views: DashboardView, MediaCarouselView, EventLogView, LiveStreamView, WeightMonitorCardView, VisitStatusCardView, LiveCameraCardView
+- [x] Integration: RootView updated with TabView (Dashboard + Gallery tabs)
+- [x] WebSocket: Auto-connect on view appear, auto-reconnect with 2s retry
+
+**iOS Validation — User Action Required (12 Tests Pending):**
+- [ ] 1. Swift build verification (`swift build` in SkyFeederUI)
+- [ ] 2. iOS simulator launch (Xcode ⌘R, verify no crashes)
+- [ ] 3. Dashboard card parity (all 6 cards render with data)
+- [ ] 4. Settings Base URL/Device ID change (dynamic reload)
+- [ ] 5. Live camera auto-retry (503 → retry with cache-buster)
+- [ ] 6. Offline banner (disconnect → banner shows → reconnect → clears)
+- [ ] 7. Badge increment (WebSocket upload_status:success → badge +1)
+- [ ] 8. WebSocket reconnect (disconnect → queue → reconnect → replay)
+- [ ] 9. Carousel performance (5-min scroll, memory profiling)
+- [ ] 10. Manual trigger/snapshot buttons (WebSocket events + toasts)
+- [ ] 11. Delete confirmation (dialog → deletion → toast)
+- [ ] 12. Settings persistence (UserDefaults + server sync)
+
+**Code Audit — Issues Identified (2025-11-09):**
+- ⚠️ See REPORTS/A1.3.5/code_audit_report.md for 15 identified issues requiring Codex review
+
+**Completed by Codex:**
+- [x] 2025-11-09 — Backend: All 11 endpoints implemented and CLI-validated
+- [x] 2025-11-09 — iOS: Slices 1-4 implemented (Dashboard, Weight, Visit, Camera, Carousels, Event Log)
+- [x] 2025-11-09 — Documentation: ops/local/README.md, validation_status.md, backend smoke checklist
+- [x] 2025-11-10 — Dashboard slice #4 hardened (WS reconnection + queue, live camera backoff, media decode fixes)
+- [x] 2025-11-10 — Slice 5 complete: System Health + Storage Info cards, DeviceSettings + StorageManagement screens, SettingsProvider + LogsProvider, HealthSnapshot extended with storage/uptime/latency, video proxy route fixed
+
+**Next build slices (sequenced):**
+1. ✅ Dashboard layout shell + shared card scaffolding (SwiftUI grid + lazy stacks).
+2. ✅ Weight Monitor & Visit Status cards wired to `/api/health` + `/api/trigger.manual`.
+3. ✅ Live Camera view (`/camera/stream`) with retry/backoff + manual toggle persistence.
+4. ✅ Photos/Videos carousels + Event Log provider (combines `/api/photos`, `/api/videos`, WebSocket feed).
+5. ✅ System Health + Storage Info + Settings/Storage Management screens (settings provider, cleanup/logs actions, UserDefaults persistence).
 
 #### F) Code Structure
 

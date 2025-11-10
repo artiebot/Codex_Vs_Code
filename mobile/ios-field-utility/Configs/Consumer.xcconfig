@@ -1,0 +1,9 @@
+#include "Base.xcconfig"
+
+PRODUCT_BUNDLE_IDENTIFIER = com.skyfeeder.app
+APP_DISPLAY_NAME = SkyFeeder
+ALLOW_LOCAL_HTTP = NO
+DEFAULT_PROVIDER = PresignedHTTP
+CODE_SIGN_STYLE = Automatic
+DEVELOPMENT_TEAM = $(TEAM_ID_FALLBACK)
+OTHER_SWIFT_FLAGS = $(inherited)
