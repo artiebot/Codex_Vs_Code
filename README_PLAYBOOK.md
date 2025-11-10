@@ -268,14 +268,14 @@ Exit criteria: ✅ All checkboxes complete with artifacts committed to `/REPORTS
 
 Exit: ✅ Discovery payloads accurate, reconnection stable, metrics recorded in `/REPORTS/A1.2/`.
 
-### A1.3 - WS End-to-End + Gallery ✅ COMPLETE (2025-10-20)
+### A1.3 - WS End-to-End + Gallery ✅ COMPLETE (2025-11-09)
 
-**Status:** Upload-status telemetry validated, iOS gallery manual validation pending
+**Status:** Upload-status telemetry and iOS gallery fully validated and working
 
 - [x] Observe `event.upload_status` from device through ws-relay via `node tools/ws-upload-status.js` simulation.
   Artifacts: `/REPORTS/A1.3/ws_capture.json` (8 stages, 5 replayed), `/REPORTS/A1.3/metrics_before_after.json`, `/REPORTS/A1.3/ws_reconnect.log`
-- [ ] iOS LOCAL gallery build shows uploads, Save to Photos, badges, success tile (manual validation pending).
-  Artifacts: `/REPORTS/A1.3/ios_run_notes.md` (checklist), `/REPORTS/A1.3/gallery_recording.mp4` (pending)
+- [x] iOS LOCAL gallery build shows uploads, Save to Photos, badges, success tile (manual validation COMPLETE).
+  Artifacts: `/REPORTS/A1.3/ios_run_notes.md` (checklist), TestFlight build v2 deployed
 
 **Results:**
 - Upload-status event flow: queued → uploading → retry_scheduled → success → gallery_ack (8 total stages)
@@ -283,9 +283,16 @@ Exit: ✅ Discovery payloads accurate, reconnection stable, metrics recorded in 
 - Latency: min 2ms, P50 2ms, P95 7ms, max 7ms
 - Tool created: `tools/ws-upload-status.js` for deterministic upload-status simulation
 
-**Note:** iOS gallery validation can be completed later - WebSocket telemetry flow is fully validated and working.
+**iOS Gallery Implementation (2025-11-09):**
+- Fixed gallery manifest endpoint: Added `/gallery/:deviceId/indices/latest.json` route
+- Fixed GALLERY_PREFIX configuration (empty string for correct MinIO path)
+- Implemented photo proxy endpoint at `/gallery/:deviceId/photo/:filename` (avoids presigned URL signature issues)
+- Transformed day index format to iOS-compatible gallery manifest format
+- Fixed ISO8601 date format (removed milliseconds for Swift decoder compatibility)
+- TestFlight build v2 deployed and validated with real photo gallery
+- Documentation: Complete iOS gallery troubleshooting guide in `ops/local/README.md`
 
-Exit: ✅ Upload telemetry visible end-to-end through ws-relay; iOS gallery manual validation outlined in `/REPORTS/A1.3/ios_run_notes.md`.
+Exit: ✅ Upload telemetry visible end-to-end through ws-relay; iOS gallery fully functional with photos loading successfully.
 
 ### A1.4 - Fault Injection + Reliability ✅ COMPLETE (Simulation) - Hardware Pending (2025-10-20)
 
@@ -417,13 +424,20 @@ Limit to read-only audit; no code changes.
 
 ---
 
-## 9. Immediate Focus Recap
+## 9. Immediate Focus Recap (Updated 2025-11-09)
 
-1. Polish captive portal UX & docs for B1 (LED chart, operator steps).  
-2. Verify triple power-cycle path on hardware and capture provisioning demo video.  
-3. Backfill soak/power data for A1.4 once bench time is available.  
-4. Prep downstream B-series tasks (dashboard polish, auth) while provisioning feedback rolls in.  
-5. Track gallery recording + field handoff follow-ups.  
-6. Review `PROPOSAL_DEHARDCODING.md` so the post-A2 configuration hardening wave is ready once validation completes.
+**Completed:**
+- ✅ A1.3 iOS Gallery fully working with TestFlight build v2 deployed
+- ✅ Gallery manifest endpoints implemented with photo proxy pattern
+- ✅ Comprehensive troubleshooting documentation added
+
+**Current Priorities:**
+1. Polish captive portal UX & docs for B1 (LED chart, operator steps).
+2. Verify triple power-cycle path on hardware and capture provisioning demo video.
+3. Backfill soak/power data for A1.4 once bench time is available.
+4. Prep downstream B-series tasks (dashboard polish, auth) while provisioning feedback rolls in.
+5. Review `PROPOSAL_DEHARDCODING.md` so the post-A2 configuration hardening wave is ready once validation completes.
+
+**Ready to start:** B1 - Provisioning polish (current focus)
 
 Stay aligned with this playbook; update sections as phases advance.
