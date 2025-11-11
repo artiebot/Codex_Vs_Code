@@ -54,5 +54,9 @@
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>
 	</array>
+	<key>SKAllowLocalHttp</key>
+	<true/>
+	<key>SKDefaultProvider</key>
+	<string>PresignedHTTP</string>
 </dict>
 </plist>
