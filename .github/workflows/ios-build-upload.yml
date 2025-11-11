@@ -17,6 +17,15 @@ jobs:
         with:
           xcode-version: "16.1"
 
+      - name: Install XcodeGen
+        run: brew install xcodegen || true
+
+      - name: Generate Xcode project
+        working-directory: mobile/ios-field-utility
+        run: |
+          xcodegen generate
+          xcodebuild -resolvePackageDependencies -project SkyFeederFieldUtility.xcodeproj
+
       - name: Cache Bundler
         uses: actions/cache@v4
         with:

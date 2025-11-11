@@ -32,7 +32,6 @@
             06D100412C0AA00000B92288 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 06D100112C0AA00000B92288 /* SettingsView.swift */; };
             06D100422C0AA00000B92288 /* GalleryViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 06D100122C0AA00000B92288 /* GalleryViewModel.swift */; };
             06D100432C0AA00000B92288 /* SettingsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 06D100132C0AA00000B92288 /* SettingsViewModel.swift */; };
-		F1A2B3C4D5E6F7890A1B2C3D /* SkyFeederUI in Frameworks */ = {isa = PBXBuildFile; productRef = A10021F92A934D22A9BF078C /* SkyFeederUI */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -82,7 +81,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				F1A2B3C4D5E6F7890A1B2C3D /* SkyFeederUI in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -221,12 +219,6 @@
 /* End PBXGroup section */
 
 
-/* Begin XCLocalSwiftPackageReference section */
-		9AD6537344F64DAF9E42D819 /* XCLocalSwiftPackageReference "SkyFeederUI" */ = {
-			isa = XCLocalSwiftPackageReference;
-			relativePath = SkyFeederUI;
-		};
-/* End XCLocalSwiftPackageReference section */
 
 /* Begin PBXNativeTarget section */
 		064E0CAD2C079DE100B92288 /* SkyFeederFieldUtility */ = {
@@ -243,9 +235,6 @@
 			);
 			name = SkyFeederFieldUtility;
 			productName = SkyFeederFieldUtility;
-			packageProductDependencies = (
-				A10021F92A934D22A9BF078C /* SkyFeederUI */,
-			);
 			productReference = 064E0CAE2C079DE100B92288 /* SkyFeederFieldUtility.app */;
 			productType = "com.apple.product-type.application";
 		};
@@ -297,9 +286,6 @@
 			productRefGroup = 064E0CAF2C079DE100B92288 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
-			packageReferences = (
-				9AD6537344F64DAF9E42D819 /* XCLocalSwiftPackageReference "SkyFeederUI" */,
-			);
 			targets = (
 				064E0CAD2C079DE100B92288 /* SkyFeederFieldUtility */,
 				064E0CC52C07A1BC00B92288 /* SkyFeederFieldUtilityTests */,
@@ -602,12 +588,5 @@
 	};
 	rootObject = 064E0CA62C079DE100B92288 /* Project object */;
 
-/* Begin XCSwiftPackageProductDependency section */
-		A10021F92A934D22A9BF078C /* SkyFeederUI */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 9AD6537344F64DAF9E42D819 /* XCLocalSwiftPackageReference "SkyFeederUI" */;
-			productName = SkyFeederUI;
-		};
-/* End XCSwiftPackageProductDependency section */
 
 }

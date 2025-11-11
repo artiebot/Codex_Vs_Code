@@ -1,0 +1,47 @@
+name: SkyFeederFieldUtility
+options:
+  minimumXcodeGenVersion: 2.37.0
+  deploymentTarget:
+    iOS: "16.0"
+
+configs:
+  Debug: debug
+  Release: release
+
+packages:
+  SkyFeederUI:
+    path: ./SkyFeederUI
+
+targets:
+  SkyFeederFieldUtility:
+    type: application
+    platform: iOS
+    deploymentTarget: "16.0"
+    configFiles:
+      Debug: SkyFeederFieldUtility/Support/Configurations/AppConfig.xcconfig
+      Release: SkyFeederFieldUtility/Support/Configurations/AppConfig.xcconfig
+    sources:
+      - path: SkyFeederFieldUtility/App
+      - path: SkyFeederFieldUtility/Models
+      - path: SkyFeederFieldUtility/Providers
+      - path: SkyFeederFieldUtility/Support
+        excludes:
+          - Configurations/**
+          - Info.plist
+      - path: SkyFeederFieldUtility/ViewModels
+      - path: SkyFeederFieldUtility/Views
+    resources:
+      - path: SkyFeederFieldUtility/Resources
+    info:
+      path: SkyFeederFieldUtility/Support/Info.plist
+    dependencies:
+      - package: SkyFeederUI
+
+  SkyFeederFieldUtilityTests:
+    type: bundle.unit-test
+    platform: iOS
+    deploymentTarget: "16.0"
+    sources:
+      - path: SkyFeederFieldUtility/Tests
+    dependencies:
+      - target: SkyFeederFieldUtility

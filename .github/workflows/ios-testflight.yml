@@ -31,6 +31,15 @@ jobs:
       - name: Select Xcode
         run: sudo xcode-select -s /Applications/Xcode.app
 
+      - name: Install XcodeGen
+        run: brew install xcodegen || true
+
+      - name: Generate Xcode project
+        working-directory: mobile/ios-field-utility
+        run: |
+          xcodegen generate
+          xcodebuild -resolvePackageDependencies -project SkyFeederFieldUtility.xcodeproj
+
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
