@@ -13,13 +13,13 @@ let package = Package(
     targets: [
         .target(
             name: "SkyFeederUI",
-            path: "Sources",
-            resources: []
+            dependencies: [],
+            path: "Sources/SkyFeederUI"
         ),
         .testTarget(
             name: "SkyFeederUITests",
             dependencies: ["SkyFeederUI"],
-            path: "Tests"
+            path: "Tests/SkyFeederUITests"
         )
     ]
 )
