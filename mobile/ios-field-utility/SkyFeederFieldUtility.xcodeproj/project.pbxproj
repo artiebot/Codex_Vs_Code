@@ -603,6 +603,7 @@
 /* Begin XCSwiftPackageProductDependency section */
 		A10021F92A934D22A9BF078C /* SkyFeederUI */ = {
 			isa = XCSwiftPackageProductDependency;
+			package = 9AD6537344F64DAF9E42D819 /* XCLocalSwiftPackageReference "SkyFeederUI" */;
 			productName = SkyFeederUI;
 		};
 /* End XCSwiftPackageProductDependency section */
