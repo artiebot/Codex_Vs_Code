@@ -94,14 +94,436 @@ The `Contents.json` in AppIcon.appiconset defines icon sizes but doesn't specify
 2. Add filenames to Contents.json for each size
 3. Ensure files exist in the AppIcon.appiconset directory
 
-### Related Files
+## COMPLETE RESOLUTION - All Issues Fixed ✅
 
-- `/fastlane/Fastfile` - Root Fastfile (used by CI workflow) - **NEEDS FIX**
-- `/mobile/ios-field-utility/fastlane/Fastfile` - App-local Fastfile (already has Manual signing, not used by workflow)
-- `/.github/workflows/ios-build-upload.yml` - CI workflow configuration
+### Final Success: Run #19197221729
 
-### References
+**Result:** Successfully uploaded to TestFlight on 2025-11-08 at 18:58:05 UTC
+
+**Timeline:**
+- Build time: 28 seconds
+- Upload time: 23 seconds
+- Total workflow: ~51 seconds
+
+### Three Separate Issues Were Found and Fixed
+
+---
+
+## Issue #1: Code Signing Conflict (FIXED - Commit 33af635)
+
+### Problem
+```
+SkyFeederFieldUtility has conflicting provisioning settings.
+SkyFeederFieldUtility is automatically signed, but provisioning profile
+'match AppStore com.skyfeeder.field' has been manually specified.
+```
+
+### Root Cause Analysis
+The root `fastlane/Fastfile` had contradictory settings:
+```ruby
+"CODE_SIGN_STYLE=Automatic",           # ❌ Tells Xcode to manage signing
+"PROVISIONING_PROFILE_SPECIFIER='...'" # ❌ But manually specifies profile
+```
+
+**Why this is impossible:**
+- **Automatic signing** = Xcode generates and manages everything
+- **Manual signing** = You explicitly specify certificate and profile
+- **Cannot do both simultaneously**
+
+**Why it happened:**
+Multiple agents/people edited the Fastfile thinking "Automatic" would be simpler, not understanding that Fastlane Match requires Manual signing.
+
+### Solution
+Changed in `fastlane/Fastfile` lines 46-47:
+```ruby
+# BEFORE (WRONG):
+"CODE_SIGN_STYLE=Automatic",
+"APP_CODE_SIGN_STYLE=Automatic",
+
+# AFTER (CORRECT):
+"CODE_SIGN_STYLE=Manual",
+"APP_CODE_SIGN_STYLE=Manual",
+```
+
+### Key Lesson
+**When using Fastlane Match, you MUST use Manual code signing.** Match provides pre-generated certificates from a git repository - you need to tell Xcode exactly which ones to use.
+
+---
+
+## Issue #2: Missing App Icons (FIXED - Commit 18ad26b)
+
+### Problem
+```
+Missing required icon file. The bundle does not contain an app icon
+for iPhone / iPod Touch of exactly '120x120' pixels, in .png format.
+```
+
+### Root Cause Analysis
+The `Contents.json` file defined icon sizes but only the 1024x1024 marketing icon had an actual filename. All other sizes were missing both:
+1. The `filename` field in Contents.json
+2. The actual PNG files
+
+### Solution
+1. **Generated all required icon sizes** from 1024x1024 source using Python/Pillow:
+   - AppIcon20x20@2x.png (40x40)
+   - AppIcon20x20@3x.png (60x60)
+   - AppIcon29x29@2x.png (58x58)
+   - AppIcon29x29@3x.png (87x87)
+   - AppIcon40x40@2x.png (80x80)
+   - AppIcon40x40@3x.png (120x120) ← Critical missing size
+   - AppIcon60x60@2x.png (120x120) ← Critical missing size
+   - AppIcon60x60@3x.png (180x180)
+
+2. **Updated Contents.json** to reference all filenames
+
+### Key Lesson
+iOS requires ALL standard icon sizes, not just the 1024x1024 marketing icon. The Contents.json must have both the size definition AND the filename field for each icon.
+
+---
+
+## Issue #3: Match Git Branch Conflict (FIXED - Commit b156c52)
+
+### Problem
+```
+fatal: a branch named 'master' already exists
+```
+Build failed at Match step before even downloading certificates.
+
+### Root Cause Analysis
+Match was trying to create a new local git branch, but leftover git state from previous CI runs caused a conflict. This prevented Match from cloning the certificates repository.
+
+### Solution
+Added `clone_branch_directly: true` to `fastlane/Fastfile` line 27:
+```ruby
+match_params = {
+  type: "appstore",
+  readonly: true,
+  api_key: api_key,
+  clone_branch_directly: true  # ← Added this
+}
+```
+
+This tells Match to directly clone the specified branch instead of creating a new local branch, avoiding git state conflicts in CI environments.
+
+### Key Lesson
+In CI environments, git state can persist between runs. Use `clone_branch_directly: true` to avoid branch conflicts when using Match in GitHub Actions.
+
+---
+
+## Systematic Troubleshooting Methodology Used
+
+### 1. Research Current Failures
+- Retrieved recent workflow run logs using `gh run view --log-failed`
+- Identified error patterns across multiple failed runs
+- Found that 8+ consecutive runs all failed with the same root cause
+
+### 2. Deep Code Review
+- Read actual Fastfile configuration (both root and app-local)
+- Compared working configuration in app-local Fastfile with broken root Fastfile
+- Identified exact conflicting lines
+
+### 3. Documentation of Each Attempt
+- Created iOS_SIGNING_TROUBLESHOOTING.md to track findings
+- Documented each issue, root cause, and solution
+- Prevented repeating the same non-working solutions
+
+### 4. Incremental Testing
+- Fixed one issue at a time
+- Verified each fix with a new workflow run
+- When new issues appeared, documented and fixed them systematically
+
+### 5. Verification
+- Confirmed Match step succeeded
+- Confirmed build and signing succeeded
+- Confirmed upload to TestFlight succeeded
+- Confirmed no icon validation errors
+
+---
+
+## Files Modified (Summary)
+
+### 1. `/fastlane/Fastfile` (Root - used by CI)
+- Changed CODE_SIGN_STYLE from Automatic to Manual
+- Added clone_branch_directly: true to match_params
+
+### 2. `/mobile/ios-field-utility/SkyFeederFieldUtility/Resources/Assets.xcassets/AppIcon.appiconset/Contents.json`
+- Added filename fields for all 8 icon sizes
+
+### 3. App Icon PNG Files (8 new files created)
+- Generated from 1024x1024 source using Pillow
+
+### 4. `/iOS_SIGNING_TROUBLESHOOTING.md` (This file)
+- Complete documentation of all issues and solutions
+
+---
+
+## How to Avoid These Issues in Future Builds
+
+### ✅ Code Signing Best Practices
+
+1. **Always use Manual signing with Fastlane Match**
+   ```ruby
+   "CODE_SIGN_STYLE=Manual",
+   "APP_CODE_SIGN_STYLE=Manual",
+   ```
+
+2. **Never mix Automatic signing with PROVISIONING_PROFILE_SPECIFIER**
+   - These are mutually exclusive
+   - Match requires Manual signing
+
+3. **Understand the two Fastfiles:**
+   - `/fastlane/Fastfile` - Used by CI workflows (this is what you need to fix)
+   - `/mobile/ios-field-utility/fastlane/Fastfile` - App-local (reference for correct config)
+
+### ✅ App Icon Best Practices
+
+1. **Always provide ALL required icon sizes:**
+   - 20x20 (@2x, @3x)
+   - 29x29 (@2x, @3x)
+   - 40x40 (@2x, @3x)
+   - 60x60 (@2x, @3x)
+   - 1024x1024 (@1x marketing)
+
+2. **Both the PNG files AND Contents.json entries are required**
+
+3. **Use image generation tools** (like Pillow) to create all sizes from a 1024x1024 source
+
+### ✅ Match/CI Best Practices
+
+1. **Use `clone_branch_directly: true` in CI environments**
+   - Prevents git branch conflicts
+   - Faster cloning
+
+2. **Monitor workflow runs carefully:**
+   - Check `gh run list` for recent failures
+   - Use `gh run view --log-failed` to get detailed errors
+   - Don't assume similar errors have the same root cause
+
+3. **Document solutions as you go:**
+   - Prevents repeating failed attempts
+   - Creates institutional knowledge
+   - Makes debugging faster next time
+
+### ✅ Debugging Best Practices
+
+1. **Use systematic investigation:**
+   - Read actual code, don't just guess
+   - Compare working vs. broken configurations
+   - Check ALL recent failed runs for patterns
+
+2. **Fix one issue at a time:**
+   - Don't batch multiple fixes together
+   - Verify each fix before moving to the next
+   - Document results of each attempt
+
+3. **Watch out for duplicate workflows:**
+   - This project has 3 workflows (build-upload, iOS TestFlight, Match Bootstrap)
+   - build-upload is the active one
+   - iOS TestFlight is likely a duplicate that should be removed
+
+---
+
+## Quick Reference: Common iOS Build Errors
+
+### "Conflicting provisioning settings"
+**Fix:** Change CODE_SIGN_STYLE to Manual when using Match
+
+### "Missing required icon file"
+**Fix:** Generate all required icon sizes and update Contents.json
+
+### "fatal: a branch named 'master' already exists"
+**Fix:** Add `clone_branch_directly: true` to Match configuration
+
+### "Could not configure imported keychain item"
+**Note:** This is a warning, not an error. Build will continue.
+
+### Signing seems "stuck"
+**Reality:** Code signing takes 1-5 minutes. This is normal. Check the actual error message before assuming it's stuck.
+
+---
+
+## Related Files
+
+- `/fastlane/Fastfile` - Root Fastfile (used by CI workflow) - **FIXED ✅**
+- `/mobile/ios-field-utility/fastlane/Fastfile` - App-local Fastfile (reference for correct config)
+- `/.github/workflows/ios-build-upload.yml` - Active CI workflow (build-upload)
+- `/.github/workflows/ios-testflight.yml` - Duplicate workflow (consider removing)
+- `/.github/workflows/match-bootstrap.yml` - One-time setup only
+
+## References
 
 - [Fastlane Match Documentation](https://docs.fastlane.tools/actions/match/)
 - [Code Signing Guide](https://codesigning.guide/)
+- [iOS Human Interface Guidelines - App Icon](https://developer.apple.com/design/human-interface-guidelines/app-icons)
 - Apple Error: "conflicting provisioning settings" means Automatic + Manual profile specification conflict
+
+## Success Metrics
+
+- **Before fixes:** 8+ consecutive workflow failures
+- **After fixes:** 100% success rate (1/1 runs)
+- **Build time:** ~51 seconds (Match + Build + Upload)
+- **Result:** App successfully uploaded to TestFlight
+
+---
+
+## Issue #4: XcodeGen Info.plist Processing & App Store Validation (FIXED - 2025-11-12)
+
+### Problem
+After migrating to XcodeGen for project generation, builds succeeded through compilation and archiving but **failed at App Store validation** with persistent errors:
+
+```
+Missing Info.plist value. A value for the Info.plist key 'CFBundleIconName' is missing in the bundle
+Missing required icon file. The bundle does not contain an app icon for iPhone of exactly '120x120' pixels
+Missing required icon file. The bundle does not contain an app icon for iPad of exactly '152x152' pixels
+Invalid bundle. No orientations were specified for iPad multitasking
+Invalid bundle. Apps must provide launch screen using UILaunchScreen
+```
+
+### Root Cause Analysis
+
+**XcodeGen was NOT properly merging Info.plist template values into the final bundle.**
+
+Even though we had:
+- ✅ CFBundleIconName in Info.plist
+- ✅ All icon files generated (120x120, 152x152, etc.)
+- ✅ iPad orientations in Info.plist  
+- ✅ UILaunchScreen in Info.plist
+
+The generated .ipa bundle validation reported these keys as "missing". The issue was that XcodeGen's Info.plist processing required **explicit declaration** of icon-related dictionaries.
+
+### Solution (3-Part Fix)
+
+#### 1. Add CFBundleIcons Dictionaries to Info.plist
+
+Added explicit icon file declarations:
+
+```xml
+<key>CFBundleIcons</key>
+<dict>
+    <key>CFBundlePrimaryIcon</key>
+    <dict>
+        <key>CFBundleIconFiles</key>
+        <array>
+            <string>AppIcon</string>
+        </array>
+        <key>UIPrerenderedIcon</key>
+        <false/>
+    </dict>
+</dict>
+<key>CFBundleIcons~ipad</key>
+<dict>
+    <key>CFBundlePrimaryIcon</key>
+    <dict>
+        <key>CFBundleIconFiles</key>
+        <array>
+            <string>AppIcon</string>
+        </array>
+        <key>UIPrerenderedIcon</key>
+        <false/>
+    </dict>
+</dict>
+```
+
+**Why This Matters:**  
+App Store validation checks for `CFBundleIcons` dictionaries to verify icon assets are properly declared, not just that `CFBundleIconName` exists.
+
+#### 2. Add Explicit Build Settings to project.yml
+
+```yaml
+settings:
+  base:
+    ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+    INFOPLIST_FILE: SkyFeederFieldUtility/Support/Info.plist
+    PRODUCT_BUNDLE_IDENTIFIER: $(APP_BUNDLE_IDENTIFIER)
+    DEVELOPMENT_TEAM: $(APP_DEVELOPMENT_TEAM)
+    TARGETED_DEVICE_FAMILY: "1,2"  # iPhone + iPad
+    SUPPORTED_PLATFORMS: "iphoneos iphonesimulator"
+```
+
+**Why This Matters:**  
+- `TARGETED_DEVICE_FAMILY: "1,2"` explicitly declares iPad support, triggering validation for iPad-specific requirements
+- `ASSETCATALOG_COMPILER_APPICON_NAME` ensures asset catalog is properly linked
+- Makes build configuration deterministic instead of inferred
+
+#### 3. Generate Missing iPad Icon Sizes
+
+Generated 6 additional iPad icon sizes:
+- AppIcon20x20@1x.png (20x20)
+- AppIcon29x29@1x.png (29x29)
+- AppIcon40x40@1x.png (40x40)
+- AppIcon76x76@1x.png (76x76)
+- **AppIcon76x76@2x.png (152x152)** ← Critical for validation
+- AppIcon83.5x83.5@2x.png (167x167) ← iPad Pro
+
+Updated Contents.json with iPad icon entries.
+
+### Failed Attempts Before Success
+
+1. ❌ **Added CFBundleIconName to Info.plist** - Validation still failed
+2. ❌ **Added UILaunchScreen to Info.plist** - Validation still failed
+3. ❌ **Added iPad orientations to Info.plist** - Validation still failed  
+4. ❌ **Added ASSETCATALOG_COMPILER_APPICON_NAME build setting** - Validation still failed
+5. ❌ **Added Info.plist properties to project.yml** - Validation still failed
+6. ✅ **Added CFBundleIcons dictionaries + explicit build settings** - SUCCESS!
+
+### Key Learnings
+
+1. **XcodeGen Info.plist Processing:**
+   - Simply having values in Info.plist template is NOT enough
+   - Icon-related keys require `CFBundleIcons` dictionaries, not just `CFBundleIconName`
+   - XcodeGen merges template + properties section → final Info.plist in bundle
+
+2. **App Store Validation vs Local Build:**
+   - Local builds/archives can succeed even with incomplete Info.plist
+   - App Store validation is stricter and checks bundle contents
+   - "Missing in bundle" ≠ "missing in source files"
+
+3. **iPad Support Implications:**
+   - `TARGETED_DEVICE_FAMILY: "1,2"` triggers iPad-specific validation requirements
+   - Must have iPad icon sizes (76x76@1x, 76x76@2x/152x152, 83.5x83.5@2x)
+   - Must declare all 4 orientations for multitasking support
+
+### Commit History
+
+- `93dbe6f` - Add iPad icon assets and multitasking support  
+- `183d148` - Fix iOS launch screen and asset catalog configuration
+- `47234e2` - Add Info.plist properties directly to project.yml
+- `6215b6f` - Add CFBundleIcons blocks and explicit build settings (Codex fix) ← SOLUTION
+
+### Build Results
+
+- **Build ID:** 19286305646
+- **Duration:** 20m47s
+- **Status:** ✅ SUCCESS
+- **Result:** Successfully uploaded to App Store Connect / TestFlight
+
+### Files Modified
+
+1. `mobile/ios-field-utility/SkyFeederFieldUtility/Support/Info.plist`
+   - Added CFBundleIcons and CFBundleIcons~ipad dictionaries
+   - Added UILaunchScreen dictionary
+   - Added UISupportedInterfaceOrientations~ipad array
+
+2. `mobile/ios-field-utility/project.yml`
+   - Added explicit build settings (ASSETCATALOG_COMPILER_APPICON_NAME, TARGETED_DEVICE_FAMILY, etc.)
+   - Added Info.plist properties section
+
+3. `mobile/ios-field-utility/SkyFeederFieldUtility/Resources/Assets.xcassets/AppIcon.appiconset/`
+   - Added 6 iPad icon PNG files
+   - Updated Contents.json with iPad icon entries
+
+### Prevention
+
+When using XcodeGen:
+- Always include `CFBundleIcons` dictionaries in Info.plist for icon validation
+- Use explicit build settings in project.yml instead of relying on defaults
+- Test with `TARGETED_DEVICE_FAMILY: "1,2"` early to catch iPad requirements
+- Verify .ipa contents match Info.plist template expectations
+
+### Success Metrics Updated
+
+- **Before XcodeGen migration:** Working TestFlight uploads
+- **After XcodeGen migration:** 7 consecutive validation failures (all same errors)
+- **After CFBundleIcons fix:** 100% success rate
+- **Build time:** ~20 minutes (includes compilation + upload)
+- **Result:** App successfully uploaded to TestFlight ✅
