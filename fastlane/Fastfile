@@ -20,11 +20,6 @@ platform :ios do
     team_id = ENV["TEAM_ID"]
     UI.user_error!("TEAM_ID is required") if team_id.to_s.empty?
 
-    Dir.chdir("mobile/ios-field-utility") do
-      sh("xcodegen generate")
-      sh("xcodebuild -resolvePackageDependencies -project SkyFeederFieldUtility.xcodeproj")
-    end
-
     match_params = {
       type: "appstore",
       readonly: true,
