@@ -23,6 +23,11 @@ targets:
     settings:
       base:
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        INFOPLIST_FILE: SkyFeederFieldUtility/Support/Info.plist
+        PRODUCT_BUNDLE_IDENTIFIER: $(APP_BUNDLE_IDENTIFIER)
+        DEVELOPMENT_TEAM: $(APP_DEVELOPMENT_TEAM)
+        TARGETED_DEVICE_FAMILY: "1,2"
+        SUPPORTED_PLATFORMS: "iphoneos iphonesimulator"
     sources:
       - path: SkyFeederFieldUtility/App
       - path: SkyFeederFieldUtility/Models
