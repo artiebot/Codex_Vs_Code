@@ -43,8 +43,6 @@ targets:
       - path: SkyFeederFieldUtility/Resources
         excludes:
           - Assets.xcassets/**
-    info:
-      path: SkyFeederFieldUtility/Support/Info.plist
     dependencies:
       - package: SkyFeederUI
 
