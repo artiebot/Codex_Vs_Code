@@ -37,6 +37,16 @@ targets:
       - path: SkyFeederFieldUtility/Resources
     info:
       path: SkyFeederFieldUtility/Support/Info.plist
+      properties:
+        CFBundleIconName: AppIcon
+        UILaunchScreen:
+          UIColorName: ""
+          UIImageName: ""
+        UISupportedInterfaceOrientations~ipad:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationPortraitUpsideDown
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
     dependencies:
       - package: SkyFeederUI
 
