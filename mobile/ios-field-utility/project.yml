@@ -28,6 +28,8 @@ targets:
         DEVELOPMENT_TEAM: $(APP_DEVELOPMENT_TEAM)
         TARGETED_DEVICE_FAMILY: "1,2"
         SUPPORTED_PLATFORMS: "iphoneos iphonesimulator"
+        MARKETING_VERSION: "0.1.0"
+        CURRENT_PROJECT_VERSION: 3
     sources:
       - path: SkyFeederFieldUtility/App
       - path: SkyFeederFieldUtility/Models
@@ -50,6 +52,10 @@ targets:
     type: bundle.unit-test
     platform: iOS
     deploymentTarget: "16.0"
+    settings:
+      base:
+        MARKETING_VERSION: "0.1.0"
+        CURRENT_PROJECT_VERSION: 3
     sources:
       - path: SkyFeederFieldUtility/Tests
     dependencies:
