@@ -11,7 +11,7 @@ struct SkyFeederFieldUtilityApp: App {
         let info = Bundle.main.infoDictionary ?? [:]
         let allowLocalHttp = info["SKAllowLocalHttp"] as? Bool ?? false
         let defaultProviderName = (info["SKDefaultProvider"] as? String) ?? "presigned"
-        let defaultProvider = CaptureProviderSelection(rawValue: defaultProviderName) ?? .presigned
+        let defaultProvider = SkyFeederUI.CaptureProviderSelection(rawValue: defaultProviderName) ?? .presigned
 
         _settingsStore = StateObject(
             wrappedValue: SettingsStore(
