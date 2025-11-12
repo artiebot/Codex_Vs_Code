@@ -49,7 +49,7 @@ public final class EventLogViewModel: ObservableObject {
 }
 
 extension EventLogViewModel: EventLogWebSocketClientDelegate {
-    nonisolated func eventLogClient(_ client: EventLogWebSocketClient, didReceive payload: EventPayload) {
+    public nonisolated func eventLogClient(_ client: EventLogWebSocketClient, didReceive payload: EventPayload) {
         Task { @MainActor [weak self] in
             guard let self else { return }
             if self.isConnected {
@@ -60,7 +60,7 @@ extension EventLogViewModel: EventLogWebSocketClientDelegate {
         }
     }
 
-    nonisolated func eventLogClient(_ client: EventLogWebSocketClient, didChangeState isConnected: Bool) {
+    public nonisolated func eventLogClient(_ client: EventLogWebSocketClient, didChangeState isConnected: Bool) {
         Task { @MainActor in
             self.isConnected = isConnected
             if isConnected {

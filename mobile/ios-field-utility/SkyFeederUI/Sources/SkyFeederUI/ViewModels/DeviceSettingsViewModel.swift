@@ -1,4 +1,5 @@
 import Foundation
+import SwiftUI
 
 @MainActor
 public final class DeviceSettingsViewModel: ObservableObject {

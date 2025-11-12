@@ -60,7 +60,13 @@ public struct DashboardView: View {
                 // System Health Card
                 if let snapshot = viewModel.healthSnapshot {
                     SystemHealthCardView(
-                        services: snapshot.services,
+                        services: snapshot.services.mapValues { serviceStatus in
+                            SystemHealthCardView.ServiceStatus(
+                                name: "",
+                                status: serviceStatus.status,
+                                latencyMs: serviceStatus.latencyMs
+                            )
+                        },
                         uptimeSeconds: snapshot.uptimeSeconds,
                         latencyMs: snapshot.latencyMs
                     )

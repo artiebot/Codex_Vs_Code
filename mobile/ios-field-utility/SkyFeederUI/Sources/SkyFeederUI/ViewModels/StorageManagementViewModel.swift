@@ -1,4 +1,5 @@
 import Foundation
+import SwiftUI
 
 @MainActor
 public final class StorageManagementViewModel: ObservableObject {

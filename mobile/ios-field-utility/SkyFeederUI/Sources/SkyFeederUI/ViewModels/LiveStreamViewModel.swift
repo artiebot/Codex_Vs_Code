@@ -23,7 +23,7 @@ public final class LiveStreamViewModel: ObservableObject {
     }
 
     deinit {
-        stop()
+        task?.cancel()
     }
 
     public func start() {
