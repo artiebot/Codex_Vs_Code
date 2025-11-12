@@ -39,19 +39,12 @@ targets:
       - path: SkyFeederFieldUtility/ViewModels
       - path: SkyFeederFieldUtility/Views
     resources:
+      - path: SkyFeederFieldUtility/Resources/Assets.xcassets
       - path: SkyFeederFieldUtility/Resources
+        excludes:
+          - Assets.xcassets/**
     info:
       path: SkyFeederFieldUtility/Support/Info.plist
-      properties:
-        CFBundleIconName: AppIcon
-        UILaunchScreen:
-          UIColorName: ""
-          UIImageName: ""
-        UISupportedInterfaceOrientations~ipad:
-          - UIInterfaceOrientationPortrait
-          - UIInterfaceOrientationPortraitUpsideDown
-          - UIInterfaceOrientationLandscapeLeft
-          - UIInterfaceOrientationLandscapeRight
     dependencies:
       - package: SkyFeederUI
 
