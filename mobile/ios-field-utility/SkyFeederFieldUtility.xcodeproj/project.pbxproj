@@ -490,7 +490,7 @@
                         buildSettings = {
                                 ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
                                 CODE_SIGN_STYLE = Automatic;
-                                CURRENT_PROJECT_VERSION = 2;
+                                CURRENT_PROJECT_VERSION = 3;
                                 DEVELOPMENT_TEAM = "";
                                 ENABLE_PREVIEWS = YES;
                                 INFOPLIST_FILE = SkyFeederFieldUtility/Support/Info.plist;
@@ -513,7 +513,7 @@
                         buildSettings = {
                                 ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
                                 CODE_SIGN_STYLE = Automatic;
-                                CURRENT_PROJECT_VERSION = 2;
+                                CURRENT_PROJECT_VERSION = 3;
                                 DEVELOPMENT_TEAM = "";
                                 ENABLE_PREVIEWS = YES;
                                 INFOPLIST_FILE = SkyFeederFieldUtility/Support/Info.plist;
@@ -535,7 +535,7 @@
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = 3;
 				DEVELOPMENT_TEAM = "";
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
@@ -553,7 +553,7 @@
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = 3;
 				DEVELOPMENT_TEAM = "";
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
