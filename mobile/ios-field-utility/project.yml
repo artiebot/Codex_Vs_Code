@@ -85,8 +85,8 @@ targets:
         UIApplicationSceneManifest:
           UIApplicationSupportsMultipleScenes: false
         UILaunchScreen:
-          UIColorName: ''
-          UIImageName: ''
+          UIColorName: ""
+          UIImageName: ""
         UIRequiredDeviceCapabilities:
           - arm64
         UISupportedInterfaceOrientations:
