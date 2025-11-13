@@ -62,11 +62,22 @@ targets:
     info:
       path: SkyFeederFieldUtility/Support/Info.plist
       properties:
+        CFBundleIdentifier: $(PRODUCT_BUNDLE_IDENTIFIER)
         CFBundleDisplayName: SkyFeeder
         CFBundleName: SkyFeeder
         CFBundleShortVersionString: $(MARKETING_VERSION)
         CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         CFBundleIconName: AppIcon
+        CFBundleIcons:
+          CFBundlePrimaryIcon:
+            CFBundleIconFiles:
+              - AppIcon
+            UIPrerenderedIcon: false
+        CFBundleIcons~ipad:
+          CFBundlePrimaryIcon:
+            CFBundleIconFiles:
+              - AppIcon
+            UIPrerenderedIcon: false
         UILaunchScreen:
           UIColorName: ''
           UIImageName: ''
@@ -76,43 +87,18 @@ targets:
           - UIInterfaceOrientationLandscapeLeft
           - UIInterfaceOrientationLandscapeRight
     preBuildScripts:
-      - name: Validate Info.plist Bundle Inclusion
+      - name: Validate Info.plist bundle keys
         script: |
           set -euo pipefail
-
-          echo "=== Pre-Build Info.plist Validation ==="
-
-          # XcodeGen merges the template with properties during build
-          # Check the final Info.plist in the built app
           PLIST="${TARGET_BUILD_DIR}/${INFOPLIST_PATH}"
-
-          if [[ ! -f "$PLIST" ]]; then
-            echo "ERROR: Info.plist not found at $PLIST"
-            echo "This means XcodeGen failed to generate/copy the Info.plist"
-            exit 1
-          fi
-
-          echo "✓ Info.plist exists at: $PLIST"
-
-          # Verify critical keys
-          if ! /usr/libexec/PlistBuddy -c "Print :CFBundleIconName" "$PLIST" >/dev/null 2>&1; then
-            echo "ERROR: CFBundleIconName missing from Info.plist"
-            exit 1
-          fi
-          echo "✓ CFBundleIconName present"
-
-          if ! /usr/libexec/PlistBuddy -c "Print :UILaunchScreen" "$PLIST" >/dev/null 2>&1; then
-            echo "ERROR: UILaunchScreen missing from Info.plist"
-            exit 1
-          fi
-          echo "✓ UILaunchScreen present"
-
-          if ! /usr/libexec/PlistBuddy -c "Print :UISupportedInterfaceOrientations~ipad" "$PLIST" >/dev/null 2>&1; then
-            echo "ERROR: UISupportedInterfaceOrientations~ipad missing from Info.plist"
-            exit 1
-          fi
-          echo "✓ UISupportedInterfaceOrientations~ipad present"
-
-          echo "=== Pre-Build Validation PASSED ==="
-    dependencies:
+          echo "Validating Info.plist at ${PLIST}"
+          [[ -f "${PLIST}" ]] || { echo "Info.plist missing at ${PLIST}"; exit 1; }
+          for KEY in CFBundleIconName UILaunchScreen UISupportedInterfaceOrientations~ipad; do
+            if ! /usr/libexec/PlistBuddy -c "Print :${KEY}" "${PLIST}" >/dev/null 2>&1; then
+              echo "Required Info.plist key ${KEY} missing"
+              exit 1
+            fi
+            echo "✓ ${KEY} present"
+          done
+   dependencies:
       - package: SkyFeederUI
