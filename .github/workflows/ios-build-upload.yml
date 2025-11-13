@@ -108,14 +108,28 @@ jobs:
           CI: "true"
         run: bundle exec fastlane ios testflight_upload
 
+      - name: Print gym log on failure
+        if: failure()
+        run: |
+          set -euo pipefail
+          LOG_PATH="$HOME/Library/Logs/gym/SkyFeederFieldUtility-SkyFeederFieldUtility.log"
+          if [[ -f "$LOG_PATH" ]]; then
+            echo "===== BEGIN gym log ====="
+            cat "$LOG_PATH"
+            echo "===== END gym log ====="
+          else
+            echo "gym log not found at $LOG_PATH"
+            ls -R "$HOME/Library/Logs/gym" || true
+          fi
+
       - name: Inspect IPA bundle Info.plist and assets
-        if: always()
+        if: success()
         run: |
           set -xeuo pipefail
-          IPA_PATH=$(ls build/*.ipa | head -n1)
+          IPA_PATH=$(ls build/*.ipa | head -n1 2>/dev/null || true)
           if [[ -z "${IPA_PATH}" ]]; then
-            echo "IPA not found under build/; cannot inspect" >&2
-            exit 1
+            echo "No IPA found under build/ (likely build failure). Skipping inspection."
+            exit 0
           fi
           TMP_DIR=$(mktemp -d)
           unzip -q "${IPA_PATH}" -d "${TMP_DIR}"
