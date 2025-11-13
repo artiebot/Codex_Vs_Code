@@ -492,10 +492,23 @@ Updated Contents.json with iPad icon entries.
 
 ### Build Results
 
+**Initial "Success" (ONE-TIME FLUKE):**
 - **Build ID:** 19286305646
 - **Duration:** 20m47s
-- **Status:** ✅ SUCCESS
+- **Status:** ✅ SUCCESS (NOT REPRODUCIBLE)
 - **Result:** Successfully uploaded to App Store Connect / TestFlight
+
+**Subsequent Failures (PERSISTENT ISSUE - UNRESOLVED):**
+- **Failed Builds:** 19302815264, 19304191990, 19304281243, 19315927277, 19318467658 (and 6+ more)
+- **Duration:** All ~2 minutes (fail at App Store validation)
+- **Status:** ❌ FAILURE - ALL WITH IDENTICAL CONFIGURATION
+- **Error:** "missing in bundle" for CFBundleIconName, icons, orientations, UILaunchScreen
+
+### CRITICAL UPDATE: Build 19286305646 Was a Fluke
+
+The one successful build appears to have been caused by caching or a transient condition. **All subsequent builds with IDENTICAL code fail validation.**
+
+This proves the CFBundleIcons fix was NOT the actual solution
 
 ### Files Modified
 
@@ -523,7 +536,23 @@ When using XcodeGen:
 ### Success Metrics Updated
 
 - **Before XcodeGen migration:** Working TestFlight uploads
-- **After XcodeGen migration:** 7 consecutive validation failures (all same errors)
-- **After CFBundleIcons fix:** 100% success rate
-- **Build time:** ~20 minutes (includes compilation + upload)
-- **Result:** App successfully uploaded to TestFlight ✅
+- **After XcodeGen migration:** 7+ consecutive validation failures (all same errors)
+- **After CFBundleIcons fix:** 1 success (fluke), then 10+ consecutive failures
+- **Build time:** ~2 minutes (all fail at validation)
+- **Result:** ❌ **ISSUE UNRESOLVED - XcodeGen not packaging Info.plist into .ipa bundle**
+
+### Status: UNRESOLVED
+
+**XcodeGen Fundamental Issue:** The Info.plist template is NOT being included in the final .ipa bundle, regardless of configuration. All validation errors report keys as "missing in the bundle" even though they exist in the source Info.plist file.
+
+**Attempted Fixes (ALL FAILED):**
+1. CFBundleIcons dictionaries
+2. GENERATE_INFOPLIST_FILE: NO
+3. Explicit build settings
+4. Info.plist properties in project.yml
+5. Removing info section entirely
+6. INFOPLIST_KEY_* build settings
+7. Multiple resource configuration variations
+8. Explicit vs implicit Info.plist paths
+
+**Conclusion:** This is a fundamental XcodeGen packaging bug. The framework is failing to merge/copy the Info.plist into the final bundle during archive/export.
