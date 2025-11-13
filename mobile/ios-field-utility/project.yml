@@ -60,6 +60,7 @@ targets:
 
 
     info:
+      path: SkyFeederFieldUtility/Support/Info.plist
       properties:
         CFBundleDevelopmentRegion: $(DEVELOPMENT_LANGUAGE)
         CFBundleExecutable: $(EXECUTABLE_NAME)
