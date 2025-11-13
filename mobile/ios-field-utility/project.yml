@@ -100,5 +100,5 @@ targets:
             fi
             echo "✓ ${KEY} present"
           done
-   dependencies:
+    dependencies:
       - package: SkyFeederUI
