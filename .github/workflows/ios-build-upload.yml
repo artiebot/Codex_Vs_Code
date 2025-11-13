@@ -155,4 +155,3 @@ jobs:
           find "${APP_PATH}" -maxdepth 2 \( -name "*.png" -o -name "Assets.car" \) -print | sort
           echo "::endgroup::"
           rm -rf "${TMP_DIR}"
-        working-directory: mobile/ios-field-utility
