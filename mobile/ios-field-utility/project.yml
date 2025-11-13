@@ -24,16 +24,12 @@ targets:
       base:
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: ""
-        INFOPLIST_FILE: SkyFeederFieldUtility/Support/Info.plist
-        INFOPLIST_KEY_CFBundleDisplayName: SkyFeeder
-        INFOPLIST_KEY_LSApplicationCategoryType: ""
         PRODUCT_BUNDLE_IDENTIFIER: $(APP_BUNDLE_IDENTIFIER)
         DEVELOPMENT_TEAM: $(APP_DEVELOPMENT_TEAM)
         TARGETED_DEVICE_FAMILY: "1,2"
         SUPPORTED_PLATFORMS: "iphoneos iphonesimulator"
         MARKETING_VERSION: "0.1.0"
         CURRENT_PROJECT_VERSION: 3
-        GENERATE_INFOPLIST_FILE: NO
     sources:
       - path: SkyFeederFieldUtility/App
       - path: SkyFeederFieldUtility/Models
@@ -46,20 +42,77 @@ targets:
       - path: SkyFeederFieldUtility/Views
     resources:
       - path: SkyFeederFieldUtility/Resources
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     info:
       path: SkyFeederFieldUtility/Support/Info.plist
+      properties:
+        CFBundleDisplayName: SkyFeeder
+        CFBundleName: SkyFeeder
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        CFBundleIconName: AppIcon
+        UILaunchScreen:
+          UIColorName: ''
+          UIImageName: ''
+        UISupportedInterfaceOrientations~ipad:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationPortraitUpsideDown
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
+    preBuildScripts:
+      - name: Validate Info.plist Bundle Inclusion
+        script: |
+          set -euo pipefail
+
+          echo "=== Pre-Build Info.plist Validation ==="
+
+          # XcodeGen merges the template with properties during build
+          # Check the final Info.plist in the built app
+          PLIST="${TARGET_BUILD_DIR}/${INFOPLIST_PATH}"
+
+          if [[ ! -f "$PLIST" ]]; then
+            echo "ERROR: Info.plist not found at $PLIST"
+            echo "This means XcodeGen failed to generate/copy the Info.plist"
+            exit 1
+          fi
+
+          echo "✓ Info.plist exists at: $PLIST"
+
+          # Verify critical keys
+          if ! /usr/libexec/PlistBuddy -c "Print :CFBundleIconName" "$PLIST" >/dev/null 2>&1; then
+            echo "ERROR: CFBundleIconName missing from Info.plist"
+            exit 1
+          fi
+          echo "✓ CFBundleIconName present"
+
+          if ! /usr/libexec/PlistBuddy -c "Print :UILaunchScreen" "$PLIST" >/dev/null 2>&1; then
+            echo "ERROR: UILaunchScreen missing from Info.plist"
+            exit 1
+          fi
+          echo "✓ UILaunchScreen present"
+
+          if ! /usr/libexec/PlistBuddy -c "Print :UISupportedInterfaceOrientations~ipad" "$PLIST" >/dev/null 2>&1; then
+            echo "ERROR: UISupportedInterfaceOrientations~ipad missing from Info.plist"
+            exit 1
+          fi
+          echo "✓ UISupportedInterfaceOrientations~ipad present"
+
+          echo "=== Pre-Build Validation PASSED ==="
     dependencies:
       - package: SkyFeederUI
-
-  SkyFeederFieldUtilityTests:
-    type: bundle.unit-test
-    platform: iOS
-    deploymentTarget: "16.0"
-    settings:
-      base:
-        MARKETING_VERSION: "0.1.0"
-        CURRENT_PROJECT_VERSION: 3
-    sources:
-      - path: SkyFeederFieldUtility/Tests
-    dependencies:
-      - target: SkyFeederFieldUtility

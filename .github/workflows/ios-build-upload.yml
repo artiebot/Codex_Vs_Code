@@ -107,3 +107,71 @@ jobs:
           FASTLANE_SKIP_UPDATE_CHECK: "1"
           CI: "true"
         run: bundle exec fastlane ios testflight_upload
+
+      - name: Inspect IPA Bundle Contents
+        if: always()
+        run: |
+          set -euo pipefail
+
+          # Find the .ipa file
+          IPA_PATH=$(find build -name "*.ipa" | head -n 1)
+          if [[ -z "$IPA_PATH" ]]; then
+            echo "ERROR: No .ipa file found in build directory"
+            exit 1
+          fi
+
+          echo "============================================"
+          echo "Inspecting IPA: $IPA_PATH"
+          echo "============================================"
+
+          # Create temp directory and unzip
+          TEMP_DIR=$(mktemp -d)
+          unzip -q "$IPA_PATH" -d "$TEMP_DIR"
+
+          # Find the .app bundle
+          APP_BUNDLE=$(find "$TEMP_DIR/Payload" -name "*.app" | head -n 1)
+          INFO_PLIST="$APP_BUNDLE/Info.plist"
+
+          echo ""
+          echo "=== Full Info.plist Contents ==="
+          /usr/libexec/PlistBuddy -c "Print" "$INFO_PLIST" || echo "Failed to read Info.plist"
+
+          echo ""
+          echo "=== Critical Keys Verification ==="
+          echo -n "CFBundleIconName: "
+          /usr/libexec/PlistBuddy -c "Print :CFBundleIconName" "$INFO_PLIST" 2>&1 || echo "MISSING"
+
+          echo -n "CFBundleIcons: "
+          /usr/libexec/PlistBuddy -c "Print :CFBundleIcons" "$INFO_PLIST" 2>&1 || echo "MISSING"
+
+          echo -n "CFBundleIcons~ipad: "
+          /usr/libexec/PlistBuddy -c "Print :CFBundleIcons~ipad" "$INFO_PLIST" 2>&1 || echo "MISSING"
+
+          echo -n "UILaunchScreen: "
+          /usr/libexec/PlistBuddy -c "Print :UILaunchScreen" "$INFO_PLIST" 2>&1 || echo "MISSING"
+
+          echo -n "UISupportedInterfaceOrientations~ipad: "
+          /usr/libexec/PlistBuddy -c "Print :UISupportedInterfaceOrientations~ipad" "$INFO_PLIST" 2>&1 || echo "MISSING"
+
+          echo ""
+          echo "=== Icon Files in App Bundle (top 2 levels) ==="
+          find "$APP_BUNDLE" -maxdepth 2 -name "*.png" -o -name "*.car" | sort
+
+          echo ""
+          echo "=== Assets.car Contents (if present) ==="
+          ASSETS_CAR=$(find "$APP_BUNDLE" -name "Assets.car" | head -n 1)
+          if [[ -n "$ASSETS_CAR" ]]; then
+            echo "Assets.car found at: $ASSETS_CAR"
+            echo "Size: $(du -h "$ASSETS_CAR" | cut -f1)"
+          else
+            echo "No Assets.car found"
+          fi
+
+          # Cleanup
+          rm -rf "$TEMP_DIR"
+
+          echo ""
+          echo "============================================"
+          echo "IPA Inspection Complete"
+          echo "============================================"
+        working-directory: mobile/ios-field-utility
