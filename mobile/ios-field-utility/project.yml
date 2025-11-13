@@ -60,13 +60,16 @@ targets:
 
 
     info:
-      path: SkyFeederFieldUtility/Support/Info.plist
       properties:
+        CFBundleDevelopmentRegion: $(DEVELOPMENT_LANGUAGE)
+        CFBundleExecutable: $(EXECUTABLE_NAME)
         CFBundleIdentifier: $(PRODUCT_BUNDLE_IDENTIFIER)
-        CFBundleDisplayName: SkyFeeder
+        CFBundleInfoDictionaryVersion: "6.0"
         CFBundleName: SkyFeeder
+        CFBundlePackageType: $(PRODUCT_BUNDLE_PACKAGE_TYPE)
         CFBundleShortVersionString: $(MARKETING_VERSION)
         CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        CFBundleDisplayName: SkyFeeder
         CFBundleIconName: AppIcon
         CFBundleIcons:
           CFBundlePrimaryIcon:
@@ -78,14 +81,30 @@ targets:
             CFBundleIconFiles:
               - AppIcon
             UIPrerenderedIcon: false
+        LSRequiresIPhoneOS: true
+        UIApplicationSceneManifest:
+          UIApplicationSupportsMultipleScenes: false
         UILaunchScreen:
           UIColorName: ''
           UIImageName: ''
+        UIRequiredDeviceCapabilities:
+          - arm64
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
         UISupportedInterfaceOrientations~ipad:
           - UIInterfaceOrientationPortrait
           - UIInterfaceOrientationPortraitUpsideDown
           - UIInterfaceOrientationLandscapeLeft
           - UIInterfaceOrientationLandscapeRight
+        NSAppTransportSecurity:
+          NSExceptionDomains:
+            10.0.0.4:
+              NSIncludesSubdomains: false
+              NSTemporaryExceptionAllowsInsecureHTTPLoads: true
+        NSPhotoLibraryAddUsageDescription: "Needed to save captures to Photos."
+        NSPhotoLibraryUsageDescription: "Needed to access your Photos."
+        SKAllowLocalHttp: true
+        SKDefaultProvider: "PresignedHTTP"
     preBuildScripts:
       - name: Validate Info.plist bundle keys
         script: |
