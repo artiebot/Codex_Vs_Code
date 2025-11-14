@@ -434,6 +434,40 @@ What is the correct XcodeGen 2.37.0 YAML syntax to properly include an Assets.xc
 Please provide the exact YAML configuration needed in the resources or sources section of project.yml.
 ```
 
+### Attempt 18: SOLUTION - Exclude Asset Catalog from Sources
+**Date:** 2025-11-14
+**Action:** Implemented ChatGPT's expert guidance
+
+**Root Cause Identified by ChatGPT:**
+Asset catalog must be ONLY referenced as a resource, never as a source. The issue was that we were using individual source paths, which didn't explicitly exclude the asset catalog.
+
+**ChatGPT's Solution:**
+```yaml
+# Use broad source path with explicit asset catalog exclusion
+sources:
+  - path: SkyFeederFieldUtility
+    excludes:
+      - Resources/Assets.xcassets/**  # CRITICAL: Exclude from sources
+      - Support/Configurations/**
+      - Support/Info.plist
+
+# Then add asset catalog ONLY as resource
+resources:
+  - path: SkyFeederFieldUtility/Resources/Assets.xcassets
+```
+
+**Key Insight:**
+By excluding `Resources/Assets.xcassets/**` from sources and adding it ONLY to resources, XcodeGen will:
+1. Add it to the "Copy Bundle Resources" build phase
+2. This triggers actool compilation
+3. Assets.car is generated and included in bundle
+
+**Expected Result:**
+- Asset catalog added to Copy Bundle Resources build phase in generated .xcodeproj
+- actool runs during build
+- Assets.car appears in final bundle
+- App Store validation passes
+
 ## References
 
 - XcodeGen docs: https://github.com/yonaskolb/XcodeGen
@@ -445,5 +479,5 @@ Please provide the exact YAML configuration needed in the resources or sources s
 ---
 
 **Last Updated:** 2025-11-14
-**Build ID:** 19353547521 (FAILED - Asset catalog still missing, actool never runs)
-**Attempts:** 17 builds, all failed App Store validation
+**Build ID:** Testing (Attempt 18 - ChatGPT solution: exclude asset catalog from sources)
+**Previous Failed Build:** 19353547521 (actool never ran)
