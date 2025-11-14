@@ -258,29 +258,97 @@ Return to manual .xcodeproj management with CocoaPods.
 3. Should we use `INFOPLIST_FILE` build setting to ensure plist inclusion?
 4. Is this a known XcodeGen bug with CFBundleIcons specifically?
 
-## Status: AWAITING NEXT APPROACH
+### Attempt 16: CRITICAL DISCOVERY - Asset Catalog Missing (Build 19353348238)
+**Date:** 2025-11-14
+**Action:** Restored `path:` field, committed troubleshooting documentation, monitored build
+
+**Build Result:** ❌ FAILED App Store validation with same 3 errors
+
+**BREAKTHROUGH FINDING:**
+
+**IPA Inspection revealed:**
+```
+✅ CFBundleIconName = AppIcon (PRESENT in bundle)
+✅ CFBundleIcons = Dict { CFBundlePrimaryIcon = Dict { CFBundleIconFiles = Array { AppIcon }, UIPrerenderedIcon = false } } (PRESENT)
+✅ CFBundleIcons~ipad = Dict { CFBundlePrimaryIcon = Dict { CFBundleIconFiles = Array { AppIcon }, UIPrerenderedIcon = false } } (PRESENT)
+❌ Top-level image assets: EMPTY - No PNG files, No Assets.car file
+```
+
+**ROOT CAUSE IDENTIFIED:**
+
+The problem is NOT with Info.plist merging. The Info.plist keys ARE correctly present in the final bundle.
+
+**THE REAL PROBLEM: The asset catalog (Assets.xcassets) is NOT being compiled or included in the final .app bundle.**
+
+The bundle should contain either:
+1. Individual PNG files (AppIcon60x60@2x.png, AppIcon76x76@2x.png, etc.) OR
+2. A compiled Assets.car file
+
+But the bundle contains NEITHER. The asset catalog is completely missing from the build output.
+
+**Evidence:**
+```bash
+# Expected in bundle:
+/Payload/SkyFeederFieldUtility.app/Assets.car  # Compiled asset catalog
+# OR individual PNG files
+
+# Actual result:
+(empty - no asset files at all)
+```
+
+**Why App Store validation fails:**
+- Info.plist correctly references "AppIcon" via CFBundleIconName
+- Info.plist correctly declares CFBundleIcons structure
+- BUT the actual icon assets referenced by "AppIcon" don't exist in the bundle
+- Apple looks for 120×120 and 152×152 icon files but finds nothing
+
+**Key Insight:**
+Previous hypothesis about XcodeGen Info.plist merging was WRONG. XcodeGen IS correctly generating Info.plist with all required keys. The actual issue is asset catalog compilation/inclusion failing silently.
+
+## Updated Root Cause Analysis
+
+**The problem is asset catalog compilation, not Info.plist configuration.**
+
+**Possible causes:**
+1. ASSETCATALOG_COMPILER_APPICON_NAME not being read during compilation
+2. Assets.xcassets path not registered correctly with XcodeGen
+3. Asset catalog compilation step silently failing in xcodebuild
+4. Build settings preventing asset catalog from being copied to bundle
+5. File references in generated .xcodeproj missing asset catalog
+
+**What we know:**
+- ✅ Asset catalog files exist in source (verified in git)
+- ✅ Contents.json has correct structure
+- ✅ Info.plist correctly references "AppIcon"
+- ❌ Asset catalog never makes it into final .app bundle
+- ❌ No PNG files, no Assets.car in bundle
+
+## Status: ROOT CAUSE IDENTIFIED - ASSET CATALOG MISSING
 
 **Current State:**
-- ❌ Project broken (no `path:` in info block)
-- ❌ 15+ build attempts, all failed App Store validation
-- ✅ Diagnostics in place (gym log, IPA inspection)
-- ⏳ Waiting for ChatGPT consultation result
+- ✅ Info.plist generation WORKING correctly (all keys present)
+- ❌ Asset catalog compilation/inclusion FAILING silently
+- ❌ 16 build attempts, all failed App Store validation
+- ✅ Root cause identified via IPA inspection
+- ⏳ Waiting for solution to asset catalog inclusion issue
 
 **Next Steps:**
-1. Get ChatGPT recommendation
-2. Test recommended approach
-3. Verify CFBundleIcons in final IPA bundle via inspection step
-4. Document final solution
+1. Verify Assets.xcassets is properly referenced in project.yml
+2. Check if XcodeGen is including asset catalog in generated .xcodeproj
+3. Review build settings related to asset catalog compilation
+4. Check if asset catalog needs explicit file reference in project.yml
+5. Consider adding diagnostic step to verify Assets.xcassets compilation in CI
 
 ## References
 
 - XcodeGen docs: https://github.com/yonaskolb/XcodeGen
 - Apple Info.plist keys: https://developer.apple.com/documentation/bundleresources/information_property_list
+- Asset Catalog compilation: https://developer.apple.com/documentation/xcode/managing-assets-with-asset-catalogs
 - Fastlane Match: https://docs.fastlane.tools/actions/match/
 - GitHub Actions workflow: `.github/workflows/ios-build-upload.yml`
 
 ---
 
-**Last Updated:** 2025-11-13
-**Build ID:** 19319705338 (XcodeGen parse error - no path)
+**Last Updated:** 2025-11-14
+**Build ID:** 19353348238 (CRITICAL: Asset catalog missing from bundle)
 **Previous Working Build:** 19286305646 (2 days ago)
