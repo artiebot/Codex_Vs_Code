@@ -370,14 +370,69 @@ XcodeGen was not properly including the asset catalog because the resources path
 **Expected Result:**
 Asset catalog should now be compiled and included in the final .app bundle, providing the required icon files for App Store validation.
 
-## Status: FIX APPLIED - TESTING IN PROGRESS
+**Build Result (Build 19353547521):** ❌ FAILED - Asset catalog still missing
+
+**Evidence:**
+- IPA inspection: No PNG files, no Assets.car in bundle
+- Build log analysis: NO "actool" (asset catalog compiler) execution found
+- Conclusion: XcodeGen is NOT including Assets.xcassets in generated .xcodeproj
+
+**Attempted fix DID NOT WORK.** Explicit path to Assets.xcassets did not cause XcodeGen to include it.
+
+## Status: BLOCKED - Need XcodeGen Expert Guidance
 
 **Current State:**
 - ✅ Info.plist generation WORKING correctly (all keys present)
-- ✅ Asset catalog files verified (correct dimensions)
+- ✅ Asset catalog files verified (all PNGs correct dimensions)
 - ✅ Contents.json verified (correct structure)
-- ✅ Explicit asset catalog reference added to project.yml
-- ⏳ Testing build to verify Assets.car appears in bundle
+- ❌ Attempt 1: Broad resources path (`SkyFeederFieldUtility/Resources`) - FAILED
+- ❌ Attempt 2: Explicit asset catalog path (`SkyFeederFieldUtility/Resources/Assets.xcassets`) - FAILED
+- ❌ XcodeGen NOT including asset catalog in generated .xcodeproj
+- ❌ Asset catalog NOT being compiled (no actool in build logs)
+- ❌ 17 build attempts, all failed App Store validation
+
+**Core Issue:**
+XcodeGen is not generating the correct .xcodeproj configuration to include the Assets.xcassets folder, regardless of how it's referenced in the resources section. The asset catalog compiler (actool) never runs during the build.
+
+**Questions for ChatGPT:**
+1. What is the correct YAML syntax in XcodeGen 2.37.0 to include an Assets.xcassets asset catalog?
+2. Should asset catalogs be in `resources:` or `sources:` section?
+3. Does XcodeGen require a specific file type or option for asset catalogs?
+4. Is there a known bug in XcodeGen 2.37.0 with asset catalog inclusion?
+5. Should we check the generated .xcodeproj to verify if Assets.xcassets is referenced?
+
+## Prompt for ChatGPT
+
+```
+I'm debugging an iOS build issue with XcodeGen 2.37.0. After migrating from manual .xcodeproj to XcodeGen, app builds succeed but App Store validation fails because the asset catalog is completely missing from the final .app bundle.
+
+VERIFIED FACTS:
+✅ Asset catalog exists at: mobile/ios-field-utility/SkyFeederFieldUtility/Resources/Assets.xcassets/AppIcon.appiconset/
+✅ All PNG icons verified (120x120, 180x180, 152x152, 167x167, 1024x1024)
+✅ Contents.json has correct structure with all required iOS icon sizes
+✅ Info.plist correctly includes CFBundleIconName, CFBundleIcons, CFBundleIcons~ipad
+✅ Build setting: ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon
+❌ Final .app bundle contains NO PNG files and NO Assets.car file
+❌ Build logs show NO "actool" (asset catalog compiler) execution
+❌ XcodeGen is NOT including Assets.xcassets in generated .xcodeproj
+
+PROJECT.YML ATTEMPTS:
+Attempt 1 (FAILED):
+resources:
+  - path: SkyFeederFieldUtility/Resources
+
+Attempt 2 (FAILED):
+resources:
+  - path: SkyFeederFieldUtility/Resources/Assets.xcassets
+
+QUESTION:
+What is the correct XcodeGen 2.37.0 YAML syntax to properly include an Assets.xcassets asset catalog so that:
+1. It's included in the generated .xcodeproj
+2. The actool compiler runs during build
+3. Assets.car appears in the final bundle
+
+Please provide the exact YAML configuration needed in the resources or sources section of project.yml.
+```
 
 ## References
 
@@ -390,5 +445,5 @@ Asset catalog should now be compiled and included in the final .app bundle, prov
 ---
 
 **Last Updated:** 2025-11-14
-**Build ID:** Testing (Attempt 17 - Explicit asset catalog reference)
-**Previous Build:** 19353348238 (Asset catalog missing from bundle)
+**Build ID:** 19353547521 (FAILED - Asset catalog still missing, actool never runs)
+**Attempts:** 17 builds, all failed App Store validation
