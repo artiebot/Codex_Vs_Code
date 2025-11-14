@@ -41,7 +41,7 @@ targets:
       - path: SkyFeederFieldUtility/ViewModels
       - path: SkyFeederFieldUtility/Views
     resources:
-      - path: SkyFeederFieldUtility/Resources
+      - path: SkyFeederFieldUtility/Resources/Assets.xcassets
 
 
 

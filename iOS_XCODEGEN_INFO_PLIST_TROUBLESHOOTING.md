@@ -323,21 +323,61 @@ Previous hypothesis about XcodeGen Info.plist merging was WRONG. XcodeGen IS cor
 - ❌ Asset catalog never makes it into final .app bundle
 - ❌ No PNG files, no Assets.car in bundle
 
-## Status: ROOT CAUSE IDENTIFIED - ASSET CATALOG MISSING
+### Attempt 17: FIX APPLIED - Explicit Asset Catalog Reference
+**Date:** 2025-11-14
+**Action:** Following ChatGPT's guidance to fix asset catalog inclusion
+
+**Changes Made:**
+
+1. **Verified PNG Icons in png/ folder:**
+   - icon-1024.png: 1024×1024 ✅
+   - icon-60@2x.png: 120×120 ✅
+   - icon-60@3x.png: 180×180 ✅
+   - icon-76@2x.png: 152×152 ✅
+   - icon-83.5@2x.png: 167×167 ✅
+
+2. **Copied fresh PNGs to AppIcon.appiconset:**
+   - All icon files copied from png/ folder to asset catalog
+   - Verified all have correct dimensions matching expected sizes
+
+3. **Verified Contents.json structure:**
+   ```json
+   {
+     "images": [
+       {"size": "60x60", "idiom": "iphone", "scale": "2x", "filename": "icon-60@2x.png"},
+       {"size": "60x60", "idiom": "iphone", "scale": "3x", "filename": "icon-60@3x.png"},
+       {"size": "76x76", "idiom": "ipad", "scale": "2x", "filename": "icon-76@2x.png"},
+       {"size": "83.5x83.5", "idiom": "ipad", "scale": "2x", "filename": "icon-83.5@2x.png"},
+       {"size": "1024x1024", "idiom": "ios-marketing", "scale": "1x", "filename": "icon-1024.png"}
+     ]
+   }
+   ```
+
+4. **CRITICAL FIX - Made asset catalog reference explicit in project.yml:**
+   ```yaml
+   # Changed from:
+   resources:
+     - path: SkyFeederFieldUtility/Resources
+
+   # To:
+   resources:
+     - path: SkyFeederFieldUtility/Resources/Assets.xcassets
+   ```
+
+**Root Cause:**
+XcodeGen was not properly including the asset catalog because the resources path was too broad (`SkyFeederFieldUtility/Resources`). By explicitly referencing `SkyFeederFieldUtility/Resources/Assets.xcassets`, XcodeGen should now properly include the asset catalog in the generated .xcodeproj.
+
+**Expected Result:**
+Asset catalog should now be compiled and included in the final .app bundle, providing the required icon files for App Store validation.
+
+## Status: FIX APPLIED - TESTING IN PROGRESS
 
 **Current State:**
 - ✅ Info.plist generation WORKING correctly (all keys present)
-- ❌ Asset catalog compilation/inclusion FAILING silently
-- ❌ 16 build attempts, all failed App Store validation
-- ✅ Root cause identified via IPA inspection
-- ⏳ Waiting for solution to asset catalog inclusion issue
-
-**Next Steps:**
-1. Verify Assets.xcassets is properly referenced in project.yml
-2. Check if XcodeGen is including asset catalog in generated .xcodeproj
-3. Review build settings related to asset catalog compilation
-4. Check if asset catalog needs explicit file reference in project.yml
-5. Consider adding diagnostic step to verify Assets.xcassets compilation in CI
+- ✅ Asset catalog files verified (correct dimensions)
+- ✅ Contents.json verified (correct structure)
+- ✅ Explicit asset catalog reference added to project.yml
+- ⏳ Testing build to verify Assets.car appears in bundle
 
 ## References
 
@@ -350,5 +390,5 @@ Previous hypothesis about XcodeGen Info.plist merging was WRONG. XcodeGen IS cor
 ---
 
 **Last Updated:** 2025-11-14
-**Build ID:** 19353348238 (CRITICAL: Asset catalog missing from bundle)
-**Previous Working Build:** 19286305646 (2 days ago)
+**Build ID:** Testing (Attempt 17 - Explicit asset catalog reference)
+**Previous Build:** 19353348238 (Asset catalog missing from bundle)
