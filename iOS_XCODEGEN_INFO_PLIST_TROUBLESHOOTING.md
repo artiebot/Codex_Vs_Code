@@ -477,10 +477,29 @@ resources:
 
 ### Attempt 20: ✅ SUCCESS - Asset Catalog Compilation Fixed (Build 19353887383)
 **Date:** 2025-11-14
-**Action:** Removed asset catalog from excludes list (reversed incorrect ChatGPT guidance)
+**Action:** Removed asset catalog from excludes list AND removed resources override (reversed incorrect ChatGPT guidance)
 
-**THE SOLUTION THAT WORKED:**
+**CHANGES MADE (mobile/ios-field-utility/project.yml lines 33-38):**
 
+1. **REMOVED** `Resources/Assets.xcassets/**` from the sources.excludes list
+2. **DELETED** the entire `resources:` section that referenced Assets.xcassets
+3. This forces XcodeGen to place the catalog back into "Compile Sources" build phase where actool runs
+
+**BEFORE (BROKEN - Attempt 18-19):**
+```yaml
+sources:
+  - path: SkyFeederFieldUtility
+    excludes:
+      - Resources/Assets.xcassets/**  # ❌ WRONG - prevents actool
+      - Support/Configurations/**
+      - Support/Info.plist
+      - Tests/**
+
+resources:  # ❌ WRONG - copies raw files without compilation
+  - path: SkyFeederFieldUtility/Resources/Assets.xcassets
+```
+
+**AFTER (WORKING - Attempt 20):**
 ```yaml
 sources:
   - path: SkyFeederFieldUtility
@@ -488,7 +507,8 @@ sources:
       - Support/Configurations/**
       - Support/Info.plist
       - Tests/**
-      # CRITICAL: Assets.xcassets NOT excluded - it MUST be compiled as a source!
+      # ✅ Assets.xcassets NOT excluded - it MUST be compiled as a source!
+      # ✅ NO resources: section - let XcodeGen handle asset catalog in sources
 ```
 
 **Build Result:** ✅ **SUCCESS!**
@@ -504,12 +524,16 @@ sources:
 
 Asset catalogs (.xcassets) **MUST be compiled as sources**, NOT excluded from sources and NOT placed only in resources.
 
-**Why This Works:**
-1. XcodeGen places source files in the "Compile Sources" build phase
+**Why This Fix Works:**
+
+**actool only compiles .xcassets that appear in the target's Sources build phase.** By excluding the catalog and re-adding it as a plain resource, we were copying the folder raw, so no Assets.car or PNGs ever made it into the .app. Restoring the catalog to sources reinstates actool, which produces Assets.car and satisfies App Store icon checks.
+
+**Step-by-step:**
+1. XcodeGen places files from `sources:` into the "Compile Sources" build phase
 2. Only files in "Compile Sources" trigger the asset catalog compiler (actool)
 3. actool generates Assets.car from the .xcassets folder
 4. Excluding .xcassets from sources prevents actool from ever running
-5. Placing .xcassets only in resources copies raw files without compilation
+5. Placing .xcassets only in `resources:` copies raw files without compilation (no Assets.car generated)
 
 **Why ChatGPT's Guidance Was Wrong:**
 
@@ -532,6 +556,46 @@ ChatGPT advised to exclude asset catalog from sources and add only to resources.
 3. **Diagnostic tools are critical** - IPA inspection revealed Assets.car was missing, not Info.plist issues
 4. **External AI guidance can be wrong** - ChatGPT's advice to exclude from sources was fundamentally incorrect
 5. **CI-only debugging is viable** - Solved entirely via GitHub Actions logs without local Mac access
+
+**What to Do Next (Implementation Checklist):**
+
+If applying this fix to a similar project:
+
+1. **Update project.yml:**
+   - Remove `Resources/Assets.xcassets/**` from sources.excludes
+   - Delete any `resources:` section referencing Assets.xcassets
+
+2. **Regenerate Xcode project:**
+   ```bash
+   cd mobile/ios-field-utility
+   xcodegen generate
+   ```
+   (Or let CI's "Generate Xcode project" step do it)
+
+3. **Verify in build logs:**
+   - Look for `CompileAssetCatalog ... Assets.xcassets` in gym/xcodebuild output
+   - Confirms actool is running
+
+4. **Verify in IPA bundle:**
+   - In "Inspect IPA..." step, check for `Assets.car` inside `Payload/*.app/`
+   - Confirms asset catalog was compiled and included
+
+5. **Commit and push:**
+   ```bash
+   git add mobile/ios-field-utility/project.yml
+   git commit -m "Restore asset catalog to sources so actool runs"
+   git push
+   ```
+
+**If It Still Fails, Investigate (in order):**
+
+1. Asset catalog excluded elsewhere (search for other excludes entries)
+2. `resources:` entry reintroduced by merge (ensure only sources references catalog)
+3. Stale generated project (rerun `xcodegen generate`, clean DerivedData)
+4. Custom script removing Resources/* before packaging
+5. CI cache/DerivedData corruption (wipe cache, rerun)
+
+Once you see actool in build logs and Assets.car in the IPA, TestFlight icon errors will disappear.
 
 ## Final Working Configuration
 
