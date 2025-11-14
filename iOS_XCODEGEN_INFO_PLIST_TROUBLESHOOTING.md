@@ -475,7 +475,118 @@ resources:
 4. **Copy phase removed by other target** – ensure no scripts remove `Resources` before packaging.
 5. **CI cache interference** – if actool still doesn’t run after config change, wipe DerivedData and rerun.
 
-Once Build 19353731166’s fix is verified, update this guide with the successful build ID.
+### Attempt 20: ✅ SUCCESS - Asset Catalog Compilation Fixed (Build 19353887383)
+**Date:** 2025-11-14
+**Action:** Removed asset catalog from excludes list (reversed incorrect ChatGPT guidance)
+
+**THE SOLUTION THAT WORKED:**
+
+```yaml
+sources:
+  - path: SkyFeederFieldUtility
+    excludes:
+      - Support/Configurations/**
+      - Support/Info.plist
+      - Tests/**
+      # CRITICAL: Assets.xcassets NOT excluded - it MUST be compiled as a source!
+```
+
+**Build Result:** ✅ **SUCCESS!**
+
+**Verification:**
+```
+✅ Assets.car present in bundle: /Payload/SkyFeederFieldUtility.app/Assets.car
+✅ TestFlight upload successful: "Successfully uploaded package to App Store Connect"
+✅ NO App Store validation errors (all 3 icon errors resolved)
+```
+
+**Root Cause - FINAL ANSWER:**
+
+Asset catalogs (.xcassets) **MUST be compiled as sources**, NOT excluded from sources and NOT placed only in resources.
+
+**Why This Works:**
+1. XcodeGen places source files in the "Compile Sources" build phase
+2. Only files in "Compile Sources" trigger the asset catalog compiler (actool)
+3. actool generates Assets.car from the .xcassets folder
+4. Excluding .xcassets from sources prevents actool from ever running
+5. Placing .xcassets only in resources copies raw files without compilation
+
+**Why ChatGPT's Guidance Was Wrong:**
+
+ChatGPT advised to exclude asset catalog from sources and add only to resources. This is **incorrect for iOS asset catalogs**:
+- ❌ Excluding from sources: Prevents actool compilation
+- ❌ Resources-only: Copies raw files, doesn't compile Assets.car
+- ✅ Correct approach: Include in sources (don't exclude), let XcodeGen handle it
+
+**Build Statistics:**
+- **Total failed attempts:** 19 builds over 2 days
+- **Successful build:** Build 19353887383 (Attempt 20)
+- **App version:** 0.1.0 (Build 3)
+- **Previous TestFlight version:** Build 2
+- **Resolution time:** ~2 days of debugging
+
+**Key Lessons Learned:**
+
+1. **Asset catalogs are sources, not resources** - They must be compiled, not just copied
+2. **XcodeGen handles .xcassets automatically** - No special configuration needed beyond including them in sources
+3. **Diagnostic tools are critical** - IPA inspection revealed Assets.car was missing, not Info.plist issues
+4. **External AI guidance can be wrong** - ChatGPT's advice to exclude from sources was fundamentally incorrect
+5. **CI-only debugging is viable** - Solved entirely via GitHub Actions logs without local Mac access
+
+## Final Working Configuration
+
+**project.yml (Working):**
+```yaml
+targets:
+  SkyFeederFieldUtility:
+    type: application
+    platform: iOS
+
+    settings:
+      base:
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        # ... other settings
+
+    sources:
+      - path: SkyFeederFieldUtility
+        excludes:
+          - Support/Configurations/**
+          - Support/Info.plist
+          - Tests/**
+          # Assets.xcassets NOT excluded - critical!
+
+    info:
+      path: SkyFeederFieldUtility/Support/Info.plist
+      properties:
+        CFBundleIconName: AppIcon
+        CFBundleIcons:
+          CFBundlePrimaryIcon:
+            CFBundleIconFiles:
+              - AppIcon
+            UIPrerenderedIcon: false
+        CFBundleIcons~ipad:
+          CFBundlePrimaryIcon:
+            CFBundleIconFiles:
+              - AppIcon
+            UIPrerenderedIcon: false
+```
+
+**What XcodeGen Does:**
+1. Includes `SkyFeederFieldUtility/Resources/Assets.xcassets` in Compile Sources
+2. Xcode runs actool during build
+3. actool generates Assets.car from Contents.json
+4. Assets.car is included in final .app bundle
+5. App Store validation passes
+
+## Status: ✅ RESOLVED
+
+**Problem:** iOS TestFlight upload failures due to missing app icons after XcodeGen migration
+
+**Root Cause:** Asset catalog excluded from sources prevented actool compilation
+
+**Solution:** Don't exclude Assets.xcassets from sources - let XcodeGen include it normally
+
+**Verification:** Build 19353887383 successfully uploaded to TestFlight with no validation errors
 
 ## References
 
@@ -484,8 +595,12 @@ Once Build 19353731166’s fix is verified, update this guide with the successfu
 - Asset Catalog compilation: https://developer.apple.com/documentation/xcode/managing-assets-with-asset-catalogs
 - Fastlane Match: https://docs.fastlane.tools/actions/match/
 - GitHub Actions workflow: `.github/workflows/ios-build-upload.yml`
+- Successful Build: https://github.com/artiebot/Codex_Vs_Code/actions/runs/19353887383
 
 ---
 
-**Last Updated:** 2025-11-14 (Build 19353731166)
-**Next Build Target:** Regenerate project after re-adding `Assets.xcassets` to `sources`
+**Last Updated:** 2025-11-14
+**Status:** ✅ RESOLVED
+**Successful Build:** 19353887383
+**App Version:** 0.1.0 (Build 3)
+**TestFlight:** Successfully uploaded

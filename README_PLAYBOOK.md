@@ -1,6 +1,6 @@
 # SkyFeeder Execution Playbook (Local-First Option A)
 
-_Last updated: 2025-10-20_
+_Last updated: 2025-11-14_
 
 ---
 
@@ -160,9 +160,15 @@ Retention rules: photos expire in 30 days, clips in 1 day. Re-run `docker compos
 
 ### Troubleshooting
 
+**Backend Services:**
 - **presign-api crash loops**: run `docker compose logs presign-api`. Missing `S3_*` variables means the compose overrides are stale.
 - **Missing buckets or lifecycle rules**: `docker compose up -d minio-init` recreates `photos` and `clips` with expirations.
 - **Upload auth errors**: ensure PUTs reuse the `Authorization` header from the presign response.
+
+**iOS/Mobile:**
+- **iOS TestFlight Upload Failures**: See `iOS_XCODEGEN_INFO_PLIST_TROUBLESHOOTING.md` for complete guide on XcodeGen asset catalog issues, Info.plist configuration, and CI/CD debugging
+- **iOS Code Signing Issues**: See `iOS_SIGNING_TROUBLESHOOTING.md` for Fastlane Match, provisioning profiles, and certificate troubleshooting
+- **iOS Build Configuration**: See `IOS_BUILD_FIX_REPORT.md` for initial XcodeGen migration issues and solutions
 
 ### Validation quick reference
 
