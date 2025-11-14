@@ -33,12 +33,9 @@ targets:
     sources:
       - path: SkyFeederFieldUtility
         excludes:
-          - Resources/Assets.xcassets/**
           - Support/Configurations/**
           - Support/Info.plist
           - Tests/**
-    resources:
-      - path: SkyFeederFieldUtility/Resources/Assets.xcassets
 
 
 

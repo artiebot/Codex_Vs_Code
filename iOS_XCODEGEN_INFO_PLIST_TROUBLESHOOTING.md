@@ -441,32 +441,41 @@ Please provide the exact YAML configuration needed in the resources or sources s
 **Root Cause Identified by ChatGPT:**
 Asset catalog must be ONLY referenced as a resource, never as a source. The issue was that we were using individual source paths, which didn't explicitly exclude the asset catalog.
 
-**ChatGPT's Solution:**
+### Attempt 15-16 (Build 19353731166): actool still missing
+
 ```yaml
-# Use broad source path with explicit asset catalog exclusion
 sources:
   - path: SkyFeederFieldUtility
     excludes:
-      - Resources/Assets.xcassets/**  # CRITICAL: Exclude from sources
+      - Resources/Assets.xcassets/**
       - Support/Configurations/**
       - Support/Info.plist
+      - Tests/**
 
-# Then add asset catalog ONLY as resource
 resources:
   - path: SkyFeederFieldUtility/Resources/Assets.xcassets
 ```
 
-**Key Insight:**
-By excluding `Resources/Assets.xcassets/**` from sources and adding it ONLY to resources, XcodeGen will:
-1. Add it to the "Copy Bundle Resources" build phase
-2. This triggers actool compilation
-3. Assets.car is generated and included in bundle
+**Result:** ❌ Still FAILED. CI artifact inspection shows no `Assets.car` or icon PNGs in `Payload/*.app`. `actool` does not appear anywhere in `gym` logs, confirming that excluding the catalog from `sources` prevents Xcode from compiling it.
 
-**Expected Result:**
-- Asset catalog added to Copy Bundle Resources build phase in generated .xcodeproj
-- actool runs during build
-- Assets.car appears in final bundle
-- App Store validation passes
+**Current Fix (Implemented):**
+1. Remove `Resources/Assets.xcassets/**` from the `sources.excludes` list.
+2. Remove the redundant `resources:` entry.
+3. Regenerate the project so the asset catalog once again lives under `Compile Sources` and triggers `actool`.
+
+**What to watch for on the next build:**
+- `gym` log should include a line similar to `CompileAssetCatalog ... Assets.xcassets`.
+- `Inspect IPA bundle ...` step should list `Assets.car` plus `*.png` references.
+- App Store validation should no longer fail for missing icons.
+
+### Active Investigation Hypotheses
+1. **Asset catalog excluded from sources** – confirmed as the main reason actool never runs.
+2. **resources-only catalogs do not compile** – placing `.xcassets` in `resources` copies raw files without producing `Assets.car`.
+3. **Stale generated project** – always run `xcodegen generate` after editing `project.yml` to keep build phases in sync.
+4. **Copy phase removed by other target** – ensure no scripts remove `Resources` before packaging.
+5. **CI cache interference** – if actool still doesn’t run after config change, wipe DerivedData and rerun.
+
+Once Build 19353731166’s fix is verified, update this guide with the successful build ID.
 
 ## References
 
@@ -478,6 +487,5 @@ By excluding `Resources/Assets.xcassets/**` from sources and adding it ONLY to r
 
 ---
 
-**Last Updated:** 2025-11-14
-**Build ID:** Testing (Attempt 18 - ChatGPT solution: exclude asset catalog from sources)
-**Previous Failed Build:** 19353547521 (actool never ran)
+**Last Updated:** 2025-11-14 (Build 19353731166)
+**Next Build Target:** Regenerate project after re-adding `Assets.xcassets` to `sources`
