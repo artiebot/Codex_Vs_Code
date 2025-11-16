@@ -798,3 +798,8 @@ The SwiftUI 3-tab implementation provides a solid foundation for the SkyFeeder i
 - **Dev tab**:
   - Devices, connectivity, telemetry, retention, and logs cards are now backed by typed providers (`DevicesProvider`, `ConnectivityProvider`, `TelemetryProvider`, `SettingsProvider`, `LogsSummaryProvider`) that expect `/api/devices`, `/api/connectivity`, `/api/telemetry`, `/api/settings`, `/api/logs/summary` to be implemented.
   - AMB MINI STATUS is derived from the `mode` field returned by `/api/telemetry` (sleeping, capture, idle, offline).
+### 2025-11-16 Build 7 Update
+
+- Bumped `CURRENT_PROJECT_VERSION` to **7** in `mobile/ios-field-utility/project.yml` so new uploads have a higher bundle version than Build 6 on App Store Connect.
+- Updated `FeederViewModel.refresh` so the Feeder tab **always** loads gallery media first; telemetry (battery/retention) is fetched opportunistically and its failure no longer blocks photos/videos from appearing.
+- Changed the default `deviceID` from `field-kit-1` to `dev1` in both `GallerySettings` (app target) and `SettingsState` (Swift package) so a fresh install points at `http://10.0.0.4:8080/gallery/dev1/indices/latest.json` by default, matching the local unit.
