@@ -76,22 +76,6 @@ jobs:
           security list-keychains -s build.keychain login.keychain
           security default-keychain -s build.keychain
 
-      - name: Match (readonly)
-        env:
-          MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
-          MATCH_GIT_URL: ${{ secrets.MATCH_GIT_URL }}
-          MATCH_GIT_BASIC_AUTHORIZATION: ${{ secrets.MATCH_GIT_BASIC_AUTHORIZATION }}
-          KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
-          MATCH_KEYCHAIN_NAME: build.keychain
-          MATCH_KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
-        run: |
-          bundle exec fastlane match appstore \
-            --readonly \
-            --keychain_name build.keychain \
-            --keychain_password "$KEYCHAIN_PASSWORD"
-          security set-key-partition-list -S apple-tool:,apple: -s -k "$KEYCHAIN_PASSWORD" build.keychain
-          security find-identity -v -p codesigning
-
       - name: Build & Upload to TestFlight
         env:
           KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
