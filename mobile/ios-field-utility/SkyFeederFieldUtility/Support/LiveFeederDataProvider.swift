@@ -63,7 +63,7 @@ struct LiveFeederDataProvider: FeederDataProviding {
     }
 
     func delete(mediaItem: FeederMediaItem) async throws {
-        guard let baseURL = GallerySettings(userDefaults: .standard).apiBaseURL else {
+        guard let baseURL = SettingsState(userDefaults: .standard).apiBaseURL else {
             throw FeederDataProviderError.missingEndpoint
         }
 

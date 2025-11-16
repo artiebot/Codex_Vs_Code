@@ -777,4 +777,4 @@ The SwiftUI 3-tab implementation provides a solid foundation for the SkyFeeder i
 - Introduced `SKEnableDevTools` (Info.plist) and `SettingsStore.showDevTools` to toggle the Dev tab without recompiling; the tab is now visible outside DEBUG builds when the flag is `true`.
 - Hard-coded typography colors in `DesignSystem` to fix the “white text on white cards” issue reported when the OS switches to Dark Mode.
 - Added empty-state messaging for photo/video carousels and improved the placeholders so galleries don’t sit empty with spinners when no assets exist yet.
-- Wired the Feeder delete button to the backend by calling `DELETE /api/media/{id}` (via `LiveFeederDataProvider`), including cache eviction so removed captures disappear immediately across the app.
+- Wired the Feeder delete button to the backend by calling `DELETE /api/media/{id}` (via `LiveFeederDataProvider`), using the `apiBaseURL` derived from `SettingsState` (the same base as other HTTP calls), including cache eviction so removed captures disappear immediately across the app.
