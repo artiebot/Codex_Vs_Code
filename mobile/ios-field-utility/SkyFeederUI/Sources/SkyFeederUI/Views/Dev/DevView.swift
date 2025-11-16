@@ -136,7 +136,7 @@ struct ConnectivityCard: View {
                     InfoRow(label: "Average roundtrip", value: "\(roundtrip) ms")
                 }
                 if let lastSync = connectivity.lastSync {
-                    InfoRow(label: "Last sync", value: "\(lastSync, style: .relative) ago")
+                    InfoRow(label: "Last sync", value: relativeTimeString(from: lastSync))
                 }
             } else {
                 ProgressView()
@@ -294,4 +294,10 @@ struct InfoRow: View {
                 .foregroundColor(DesignSystem.textPrimary)
         }
     }
+}
+
+private func relativeTimeString(from date: Date) -> String {
+    let formatter = RelativeDateTimeFormatter()
+    formatter.unitsStyle = .full
+    return formatter.localizedString(for: date, relativeTo: Date())
 }
