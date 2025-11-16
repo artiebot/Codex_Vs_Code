@@ -17,7 +17,7 @@ public struct DevView: View {
                         telemetry: viewModel.telemetry,
                         retentionPolicy: viewModel.retentionPolicy,
                         onRunCleanup: { viewModel.runCleanupNow() },
-                        captureCooldownSeconds: viewModel.settingsStore.state.cacheTTL > 0 ? Int(viewModel.settingsStore.state.cacheTTL) : 30
+                        captureCooldownSeconds: viewModel.captureCooldownSeconds
                     )
                     ActionsCard(viewModel: viewModel)
                     LogsCard(logs: viewModel.logs)
@@ -156,7 +156,7 @@ struct PowerTelemetryCard: View {
     let telemetry: TelemetrySnapshot?
     let retentionPolicy: RetentionPolicy?
     let onRunCleanup: () -> Void
-    let captureCooldownSeconds: Int
+    let captureCooldownSeconds: Int?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -176,7 +176,9 @@ struct PowerTelemetryCard: View {
                 Divider()
                 InfoRow(label: "PHOTO_RETENTION_DAYS", value: "\(policy.photoRetentionDays)")
                 InfoRow(label: "VIDEO_RETENTION_DAYS", value: "\(policy.videoRetentionDays)")
-                InfoRow(label: "CAPTURE_COOLDOWN_SECONDS", value: "\(captureCooldownSeconds)")
+                if let cooldown = captureCooldownSeconds {
+                    InfoRow(label: "CAPTURE_COOLDOWN_SECONDS", value: "\(cooldown)")
+                }
 
                 Button(action: onRunCleanup) {
                     Text("Run cleanup now")

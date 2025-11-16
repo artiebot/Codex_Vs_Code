@@ -16,6 +16,7 @@ public class DevViewModel: ObservableObject {
     @Published public var logs: [LogEntry] = []
     @Published public var isLoading: Bool = false
     @Published public var errorMessage: String?
+    @Published public var captureCooldownSeconds: Int?
 
     private let settingsStore: SettingsStore
     private let settingsProvider: SettingsProvider
@@ -42,6 +43,7 @@ public class DevViewModel: ObservableObject {
             telemetry = try await fetchTelemetry()
             retentionPolicy = try await fetchRetentionPolicy()
             logs = try await fetchLogs()
+            captureCooldownSeconds = try? await fetchCaptureCooldown()
         } catch {
             errorMessage = error.localizedDescription
         }
@@ -117,12 +119,11 @@ public class DevViewModel: ObservableObject {
     private func fetchDevices() async throws -> [DeviceSummary] {
         // For now, Dev tools target the single configured device.
         let id = settingsStore.state.deviceID
-        let snapshot = try await fetchTelemetry()
         return [
             DeviceSummary(
                 id: id,
                 isOnline: true,
-                batteryPercentage: Int(snapshot.packVoltage / 4.2 * 100),
+                batteryPercentage: 78,
                 lastContact: Date()
             )
         ]
@@ -148,6 +149,17 @@ public class DevViewModel: ObservableObject {
             internalTempC: 24.5,
             signalStrengthDbm: -63
         )
+    }
+
+    private func fetchCaptureCooldown() async throws -> Int {
+        guard let base = settingsStore.state.apiBaseURL else {
+            throw SettingsProviderError.invalidResponse
+        }
+        let settings = try await settingsProvider.fetchSettings(
+            baseURL: base,
+            deviceId: settingsStore.state.deviceID
+        )
+        return settings.cooldownSeconds
     }
 
     private func fetchRetentionPolicy() async throws -> RetentionPolicy {

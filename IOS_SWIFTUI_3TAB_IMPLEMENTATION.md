@@ -787,3 +787,4 @@ The SwiftUI 3-tab implementation provides a solid foundation for the SkyFeeder i
 - Wired Feeder delete to the live backend via LiveFeederDataProvider using SettingsState.apiBaseURL, and confirmed match/fastlane signing are stable.
 - Kept Dev tools targeting the single configured device (settingsStore.state.deviceID) for now, with telemetry still mocked pending backend endpoint design.
 - Noted a TODO for hardware: image resolution/quality appears limited by the camera/docker stack; will be revisited when iterating on the unit firmware and container configuration.
+- Dev tools now fetch capture cooldown seconds from the backend via SettingsProvider (api/settings), and surface it in the Power & Telemetry card instead of the customer Options tab.
