@@ -18,9 +18,11 @@ public class DevViewModel: ObservableObject {
     @Published public var errorMessage: String?
 
     private let settingsStore: SettingsStore
+    private let settingsProvider: SettingsProvider
 
-    public init(settingsStore: SettingsStore) {
+    public init(settingsStore: SettingsStore, settingsProvider: SettingsProvider = SettingsProvider()) {
         self.settingsStore = settingsStore
+        self.settingsProvider = settingsProvider
     }
 
     public func onAppear() {
@@ -113,19 +115,15 @@ public class DevViewModel: ObservableObject {
     // MARK: - API Methods (mocked)
 
     private func fetchDevices() async throws -> [DeviceSummary] {
-        try await Task.sleep(nanoseconds: 300_000_000)
+        // For now, Dev tools target the single configured device.
+        let id = settingsStore.state.deviceID
+        let snapshot = try await fetchTelemetry()
         return [
             DeviceSummary(
-                id: "sf-1234",
+                id: id,
                 isOnline: true,
-                batteryPercentage: 78,
-                lastContact: Date().addingTimeInterval(-120)
-            ),
-            DeviceSummary(
-                id: "sf-ABCD",
-                isOnline: true,
-                batteryPercentage: 65,
-                lastContact: Date().addingTimeInterval(-180)
+                batteryPercentage: Int(snapshot.packVoltage / 4.2 * 100),
+                lastContact: Date()
             )
         ]
     }
@@ -141,6 +139,7 @@ public class DevViewModel: ObservableObject {
     }
 
     private func fetchTelemetry() async throws -> TelemetrySnapshot {
+        // TODO: Replace with real telemetry endpoint when available.
         try await Task.sleep(nanoseconds: 300_000_000)
         return TelemetrySnapshot(
             packVoltage: 3.92,

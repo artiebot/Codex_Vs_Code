@@ -1,8 +1,8 @@
 # iOS SwiftUI 3-Tab App Implementation Report
 
-**Date:** 2025-11-15
-**Build Version:** 0.1.0 (Build 5)
-**TestFlight Status:** ✅ Successfully Uploaded
+**Date:** 2025-11-16
+**Build Version:** 0.1.0 (Build 6)
+**TestFlight Status:** ? Successfully Uploaded
 **Implementation Type:** Production-ready SwiftUI app matching mockup designs
 
 ---
@@ -12,12 +12,12 @@
 Implemented a comprehensive SwiftUI-based iOS application with three tabs (Feeder, Options, Dev) matching provided mockup images. The implementation follows MVVM architecture, uses modern Swift async/await patterns, and includes zero MQTT references. Build 4 successfully compiled, passed all asset catalog checks, and uploaded to TestFlight.
 
 **Key Achievements:**
-- ✅ 3-tab TabView with production-quality UI
-- ✅ Complete MQTT audit (zero references in new code)
-- ✅ Asset catalog compilation working
-- ✅ Mock API implementations ready for backend integration
-- ✅ Proper error handling and state management
-- ✅ Dev tab wrapped in `#if DEBUG` for production builds
+- ? 3-tab TabView with production-quality UI
+- ? Complete MQTT audit (zero references in new code)
+- ? Asset catalog compilation working
+- ? Mock API implementations ready for backend integration
+- ? Proper error handling and state management
+- ? Dev tab wrapped in `#if DEBUG` for production builds
 
 ---
 
@@ -116,12 +116,12 @@ Located in: `mobile/ios-field-utility/SkyFeederUI/Sources/SkyFeederUI/Theme/`
 
 **Top Section - Battery Card:**
 ```
-┌─────────────────────────────────────┐
-│ [Battery Bar ████████░░░] 78%      │
-│                                     │
-│ ● Charging via solar                │
-│ ● Feeder is online                  │
-└─────────────────────────────────────┘
++-------------------------------------+
+� [Battery Bar �����������] 78%      �
+�                                     �
+� ? Charging via solar                �
+� ? Feeder is online                  �
++-------------------------------------+
 ```
 
 **Photos Section:**
@@ -129,10 +129,10 @@ Located in: `mobile/ios-field-utility/SkyFeederUI/Sources/SkyFeederUI/Theme/`
 Photos
 Photos are automatically removed after 7 days.
 
-[Photo 1]  [Photo 2]  [Photo 3]  →
+[Photo 1]  [Photo 2]  [Photo 3]  ?
  453g       289g       512g
- Share✓     Share✓     Share✓
- Delete🗑   Delete🗑   Delete🗑
+ Share?     Share?     Share?
+ Delete??   Delete??   Delete??
 ```
 
 **Videos Section:**
@@ -140,8 +140,8 @@ Photos are automatically removed after 7 days.
 Videos
 Videos are automatically removed after 3 days.
 
-[Video 1]  [Video 2]  →
-  ▶ Play    ▶ Play
+[Video 1]  [Video 2]  ?
+  ? Play    ? Play
  421g       394g
 ```
 
@@ -159,44 +159,44 @@ Videos are automatically removed after 3 days.
 
 **Capture Settings:**
 ```
-┌─────────────────────────────────────┐
-│ Min trigger weight        80 g   > │
-│ Capture type    Photo + short   > │
-│   ◉ Photo only                     │
-│   ○ Video only                     │
-│   ○ Photo + short video            │
-│ Capture cooldown          30 sec > │
-└─────────────────────────────────────┘
++-------------------------------------+
+� Min trigger weight        80 g   > �
+� Capture type    Photo + short   > �
+�   ? Photo only                     �
+�   ? Video only                     �
+�   ? Photo + short video            �
+� Capture cooldown          30 sec > �
++-------------------------------------+
 ```
 
 **Time & Quiet Hours:**
 ```
-┌─────────────────────────────────────┐
-│ Enable                    [Toggle] │
-│ From                      22:00  > │
-│ To                        06:00  > │
-│ No captures or notifications        │
-│ at night.                          │
-└─────────────────────────────────────┘
++-------------------------------------+
+� Enable                    [Toggle] �
+� From                      22:00  > �
+� To                        06:00  > �
+� No captures or notifications        �
+� at night.                          �
++-------------------------------------+
 ```
 
 **Notifications:**
 ```
-┌─────────────────────────────────────┐
-│ Notify on low battery     [Toggle] │
-│ Notify when feeder sees   [Toggle] │
-│ a visitor                          │
-└─────────────────────────────────────┘
++-------------------------------------+
+� Notify on low battery     [Toggle] �
+� Notify when feeder sees   [Toggle] �
+� a visitor                          �
++-------------------------------------+
 ```
 
 **Storage & Retention:**
 ```
-┌─────────────────────────────────────┐
-│ Photos kept for           7 days  │
-│ Videos kept for           3 days  │
-│ Controlled by SkyFeeder –          │
-│ not adjustable here.               │
-└─────────────────────────────────────┘
++-------------------------------------+
+� Photos kept for           7 days  �
+� Videos kept for           3 days  �
+� Controlled by SkyFeeder �          �
+� not adjustable here.               �
++-------------------------------------+
 ```
 
 **Features:**
@@ -211,69 +211,69 @@ Videos are automatically removed after 3 days.
 
 **Devices:**
 ```
-┌─────────────────────────────────────┐
-│ Devices                            │
-│ [🔍 Search devices________]        │
-│                                     │
-│ 📦 sf-1234         ● Online    78% │
-│    Last contact: 2 min             │
-│                                     │
-│ 📦 sf-ABCD         ● Online    65% │
-│    Last contact: 3 min             │
-└─────────────────────────────────────┘
++-------------------------------------+
+� Devices                            �
+� [?? Search devices________]        �
+�                                     �
+� ?? sf-1234         ? Online    78% �
+�    Last contact: 2 min             �
+�                                     �
+� ?? sf-ABCD         ? Online    65% �
+�    Last contact: 3 min             �
++-------------------------------------+
 ```
 
 **Connectivity:**
 ```
-┌─────────────────────────────────────┐
-│ Connectivity                       │
-│ Status            Healthy          │
-│ Recent failures   0                │
-│ Average roundtrip 320 ms           │
-│ Last sync         2 min ago        │
-└─────────────────────────────────────┘
++-------------------------------------+
+� Connectivity                       �
+� Status            Healthy          �
+� Recent failures   0                �
+� Average roundtrip 320 ms           �
+� Last sync         2 min ago        �
++-------------------------------------+
 ```
 
 **Power & Telemetry:**
 ```
-┌─────────────────────────────────────┐
-│ Power & Telemetry                  │
-│ Pack voltage      3.92 V           │
-│ Solar input       3.6 W            │
-│ Load power        1.2 W            │
-│ Internal temp     24.5 °C          │
-│ Signal strength   -63 dBm          │
-│                                     │
-│ PHOTO_RETENTION_DAYS  7            │
-│ VIDEO_RETENTION_DAYS  3            │
-│              [Run cleanup now]     │
-└─────────────────────────────────────┘
++-------------------------------------+
+� Power & Telemetry                  �
+� Pack voltage      3.92 V           �
+� Solar input       3.6 W            �
+� Load power        1.2 W            �
+� Internal temp     24.5 �C          �
+� Signal strength   -63 dBm          �
+�                                     �
+� PHOTO_RETENTION_DAYS  7            �
+� VIDEO_RETENTION_DAYS  3            �
+�              [Run cleanup now]     �
++-------------------------------------+
 ```
 
 **Actions:**
 ```
-┌─────────────────────────────────────┐
-│ Actions                            │
-│ [Force telemetry] [Request snapshot]│
-│ [Reboot]          [Factory reset]  │
-└─────────────────────────────────────┘
++-------------------------------------+
+� Actions                            �
+� [Force telemetry] [Request snapshot]�
+� [Reboot]          [Factory reset]  �
++-------------------------------------+
 ```
 
 **Logs:**
 ```
-┌─────────────────────────────────────┐
-│ Logs                               │
-│ 23:29  Received response 200       │
-│ 23:26  Request sent                │
-│ 23:25  Received response 200       │
-└─────────────────────────────────────┘
++-------------------------------------+
+� Logs                               �
+� 23:29  Received response 200       �
+� 23:26  Request sent                �
+� 23:25  Received response 200       �
++-------------------------------------+
 ```
 
 **Features:**
 - Device search with real-time filtering
 - Generic status display (no protocol names)
 - Monospaced timestamps in logs
-- 2×2 action button grid
+- 2�2 action button grid
 - Scrollable log viewer
 - Red text for dangerous actions (factory reset)
 
@@ -290,18 +290,18 @@ rg -n "HTTP|http://" mobile/ios-field-utility/SkyFeederUI/Sources/SkyFeederUI/Vi
 
 ### Findings
 
-**✅ ZERO MQTT references found in:**
+**? ZERO MQTT references found in:**
 - All new ViewModels (FeederViewModel, OptionsViewModel, DevViewModel)
 - All new Views (FeederView, OptionsView, DevView)
 - All new Models
 - DesignSystem theme
 
-**✅ NO protocol names exposed in UI:**
+**? NO protocol names exposed in UI:**
 - Connectivity diagnostics show generic "Status: Healthy"
 - No "HTTP" or "MQTT" text in any user-facing strings
 - All transport details abstracted behind ViewModels
 
-**✅ Transport independence verified:**
+**? Transport independence verified:**
 - ViewModels use mock API stubs ready for any backend
 - No hardcoded protocol assumptions
 - Easy to swap HTTP/WebSocket/GraphQL implementations
@@ -321,15 +321,15 @@ The only HTTP references found were in pre-existing code:
 
 **GitHub Actions Run:** 19397130313
 **Duration:** 1 minute 42 seconds
-**Status:** ✅ SUCCESS
+**Status:** ? SUCCESS
 
 #### Archive Verification
 ```
-✅ Archive Succeeded
-✅ Swift compilation: 0 errors, 6 warnings (non-blocking)
-✅ Asset catalog compilation: Working
-✅ IPA created: build/SkyFeederFieldUtility.ipa
-✅ Code signing: Successful
+? Archive Succeeded
+? Swift compilation: 0 errors, 6 warnings (non-blocking)
+? Asset catalog compilation: Working
+? IPA created: build/SkyFeederFieldUtility.ipa
+? Code signing: Successful
 ```
 
 #### IPA Bundle Inspection
@@ -337,22 +337,22 @@ The only HTTP references found were in pre-existing code:
 CFBundleVersion: 4
 CFBundleIdentifier: com.skyfeeder.field
 CFBundleIconName: AppIcon
-CFBundleIcons: ✅ Present (iPhone + iPad)
-Assets.car: ✅ Present
-Icon PNGs: ✅ Present (AppIcon60x60@2x.png, AppIcon76x76@2x~ipad.png)
+CFBundleIcons: ? Present (iPhone + iPad)
+Assets.car: ? Present
+Icon PNGs: ? Present (AppIcon60x60@2x.png, AppIcon76x76@2x~ipad.png)
 ```
 
 #### TestFlight Upload
 ```
-✅ Successfully uploaded package to App Store Connect
-✅ Binary processing started
-✅ Build 4 available for testing
+? Successfully uploaded package to App Store Connect
+? Binary processing started
+? Build 4 available for testing
 ```
 
 ### Issues Fixed During Build
 
 #### Issue #1: UTF-8 BOM in AppConfig.xcconfig
-**Error:** `AppConfig.xcconfig:1:1: error: unexpected character 'ï'`
+**Error:** `AppConfig.xcconfig:1:1: error: unexpected character '�'`
 **Cause:** UTF-8 Byte Order Mark (EF BB BF) at file start
 **Fix:** Rewrote file without BOM
 **Commit:** `dc16e54` - "fix: remove UTF-8 BOM from AppConfig.xcconfig"
@@ -365,10 +365,10 @@ Icon PNGs: ✅ Present (AppIcon60x60@2x.png, AppIcon76x76@2x~ipad.png)
 
 ### Swift Compiler Warnings (Non-blocking)
 ```
-⚠️ CaptureDetailView.swift:63 - value 'assetURL' defined but never used
-⚠️ DiskCache.swift:49 - variable 'resourceValues' was never mutated
-⚠️ DiskCache.swift:76,81,98 - capture of 'fileManager' with non-sendable type (Swift 6 prep)
-⚠️ GalleryViewModel.swift:22 - main actor-isolated static property in nonisolated context
+?? CaptureDetailView.swift:63 - value 'assetURL' defined but never used
+?? DiskCache.swift:49 - variable 'resourceValues' was never mutated
+?? DiskCache.swift:76,81,98 - capture of 'fileManager' with non-sendable type (Swift 6 prep)
+?? GalleryViewModel.swift:22 - main actor-isolated static property in nonisolated context
 ```
 
 **Note:** All warnings are in existing code, not new SwiftUI implementation. Safe to defer.
@@ -380,9 +380,9 @@ Icon PNGs: ✅ Present (AppIcon60x60@2x.png, AppIcon76x76@2x~ipad.png)
 ### MVVM Architecture
 ```
 Models (Data)
-  ↓
+  ?
 ViewModels (Business Logic)
-  ↓
+  ?
 Views (UI)
 ```
 
@@ -531,26 +531,26 @@ private func fetchBatteryStatus() async throws -> BatteryStatus {
 ### Backend API Endpoints Needed
 
 **Feeder Tab:**
-- `GET /api/battery` → `BatteryStatus`
-- `GET /api/retention` → `RetentionPolicy`
-- `GET /api/photos?deviceId={id}` → `[FeederMediaItem]`
-- `GET /api/videos?deviceId={id}` → `[FeederMediaItem]`
-- `DELETE /api/media/{id}` → `{success: bool}`
+- `GET /api/battery` ? `BatteryStatus`
+- `GET /api/retention` ? `RetentionPolicy`
+- `GET /api/photos?deviceId={id}` ? `[FeederMediaItem]`
+- `GET /api/videos?deviceId={id}` ? `[FeederMediaItem]`
+- `DELETE /api/media/{id}` ? `{success: bool}`
 
 **Options Tab:**
-- `GET /api/retention` → `RetentionPolicy`
-- `GET /api/settings?deviceId={id}` → `OptionsSettings` (future)
-- `POST /api/settings` → `{success: bool}` (future)
+- `GET /api/retention` ? `RetentionPolicy`
+- `GET /api/settings?deviceId={id}` ? `OptionsSettings` (future)
+- `POST /api/settings` ? `{success: bool}` (future)
 
 **Dev Tab:**
-- `GET /api/devices` → `[DeviceSummary]`
-- `GET /api/connectivity?deviceId={id}` → `ConnectivityDiagnostics`
-- `GET /api/telemetry?deviceId={id}` → `TelemetrySnapshot`
-- `GET /api/logs?deviceId={id}` → `[LogEntry]`
-- `POST /api/cleanup` → `{success: bool}`
-- `POST /api/telemetry/force` → `{success: bool}`
-- `POST /api/snapshot` → `{success: bool}`
-- `POST /api/reboot` → `{success: bool}`
+- `GET /api/devices` ? `[DeviceSummary]`
+- `GET /api/connectivity?deviceId={id}` ? `ConnectivityDiagnostics`
+- `GET /api/telemetry?deviceId={id}` ? `TelemetrySnapshot`
+- `GET /api/logs?deviceId={id}` ? `[LogEntry]`
+- `POST /api/cleanup` ? `{success: bool}`
+- `POST /api/telemetry/force` ? `{success: bool}`
+- `POST /api/snapshot` ? `{success: bool}`
+- `POST /api/reboot` ? `{success: bool}`
 
 ### Expected Response Formats
 
@@ -768,13 +768,22 @@ The SwiftUI 3-tab implementation provides a solid foundation for the SkyFeeder i
 7. Accessibility improvements
 8. Localization for international markets
 
-**Status:** ✅ Ready for beta testing and backend integration
+**Status:** ? Ready for beta testing and backend integration
 
 ### 2025-11-16 Update
 
 - Hooked FeederView to a real data provider (`LiveFeederDataProvider`) that reuses the existing `GalleryViewModel`/capture providers, so the gallery now shows the same photos and videos as the legacy UI.
 - Added the `FeederDataProviding` protocol (plus a mock implementation) inside `SkyFeederUI` so the SwiftUI package remains transport-agnostic while the app supplies the live implementation.
 - Introduced `SKEnableDevTools` (Info.plist) and `SettingsStore.showDevTools` to toggle the Dev tab without recompiling; the tab is now visible outside DEBUG builds when the flag is `true`.
-- Hard-coded typography colors in `DesignSystem` to fix the “white text on white cards” issue reported when the OS switches to Dark Mode.
-- Added empty-state messaging for photo/video carousels and improved the placeholders so galleries don’t sit empty with spinners when no assets exist yet.
+- Hard-coded typography colors in `DesignSystem` to fix the �white text on white cards� issue reported when the OS switches to Dark Mode.
+- Added empty-state messaging for photo/video carousels and improved the placeholders so galleries don�t sit empty with spinners when no assets exist yet.
 - Wired the Feeder delete button to the backend by calling `DELETE /api/media/{id}` (via `LiveFeederDataProvider`), using the `apiBaseURL` derived from `SettingsState` (the same base as other HTTP calls), including cache eviction so removed captures disappear immediately across the app.
+
+
+
+### 2025-11-16 Update (Build 6)
+
+- Build 6 successfully archived and uploaded to TestFlight via GitHub Actions (ios-build-upload.yml).
+- Wired Feeder delete to the live backend via LiveFeederDataProvider using SettingsState.apiBaseURL, and confirmed match/fastlane signing are stable.
+- Kept Dev tools targeting the single configured device (settingsStore.state.deviceID) for now, with telemetry still mocked pending backend endpoint design.
+- Noted a TODO for hardware: image resolution/quality appears limited by the camera/docker stack; will be revisited when iterating on the unit firmware and container configuration.

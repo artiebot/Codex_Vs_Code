@@ -25,6 +25,14 @@ public class OptionsViewModel: ObservableObject {
         }
     }
 
+    public var minTriggerRange: ClosedRange<Double> {
+        10...500
+    }
+
+    public var minTriggerStep: Double {
+        10
+    }
+
     public func updateMinTriggerWeight(_ weight: Int) {
         settings.minTriggerWeightGrams = weight
         saveSettings()

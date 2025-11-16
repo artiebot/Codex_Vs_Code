@@ -39,6 +39,6 @@ public struct SkyFeederRootView: View {
                     }
             }
         }
-        .tint(DesignSystem.primaryTeal)
+        .accentColor(DesignSystem.primaryTeal)
     }
 }

@@ -47,6 +47,21 @@ struct CaptureSettingsSection: View {
                     value: "\(viewModel.settings.minTriggerWeightGrams) g"
                 )
 
+                Slider(
+                    value: Binding(
+                        get: { Double(viewModel.settings.minTriggerWeightGrams) },
+                        set: { newValue in
+                            let snapped = Int((newValue / viewModel.minTriggerStep).rounded() * viewModel.minTriggerStep)
+                            viewModel.updateMinTriggerWeight(snapped)
+                        }
+                    ),
+                    in: viewModel.minTriggerRange,
+                    step: viewModel.minTriggerStep
+                )
+                .tint(DesignSystem.primaryTeal)
+                .padding(.horizontal)
+                .padding(.bottom, 8)
+
                 Divider()
 
                 SettingsRow(
@@ -87,11 +102,6 @@ struct CaptureSettingsSection: View {
                 .padding(.vertical, 12)
 
                 Divider()
-
-                SettingsRow(
-                    title: "Capture cooldown",
-                    value: "\(viewModel.settings.captureCooldownSeconds) sec"
-                )
             }
             .background(DesignSystem.cardBackground)
             .cornerRadius(12)

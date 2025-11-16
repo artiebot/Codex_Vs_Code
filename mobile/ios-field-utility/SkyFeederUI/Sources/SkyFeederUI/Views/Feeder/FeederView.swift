@@ -268,24 +268,42 @@ struct MediaCard: View {
     let onDelete: () -> Void
 
     @State private var showingVideoPlayer = false
+    @State private var showingImageViewer = false
 
     var body: some View {
         ZStack {
             // Thumbnail
-            AsyncImage(url: item.thumbnailURL) { image in
-                image
-                    .resizable()
-                    .aspectRatio(3/4, contentMode: .fill)
-            } placeholder: {
-                Rectangle()
-                    .fill(Color.gray.opacity(0.3))
-                    .aspectRatio(3/4, contentMode: .fill)
-                    .overlay {
-                        ProgressView()
-                    }
+            AsyncImage(url: item.thumbnailURL) { phase in
+                switch phase {
+                case .empty:
+                    Rectangle()
+                        .fill(Color.gray.opacity(0.3))
+                        .overlay { ProgressView() }
+                case .success(let image):
+                    image
+                        .resizable()
+                        .scaledToFill()
+                case .failure:
+                    Rectangle()
+                        .fill(Color.gray.opacity(0.3))
+                        .overlay {
+                            Image(systemName: "photo")
+                                .foregroundColor(.white)
+                        }
+                @unknown default:
+                    Rectangle().fill(Color.gray.opacity(0.3))
+                }
             }
             .frame(width: 180, height: 240)
             .clipped()
+            .contentShape(Rectangle())
+            .onTapGesture {
+                if item.type == .video {
+                    showingVideoPlayer = true
+                } else {
+                    showingImageViewer = true
+                }
+            }
 
             // Gradient overlay at bottom
             VStack {
@@ -345,12 +363,10 @@ struct MediaCard: View {
 
             // Play button for videos
             if item.type == .video {
-                Button(action: { showingVideoPlayer = true }) {
-                    Image(systemName: "play.circle.fill")
-                        .font(.system(size: 50))
-                        .foregroundColor(.white)
-                        .shadow(radius: 4)
-                }
+                Image(systemName: "play.circle.fill")
+                    .font(.system(size: 50))
+                    .foregroundColor(.white)
+                    .shadow(radius: 4)
             }
         }
         .frame(width: 180, height: 240)
@@ -360,6 +376,9 @@ struct MediaCard: View {
             if item.type == .video {
                 VideoPlayerView(url: item.mediaURL)
             }
+        }
+        .fullScreenCover(isPresented: $showingImageViewer) {
+            ZoomableImageView(url: item.mediaURL)
         }
     }
 
@@ -409,6 +428,65 @@ struct VideoPlayerView: View {
                         }
                     }
                 }
+        }
+    }
+}
+
+struct ZoomableImageView: View {
+    let url: URL
+    @Environment(\.dismiss) var dismiss
+    @State private var scale: CGFloat = 1.0
+    @State private var offset: CGSize = .zero
+
+    var body: some View {
+        NavigationView {
+            GeometryReader { proxy in
+                AsyncImage(url: url) { phase in
+                    switch phase {
+                    case .empty:
+                        ProgressView()
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    case .success(let image):
+                        image
+                            .resizable()
+                            .scaledToFit()
+                            .scaleEffect(scale)
+                            .offset(offset)
+                            .gesture(
+                                SimultaneousGesture(
+                                    MagnificationGesture()
+                                        .onChanged { value in
+                                            scale = max(1.0, value)
+                                        },
+                                    DragGesture()
+                                        .onChanged { value in
+                                            offset = value.translation
+                                        }
+                                )
+                            )
+                            .frame(width: proxy.size.width, height: proxy.size.height)
+                            .background(Color.black)
+                    case .failure:
+                        Image(systemName: "photo")
+                            .resizable()
+                            .scaledToFit()
+                            .foregroundColor(.white)
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                            .background(Color.black)
+                    @unknown default:
+                        Color.black
+                    }
+                }
+            }
+            .ignoresSafeArea()
+            .background(Color.black)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Done") {
+                        dismiss()
+                    }
+                }
+            }
         }
     }
 }
