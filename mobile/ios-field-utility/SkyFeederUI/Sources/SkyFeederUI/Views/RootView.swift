@@ -4,17 +4,20 @@ public struct SkyFeederRootView: View {
     @StateObject private var settingsStore: SettingsStore
     @StateObject private var feederViewModel: FeederViewModel
     @StateObject private var optionsViewModel: OptionsViewModel
-    #if DEBUG
     @StateObject private var devViewModel: DevViewModel
-    #endif
 
-    public init(settingsStore: SettingsStore) {
+    public init(
+        settingsStore: SettingsStore,
+        dataProvider: FeederDataProviding = MockFeederDataProvider()
+    ) {
         _settingsStore = StateObject(wrappedValue: settingsStore)
-        _feederViewModel = StateObject(wrappedValue: FeederViewModel(settingsStore: settingsStore))
-        _optionsViewModel = StateObject(wrappedValue: OptionsViewModel(settingsStore: settingsStore))
-        #if DEBUG
+        _feederViewModel = StateObject(
+            wrappedValue: FeederViewModel(dataProvider: dataProvider)
+        )
+        _optionsViewModel = StateObject(
+            wrappedValue: OptionsViewModel(settingsStore: settingsStore, dataProvider: dataProvider)
+        )
         _devViewModel = StateObject(wrappedValue: DevViewModel(settingsStore: settingsStore))
-        #endif
     }
 
     public var body: some View {
@@ -29,12 +32,12 @@ public struct SkyFeederRootView: View {
                     Label("Options", systemImage: "slider.horizontal.3")
                 }
 
-            #if DEBUG
-            DevView(viewModel: devViewModel)
-                .tabItem {
-                    Label("Dev", systemImage: "wrench.fill")
-                }
-            #endif
+            if settingsStore.showDevTools {
+                DevView(viewModel: devViewModel)
+                    .tabItem {
+                        Label("Dev", systemImage: "wrench.fill")
+                    }
+            }
         }
         .tint(DesignSystem.primaryTeal)
     }

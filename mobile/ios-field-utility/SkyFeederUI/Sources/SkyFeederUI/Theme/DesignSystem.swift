@@ -7,8 +7,8 @@ public struct DesignSystem {
     public static let cardBackground = Color.white
     public static let separator = Color(.systemGray4)
 
-    public static let textPrimary = Color(.label)
-    public static let textSecondary = Color(.secondaryLabel)
+    public static let textPrimary = Color(hex: "#111111")
+    public static let textSecondary = Color(hex: "#6F6F6F")
 
     public static let batteryGreen = Color(hex: "#34C759")
     public static let batteryYellow = Color(hex: "#FFCC00")

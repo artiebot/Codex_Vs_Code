@@ -94,5 +94,7 @@
 	<true/>
 	<key>SKDefaultProvider</key>
 	<string>PresignedHTTP</string>
+	<key>SKEnableDevTools</key>
+	<true/>
 </dict>
 </plist>

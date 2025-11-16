@@ -7,10 +7,15 @@ public class OptionsViewModel: ObservableObject {
     @Published public var retentionPolicy: RetentionPolicy?
 
     private static let settingsKey = "SkyFeederOptionsSettings"
+    private let dataProvider: FeederDataProviding?
     private let settingsStore: SettingsStore
 
-    public init(settingsStore: SettingsStore) {
+    public init(
+        settingsStore: SettingsStore,
+        dataProvider: FeederDataProviding? = nil
+    ) {
         self.settingsStore = settingsStore
+        self.dataProvider = dataProvider
         self.settings = Self.loadSettings()
     }
 
@@ -82,8 +87,10 @@ public class OptionsViewModel: ObservableObject {
     }
 
     private func loadRetentionPolicy() async {
-        // Mock implementation - replace with actual API call
-        try? await Task.sleep(nanoseconds: 300_000_000)
-        retentionPolicy = RetentionPolicy(photoRetentionDays: 7, videoRetentionDays: 3)
+        if let provider = dataProvider {
+            retentionPolicy = try? await provider.fetchRetentionPolicy()
+        } else {
+            retentionPolicy = RetentionPolicy(photoRetentionDays: 7, videoRetentionDays: 3)
+        }
     }
 }

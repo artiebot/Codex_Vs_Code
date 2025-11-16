@@ -244,7 +244,7 @@ struct StorageRetentionSection: View {
 
                     Divider()
 
-                    Text("Controlled by SkyFeeder â€“ not adjustable here.")
+                    Text("Controlled by SkyFeeder — not adjustable here.")
                         .font(DesignSystem.caption())
                         .foregroundColor(DesignSystem.textSecondary)
                         .padding()

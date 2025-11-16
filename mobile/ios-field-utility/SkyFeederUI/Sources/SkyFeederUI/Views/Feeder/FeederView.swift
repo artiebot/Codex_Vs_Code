@@ -16,25 +16,28 @@ public struct FeederView: View {
                         BatteryCard(battery: battery)
                     }
 
-                    if !viewModel.photoItems.isEmpty {
-                        PhotosSection(
-                            photos: viewModel.photoItems,
-                            retentionDays: viewModel.retentionPolicy?.photoRetentionDays,
-                            onShare: { viewModel.share($0) },
-                            onDelete: { viewModel.delete($0) }
-                        )
-                    }
+                    PhotosSection(
+                        photos: viewModel.photoItems,
+                        retentionDays: viewModel.retentionPolicy?.photoRetentionDays,
+                        isLoading: viewModel.isLoading,
+                        onShare: { viewModel.share($0) },
+                        onDelete: { viewModel.delete($0) }
+                    )
 
-                    if !viewModel.videoItems.isEmpty {
-                        VideosSection(
-                            videos: viewModel.videoItems,
-                            retentionDays: viewModel.retentionPolicy?.videoRetentionDays,
-                            onShare: { viewModel.share($0) },
-                            onDelete: { viewModel.delete($0) }
-                        )
-                    }
+                    VideosSection(
+                        videos: viewModel.videoItems,
+                        retentionDays: viewModel.retentionPolicy?.videoRetentionDays,
+                        isLoading: viewModel.isLoading,
+                        onShare: { viewModel.share($0) },
+                        onDelete: { viewModel.delete($0) }
+                    )
                 }
                 .padding()
+
+                if viewModel.isLoading && viewModel.photoItems.isEmpty && viewModel.videoItems.isEmpty {
+                    ProgressView()
+                        .padding(.top, 24)
+                }
             }
             .background(DesignSystem.background.ignoresSafeArea())
             .navigationTitle("SkyFeeder")
@@ -166,6 +169,7 @@ struct BatteryBarView: View {
 struct PhotosSection: View {
     let photos: [FeederMediaItem]
     let retentionDays: Int?
+    let isLoading: Bool
     let onShare: (FeederMediaItem) -> Void
     let onDelete: (FeederMediaItem) -> Void
 
@@ -175,23 +179,35 @@ struct PhotosSection: View {
                 .font(DesignSystem.title2())
                 .foregroundColor(DesignSystem.textPrimary)
 
-            if let days = retentionDays {
-                Text("Photos are automatically removed after \(days) days.")
-                    .font(DesignSystem.caption())
-                    .foregroundColor(DesignSystem.textSecondary)
-            }
+            Text(retentionSubtitle(defaultDays: 7))
+                .font(DesignSystem.caption())
+                .foregroundColor(DesignSystem.textSecondary)
 
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 16) {
-                    ForEach(photos) { photo in
-                        MediaCard(
-                            item: photo,
-                            onShare: { onShare(photo) },
-                            onDelete: { onDelete(photo) }
+                    if photos.isEmpty {
+                        EmptyMediaPlaceholder(
+                            message: isLoading ? "Loading photos..." : "No photos captured yet."
                         )
+                    } else {
+                        ForEach(photos) { photo in
+                            MediaCard(
+                                item: photo,
+                                onShare: { onShare(photo) },
+                                onDelete: { onDelete(photo) }
+                            )
+                        }
                     }
                 }
             }
+        }
+    }
+
+    private func retentionSubtitle(defaultDays: Int) -> String {
+        if let days = retentionDays {
+            return "Photos are automatically removed after \(days) days."
+        } else {
+            return "Photos are automatically removed after \(defaultDays) days."
         }
     }
 }
@@ -201,6 +217,7 @@ struct PhotosSection: View {
 struct VideosSection: View {
     let videos: [FeederMediaItem]
     let retentionDays: Int?
+    let isLoading: Bool
     let onShare: (FeederMediaItem) -> Void
     let onDelete: (FeederMediaItem) -> Void
 
@@ -210,23 +227,35 @@ struct VideosSection: View {
                 .font(DesignSystem.title2())
                 .foregroundColor(DesignSystem.textPrimary)
 
-            if let days = retentionDays {
-                Text("Videos are automatically removed after \(days) days.")
-                    .font(DesignSystem.caption())
-                    .foregroundColor(DesignSystem.textSecondary)
-            }
+            Text(retentionSubtitle(defaultDays: 3))
+                .font(DesignSystem.caption())
+                .foregroundColor(DesignSystem.textSecondary)
 
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 16) {
-                    ForEach(videos) { video in
-                        MediaCard(
-                            item: video,
-                            onShare: { onShare(video) },
-                            onDelete: { onDelete(video) }
+                    if videos.isEmpty {
+                        EmptyMediaPlaceholder(
+                            message: isLoading ? "Checking for videos..." : "No videos yet."
                         )
+                    } else {
+                        ForEach(videos) { video in
+                            MediaCard(
+                                item: video,
+                                onShare: { onShare(video) },
+                                onDelete: { onDelete(video) }
+                            )
+                        }
                     }
                 }
             }
+        }
+    }
+
+    private func retentionSubtitle(defaultDays: Int) -> String {
+        if let days = retentionDays {
+            return "Videos are automatically removed after \(days) days."
+        } else {
+            return "Videos are automatically removed after \(defaultDays) days."
         }
     }
 }
@@ -298,7 +327,7 @@ struct MediaCard: View {
 
                 // Bottom left info
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("Weight: \(Int(item.weightGrams))g")
+                    Text(weightText)
                         .font(DesignSystem.caption())
                         .foregroundColor(.white)
 
@@ -332,6 +361,34 @@ struct MediaCard: View {
                 VideoPlayerView(url: item.mediaURL)
             }
         }
+    }
+
+    private var weightText: String {
+        if item.weightGrams > 0 {
+            return "Weight: \(Int(item.weightGrams))g"
+        } else {
+            return "Weight unavailable"
+        }
+    }
+}
+
+struct EmptyMediaPlaceholder: View {
+    let message: String
+
+    var body: some View {
+        VStack(spacing: 8) {
+            Image(systemName: "photo")
+                .font(.title)
+                .foregroundColor(DesignSystem.textSecondary.opacity(0.8))
+            Text(message)
+                .font(DesignSystem.body())
+                .multilineTextAlignment(.center)
+                .foregroundColor(DesignSystem.textSecondary)
+        }
+        .frame(width: 200, height: 200)
+        .background(DesignSystem.cardBackground)
+        .cornerRadius(12)
+        .shadow(color: .black.opacity(0.05), radius: 4, y: 2)
     }
 }
 

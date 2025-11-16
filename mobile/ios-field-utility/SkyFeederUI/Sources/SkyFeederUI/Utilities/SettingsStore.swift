@@ -5,17 +5,20 @@ public final class SettingsStore: ObservableObject {
 
     public let allowLocalHttp: Bool
     public let defaultProvider: CaptureProviderSelection
+    public let showDevTools: Bool
 
     private let userDefaults: UserDefaults
 
     public init(
         userDefaults: UserDefaults = .standard,
         defaultProvider: CaptureProviderSelection = .presigned,
-        allowLocalHttp: Bool = true
+        allowLocalHttp: Bool = true,
+        showDevTools: Bool = true
     ) {
         self.userDefaults = userDefaults
         self.defaultProvider = defaultProvider
         self.allowLocalHttp = allowLocalHttp
+        self.showDevTools = showDevTools
 
         var loaded = SettingsState(userDefaults: userDefaults)
         if userDefaults.object(forKey: SettingsState.Keys.provider) == nil {
