@@ -1,15 +1,15 @@
 # iOS SwiftUI 3-Tab App Implementation Report
 
 **Date:** 2025-11-16
-**Build Version:** 0.1.0 (Build 6)
-**TestFlight Status:** Successfully uploaded via `fastlane ios testflight_upload` (Build 6)
+**Build Version:** 0.1.0 (Build 7)
+**TestFlight Status:** Latest candidate: Build 7 (previous Build 6 successfully uploaded via `fastlane ios testflight_upload`)
 **Implementation Type:** Production-ready SwiftUI app matching mockup designs
 
 ---
 
 ## Executive Summary
 
-Implemented a comprehensive SwiftUI-based iOS application with three tabs (Feeder, Options, Dev) matching provided mockup images. The implementation follows MVVM architecture, uses modern Swift async/await patterns, and includes zero MQTT references. Build 6 successfully compiled, passed all asset catalog checks, and uploaded to TestFlight via the GitHub Actions `ios-build-upload` workflow.
+Implemented a comprehensive SwiftUI-based iOS application with three tabs (Feeder, Options, Dev) matching provided mockup images. The implementation follows MVVM architecture, uses modern Swift async/await patterns, and includes zero MQTT references. Build 6 successfully compiled, passed all asset catalog checks, and uploaded to TestFlight via the GitHub Actions `ios-build-upload` workflow; Build 7 increments the internal bundle version for the next TestFlight upload.
 
 **Key Achievements:**
 - 3-tab TabView with production-quality UI
