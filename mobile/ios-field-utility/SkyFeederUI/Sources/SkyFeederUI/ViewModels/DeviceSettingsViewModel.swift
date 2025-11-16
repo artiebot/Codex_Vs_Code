@@ -11,6 +11,8 @@ public final class DeviceSettingsViewModel: ObservableObject {
     @Published public private(set) var errorMessage: String?
     @Published public private(set) var successMessage: String?
 
+    private var lastDeviceSettings: DeviceSettings? = nil
+
     private let settingsStore: SettingsStore
     private let provider: SettingsProvider
     private let userDefaults: UserDefaults
@@ -69,11 +71,14 @@ public final class DeviceSettingsViewModel: ObservableObject {
         errorMessage = nil
         successMessage = nil
 
+        let current = lastDeviceSettings ?? DeviceSettings.defaults
         let settings = DeviceSettings(
             weightThreshold: Int(weightThreshold),
             cooldownSeconds: cooldownSeconds,
             cameraEnabled: cameraEnabled,
-            updatedAt: nil
+            updatedAt: nil,
+            photoRetentionDays: current.photoRetentionDays,
+            videoRetentionDays: current.videoRetentionDays
         )
 
         do {
@@ -104,6 +109,7 @@ public final class DeviceSettingsViewModel: ObservableObject {
     }
 
     private func applySettings(_ settings: DeviceSettings) {
+        lastDeviceSettings = settings
         weightThreshold = Double(settings.weightThreshold)
         cooldownSeconds = settings.cooldownSeconds
         cameraEnabled = settings.cameraEnabled
