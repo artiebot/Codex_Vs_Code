@@ -17,6 +17,15 @@ public enum AppTheme {
         UINavigationBar.appearance().standardAppearance = navigationAppearance
         UINavigationBar.appearance().scrollEdgeAppearance = navigationAppearance
 
+        let tabAppearance = UITabBarAppearance()
+        tabAppearance.configureWithOpaqueBackground()
+        tabAppearance.backgroundColor = AppColors.backgroundUIColor
+        UITabBar.appearance().standardAppearance = tabAppearance
+        if #available(iOS 15.0, *) {
+            UITabBar.appearance().scrollEdgeAppearance = tabAppearance
+        }
+        UITabBar.appearance().tintColor = AppColors.accentUIColor
+
         UIToolbar.appearance().tintColor = AppColors.accentUIColor
         UIButton.appearance(whenContainedInInstancesOf: [UINavigationBar.self]).tintColor = AppColors.accentUIColor
     }

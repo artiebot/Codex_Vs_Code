@@ -17,6 +17,7 @@ public class DevViewModel: ObservableObject {
     @Published public var isLoading: Bool = false
     @Published public var errorMessage: String?
     @Published public var captureCooldownSeconds: Int?
+    @Published public var ambMiniStatus: String = "Unknown"
 
     private let settingsStore: SettingsStore
     private let settingsProvider: SettingsProvider
@@ -44,6 +45,7 @@ public class DevViewModel: ObservableObject {
             retentionPolicy = try await fetchRetentionPolicy()
             logs = try await fetchLogs()
             captureCooldownSeconds = try? await fetchCaptureCooldown()
+            ambMiniStatus = await resolveAmbMiniStatus()
         } catch {
             errorMessage = error.localizedDescription
         }
@@ -160,6 +162,18 @@ public class DevViewModel: ObservableObject {
             deviceId: settingsStore.state.deviceID
         )
         return settings.cooldownSeconds
+    }
+
+    private func resolveAmbMiniStatus() async -> String {
+        // TODO: Replace with real device mode when backend exposes it.
+        // For now, derive a coarse status from connectivity/telemetry presence.
+        if connectivity == nil {
+            return "Unknown"
+        }
+        if telemetry == nil {
+            return "Sleeping (no telemetry sample)"
+        }
+        return "Active (captures/telemetry available)"
     }
 
     private func fetchRetentionPolicy() async throws -> RetentionPolicy {

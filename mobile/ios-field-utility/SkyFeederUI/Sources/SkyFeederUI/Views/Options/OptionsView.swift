@@ -14,7 +14,6 @@ public struct OptionsView: View {
                     CaptureSettingsSection(viewModel: viewModel)
                     TimeQuietHoursSection(viewModel: viewModel)
                     NotificationsSection(viewModel: viewModel)
-                    StorageRetentionSection(viewModel: viewModel)
                     AdvancedSection(viewModel: viewModel)
                 }
                 .padding()
