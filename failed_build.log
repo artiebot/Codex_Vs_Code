@@ -1,0 +1,760 @@
+ios	Set up job	﻿2025-11-12T15:33:10.8604590Z Current runner version: '2.329.0'
+ios	Set up job	2025-11-12T15:33:10.8623050Z ##[group]Runner Image Provisioner
+ios	Set up job	2025-11-12T15:33:10.8623760Z Hosted Compute Agent
+ios	Set up job	2025-11-12T15:33:10.8624180Z Version: 20251016.436
+ios	Set up job	2025-11-12T15:33:10.8624680Z Commit: 8ab8ac8bfd662a3739dab9fe09456aba92132568
+ios	Set up job	2025-11-12T15:33:10.8625200Z Build Date: 2025-10-15T20:44:12Z
+ios	Set up job	2025-11-12T15:33:10.8625650Z ##[endgroup]
+ios	Set up job	2025-11-12T15:33:10.8626060Z ##[group]Operating System
+ios	Set up job	2025-11-12T15:33:10.8626480Z macOS
+ios	Set up job	2025-11-12T15:33:10.8626840Z 14.8.1
+ios	Set up job	2025-11-12T15:33:10.8627200Z 23J30
+ios	Set up job	2025-11-12T15:33:10.8627580Z ##[endgroup]
+ios	Set up job	2025-11-12T15:33:10.8627980Z ##[group]Runner Image
+ios	Set up job	2025-11-12T15:33:10.8628420Z Image: macos-14-arm64
+ios	Set up job	2025-11-12T15:33:10.8628880Z Version: 20251103.0081
+ios	Set up job	2025-11-12T15:33:10.8629720Z Included Software: https://github.com/actions/runner-images/blob/macos-14-arm64/20251103.0081/images/macos/macos-14-arm64-Readme.md
+ios	Set up job	2025-11-12T15:33:10.8630810Z Image Release: https://github.com/actions/runner-images/releases/tag/macos-14-arm64%2F20251103.0081
+ios	Set up job	2025-11-12T15:33:10.8631680Z ##[endgroup]
+ios	Set up job	2025-11-12T15:33:10.8632590Z ##[group]GITHUB_TOKEN Permissions
+ios	Set up job	2025-11-12T15:33:10.8634250Z Contents: read
+ios	Set up job	2025-11-12T15:33:10.8634710Z Metadata: read
+ios	Set up job	2025-11-12T15:33:10.8635110Z Packages: read
+ios	Set up job	2025-11-12T15:33:10.8635520Z ##[endgroup]
+ios	Set up job	2025-11-12T15:33:10.8637140Z Secret source: Actions
+ios	Set up job	2025-11-12T15:33:10.8637640Z Prepare workflow directory
+ios	Set up job	2025-11-12T15:33:10.8896160Z Prepare all required actions
+ios	Set up job	2025-11-12T15:33:10.8925080Z Getting action download info
+ios	Set up job	2025-11-12T15:33:11.4145210Z Download action repository 'actions/checkout@v4' (SHA:08eba0b27e820071cde6df949e0beb9ba4906955)
+ios	Set up job	2025-11-12T15:33:11.7526110Z Download action repository 'maxim-lobanov/setup-xcode@v1' (SHA:60606e260d2fc5762a71e64e74b2174e8ea3c8bd)
+ios	Set up job	2025-11-12T15:33:12.3672160Z Download action repository 'actions/cache@v4' (SHA:0057852bfaa89a56745cba8c7296529d2fc39830)
+ios	Set up job	2025-11-12T15:33:12.5574440Z Complete job name: ios
+ios	Run actions/checkout@v4	﻿2025-11-12T15:33:12.6237740Z ##[group]Run actions/checkout@v4
+ios	Run actions/checkout@v4	2025-11-12T15:33:12.6239560Z with:
+ios	Run actions/checkout@v4	2025-11-12T15:33:12.6239980Z   repository: artiebot/Codex_Vs_Code
+ios	Run actions/checkout@v4	2025-11-12T15:33:12.6240670Z   token: ***
+ios	Run actions/checkout@v4	2025-11-12T15:33:12.6241030Z   ssh-strict: true
+ios	Run actions/checkout@v4	2025-11-12T15:33:12.6241390Z   ssh-user: git
+ios	Run actions/checkout@v4	2025-11-12T15:33:12.6241760Z   persist-credentials: true
+ios	Run actions/checkout@v4	2025-11-12T15:33:12.6242160Z   clean: true
+ios	Run actions/checkout@v4	2025-11-12T15:33:12.6242540Z   sparse-checkout-cone-mode: true
+ios	Run actions/checkout@v4	2025-11-12T15:33:12.6242960Z   fetch-depth: 1
+ios	Run actions/checkout@v4	2025-11-12T15:33:12.6243320Z   fetch-tags: false
+ios	Run actions/checkout@v4	2025-11-12T15:33:12.6243690Z   show-progress: true
+ios	Run actions/checkout@v4	2025-11-12T15:33:12.6244050Z   lfs: false
+ios	Run actions/checkout@v4	2025-11-12T15:33:12.6244390Z   submodules: false
+ios	Run actions/checkout@v4	2025-11-12T15:33:12.6244770Z   set-safe-directory: true
+ios	Run actions/checkout@v4	2025-11-12T15:33:12.6245420Z ##[endgroup]
+ios	Run actions/checkout@v4	2025-11-12T15:33:13.0151070Z Syncing repository: artiebot/Codex_Vs_Code
+ios	Run actions/checkout@v4	2025-11-12T15:33:13.0152750Z ##[group]Getting Git version info
+ios	Run actions/checkout@v4	2025-11-12T15:33:13.0153400Z Working directory is '/Users/runner/work/Codex_Vs_Code/Codex_Vs_Code'
+ios	Run actions/checkout@v4	2025-11-12T15:33:13.0203250Z [command]/opt/homebrew/bin/git version
+ios	Run actions/checkout@v4	2025-11-12T15:33:13.0877620Z git version 2.50.1
+ios	Run actions/checkout@v4	2025-11-12T15:33:13.0927620Z ##[endgroup]
+ios	Run actions/checkout@v4	2025-11-12T15:33:13.0933540Z Copying '/Users/runner/.gitconfig' to '/Users/runner/work/_temp/b639f05a-53c0-4f9d-92de-6a9ba4c46d84/.gitconfig'
+ios	Run actions/checkout@v4	2025-11-12T15:33:13.0941750Z Temporarily overriding HOME='/Users/runner/work/_temp/b639f05a-53c0-4f9d-92de-6a9ba4c46d84' before making global git config changes
+ios	Run actions/checkout@v4	2025-11-12T15:33:13.0945390Z Adding repository directory to the temporary git global config as a safe directory
+ios	Run actions/checkout@v4	2025-11-12T15:33:13.0948610Z [command]/opt/homebrew/bin/git config --global --add safe.directory /Users/runner/work/Codex_Vs_Code/Codex_Vs_Code
+ios	Run actions/checkout@v4	2025-11-12T15:33:13.1049710Z Deleting the contents of '/Users/runner/work/Codex_Vs_Code/Codex_Vs_Code'
+ios	Run actions/checkout@v4	2025-11-12T15:33:13.1051180Z ##[group]Initializing the repository
+ios	Run actions/checkout@v4	2025-11-12T15:33:13.1055220Z [command]/opt/homebrew/bin/git init /Users/runner/work/Codex_Vs_Code/Codex_Vs_Code
+ios	Run actions/checkout@v4	2025-11-12T15:33:13.1358430Z hint: Using 'master' as the name for the initial branch. This default branch name
+ios	Run actions/checkout@v4	2025-11-12T15:33:13.1363000Z hint: is subject to change. To configure the initial branch name to use in all
+ios	Run actions/checkout@v4	2025-11-12T15:33:13.1365300Z hint: of your new repositories, which will suppress this warning, call:
+ios	Run actions/checkout@v4	2025-11-12T15:33:13.1367170Z hint:
+ios	Run actions/checkout@v4	2025-11-12T15:33:13.1368750Z hint: 	git config --global init.defaultBranch <name>
+ios	Run actions/checkout@v4	2025-11-12T15:33:13.1370390Z hint:
+ios	Run actions/checkout@v4	2025-11-12T15:33:13.1371970Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+ios	Run actions/checkout@v4	2025-11-12T15:33:13.1374030Z hint: 'development'. The just-created branch can be renamed via this command:
+ios	Run actions/checkout@v4	2025-11-12T15:33:13.1375860Z hint:
+ios	Run actions/checkout@v4	2025-11-12T15:33:13.1389950Z hint: 	git branch -m <name>
+ios	Run actions/checkout@v4	2025-11-12T15:33:13.1392560Z hint:
+ios	Run actions/checkout@v4	2025-11-12T15:33:13.1394300Z hint: Disable this message with "git config set advice.defaultBranchName false"
+ios	Run actions/checkout@v4	2025-11-12T15:33:13.1397920Z Initialized empty Git repository in /Users/runner/work/Codex_Vs_Code/Codex_Vs_Code/.git/
+ios	Run actions/checkout@v4	2025-11-12T15:33:13.1404100Z [command]/opt/homebrew/bin/git remote add origin https://github.com/artiebot/Codex_Vs_Code
+ios	Run actions/checkout@v4	2025-11-12T15:33:13.1482900Z ##[endgroup]
+ios	Run actions/checkout@v4	2025-11-12T15:33:13.1484900Z ##[group]Disabling automatic garbage collection
+ios	Run actions/checkout@v4	2025-11-12T15:33:13.1488910Z [command]/opt/homebrew/bin/git config --local gc.auto 0
+ios	Run actions/checkout@v4	2025-11-12T15:33:13.1541490Z ##[endgroup]
+ios	Run actions/checkout@v4	2025-11-12T15:33:13.1543320Z ##[group]Setting up auth
+ios	Run actions/checkout@v4	2025-11-12T15:33:13.1545210Z [command]/opt/homebrew/bin/git config --local --name-only --get-regexp core\.sshCommand
+ios	Run actions/checkout@v4	2025-11-12T15:33:13.1612380Z [command]/opt/homebrew/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+ios	Run actions/checkout@v4	2025-11-12T15:33:13.2829100Z [command]/opt/homebrew/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+ios	Run actions/checkout@v4	2025-11-12T15:33:13.2888300Z [command]/opt/homebrew/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+ios	Run actions/checkout@v4	2025-11-12T15:33:13.3625460Z [command]/opt/homebrew/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+ios	Run actions/checkout@v4	2025-11-12T15:33:13.3693850Z ##[endgroup]
+ios	Run actions/checkout@v4	2025-11-12T15:33:13.3694770Z ##[group]Fetching the repository
+ios	Run actions/checkout@v4	2025-11-12T15:33:13.3702310Z [command]/opt/homebrew/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +3197775a2271477104cc87e03463c8b92b6d4430:refs/remotes/origin/main
+ios	Run actions/checkout@v4	2025-11-12T15:33:15.0313160Z From https://github.com/artiebot/Codex_Vs_Code
+ios	Run actions/checkout@v4	2025-11-12T15:33:15.0316100Z  * [new ref]         3197775a2271477104cc87e03463c8b92b6d4430 -> origin/main
+ios	Run actions/checkout@v4	2025-11-12T15:33:15.0387780Z ##[endgroup]
+ios	Run actions/checkout@v4	2025-11-12T15:33:15.0388560Z ##[group]Determining the checkout info
+ios	Run actions/checkout@v4	2025-11-12T15:33:15.0389230Z ##[endgroup]
+ios	Run actions/checkout@v4	2025-11-12T15:33:15.0392420Z [command]/opt/homebrew/bin/git sparse-checkout disable
+ios	Run actions/checkout@v4	2025-11-12T15:33:15.0465530Z [command]/opt/homebrew/bin/git config --local --unset-all extensions.worktreeConfig
+ios	Run actions/checkout@v4	2025-11-12T15:33:15.0531070Z ##[group]Checking out the ref
+ios	Run actions/checkout@v4	2025-11-12T15:33:15.0533310Z [command]/opt/homebrew/bin/git checkout --progress --force -B main refs/remotes/origin/main
+ios	Run actions/checkout@v4	2025-11-12T15:33:15.6206880Z Switched to a new branch 'main'
+ios	Run actions/checkout@v4	2025-11-12T15:33:15.6219560Z branch 'main' set up to track 'origin/main'.
+ios	Run actions/checkout@v4	2025-11-12T15:33:15.6236110Z ##[endgroup]
+ios	Run actions/checkout@v4	2025-11-12T15:33:15.6336290Z [command]/opt/homebrew/bin/git log -1 --format=%H
+ios	Run actions/checkout@v4	2025-11-12T15:33:15.6400010Z 3197775a2271477104cc87e03463c8b92b6d4430
+ios	Select Xcode	﻿2025-11-12T15:33:15.6647400Z ##[group]Run maxim-lobanov/setup-xcode@v1
+ios	Select Xcode	2025-11-12T15:33:15.6651060Z with:
+ios	Select Xcode	2025-11-12T15:33:15.6652040Z   xcode-version: 16.1
+ios	Select Xcode	2025-11-12T15:33:15.6656020Z ##[endgroup]
+ios	Select Xcode	2025-11-12T15:33:15.7646500Z Switching Xcode to version '16.1'...
+ios	Select Xcode	2025-11-12T15:33:15.9005560Z Xcode is set to 16.1.0 (16B40)
+ios	Install XcodeGen	﻿2025-11-12T15:33:15.9173990Z ##[group]Run brew install xcodegen || true
+ios	Install XcodeGen	2025-11-12T15:33:15.9176790Z [36;1mbrew install xcodegen || true[0m
+ios	Install XcodeGen	2025-11-12T15:33:15.9278730Z shell: /bin/bash -e {0}
+ios	Install XcodeGen	2025-11-12T15:33:15.9280010Z env:
+ios	Install XcodeGen	2025-11-12T15:33:15.9280840Z   MD_APPLE_SDK_ROOT: /Applications/Xcode_16.1.app
+ios	Install XcodeGen	2025-11-12T15:33:15.9281900Z ##[endgroup]
+ios	Install XcodeGen	2025-11-12T15:33:23.2797090Z [32m==>[0m [1mFetching downloads for: [32mxcodegen[39m[0m
+ios	Install XcodeGen	2025-11-12T15:33:23.2815290Z [34m==>[0m [1mDownloading https://ghcr.io/v2/homebrew/core/xcodegen/manifests/2.44.1[0m
+ios	Install XcodeGen	2025-11-12T15:33:23.6042640Z [32m==>[0m [1mFetching [32mxcodegen[39m[0m
+ios	Install XcodeGen	2025-11-12T15:33:23.6047190Z [34m==>[0m [1mDownloading https://ghcr.io/v2/homebrew/core/xcodegen/blobs/sha256:eb57b2b779fdab389d7c8975749bbaab6cecd75227b8bd45d6c6f8121b953fd6[0m
+ios	Install XcodeGen	2025-11-12T15:33:24.0435340Z [34m==>[0m [1mPouring xcodegen--2.44.1.arm64_sonoma.bottle.tar.gz[0m
+ios	Install XcodeGen	2025-11-12T15:33:24.2609100Z 🍺  /opt/homebrew/Cellar/xcodegen/2.44.1: 38 files, 7MB
+ios	Generate Xcode project	﻿2025-11-12T15:33:24.2934970Z ##[group]Run xcodegen generate
+ios	Generate Xcode project	2025-11-12T15:33:24.2935350Z [36;1mxcodegen generate[0m
+ios	Generate Xcode project	2025-11-12T15:33:24.2935790Z [36;1mxcodebuild -resolvePackageDependencies -project SkyFeederFieldUtility.xcodeproj[0m
+ios	Generate Xcode project	2025-11-12T15:33:24.2998230Z shell: /bin/bash -e {0}
+ios	Generate Xcode project	2025-11-12T15:33:24.2998570Z env:
+ios	Generate Xcode project	2025-11-12T15:33:24.2998800Z   MD_APPLE_SDK_ROOT: /Applications/Xcode_16.1.app
+ios	Generate Xcode project	2025-11-12T15:33:24.2999110Z ##[endgroup]
+ios	Generate Xcode project	2025-11-12T15:33:24.3521490Z ⚙️  Generating plists...
+ios	Generate Xcode project	2025-11-12T15:33:24.3535440Z ⚙️  Generating project...
+ios	Generate Xcode project	2025-11-12T15:33:24.3665840Z ⚙️  Writing project...
+ios	Generate Xcode project	2025-11-12T15:33:24.3737920Z Created project at /Users/runner/work/Codex_Vs_Code/Codex_Vs_Code/mobile/ios-field-utility/SkyFeederFieldUtility.xcodeproj
+ios	Generate Xcode project	2025-11-12T15:33:25.3006740Z Command line invocation:
+ios	Generate Xcode project	2025-11-12T15:33:25.3008570Z     /Applications/Xcode_16.1.app/Contents/Developer/usr/bin/xcodebuild -resolvePackageDependencies -project SkyFeederFieldUtility.xcodeproj
+ios	Generate Xcode project	2025-11-12T15:33:25.3010030Z 
+ios	Generate Xcode project	2025-11-12T15:33:25.3010290Z User defaults from command line:
+ios	Generate Xcode project	2025-11-12T15:33:25.3011430Z     IDEPackageSupportUseBuiltinSCM = YES
+ios	Generate Xcode project	2025-11-12T15:33:25.3012040Z 
+ios	Generate Xcode project	2025-11-12T15:33:28.5937550Z Resolve Package Graph
+ios	Generate Xcode project	2025-11-12T15:33:42.3565250Z 
+ios	Generate Xcode project	2025-11-12T15:33:42.3566140Z 
+ios	Generate Xcode project	2025-11-12T15:33:42.3567080Z Resolved source packages:
+ios	Generate Xcode project	2025-11-12T15:33:42.3567790Z   SkyFeederUI: /Users/runner/work/Codex_Vs_Code/Codex_Vs_Code/mobile/ios-field-utility/SkyFeederUI
+ios	Generate Xcode project	2025-11-12T15:33:42.3568410Z 
+ios	Generate Xcode project	2025-11-12T15:33:42.3590140Z resolved source packages: SkyFeederUI
+ios	Cache Bundler	﻿2025-11-12T15:33:42.8069550Z ##[group]Run actions/cache@v4
+ios	Cache Bundler	2025-11-12T15:33:42.8069900Z with:
+ios	Cache Bundler	2025-11-12T15:33:42.8070240Z   path: vendor/bundle
+ios	Cache Bundler	2025-11-12T15:33:42.8070750Z   key: bundler-macOS-e9d160ca110ce7e7fbd7001cc376718740b386fee76335ad0677b2978eac3046
+ios	Cache Bundler	2025-11-12T15:33:42.8071300Z   restore-keys: bundler-macOS-
+ios	Cache Bundler	
+ios	Cache Bundler	2025-11-12T15:33:42.8071590Z   enableCrossOsArchive: false
+ios	Cache Bundler	2025-11-12T15:33:42.8071920Z   fail-on-cache-miss: false
+ios	Cache Bundler	2025-11-12T15:33:42.8072230Z   lookup-only: false
+ios	Cache Bundler	2025-11-12T15:33:42.8072540Z   save-always: false
+ios	Cache Bundler	2025-11-12T15:33:42.8072890Z env:
+ios	Cache Bundler	2025-11-12T15:33:42.8073140Z   MD_APPLE_SDK_ROOT: /Applications/Xcode_16.1.app
+ios	Cache Bundler	2025-11-12T15:33:42.8073600Z ##[endgroup]
+ios	Cache Bundler	2025-11-12T15:33:43.3819240Z Cache hit for: bundler-macOS-e9d160ca110ce7e7fbd7001cc376718740b386fee76335ad0677b2978eac3046
+ios	Cache Bundler	2025-11-12T15:33:44.6755130Z Received 0 of 15083308 (0.0%), 0.0 MBs/sec
+ios	Cache Bundler	2025-11-12T15:33:45.4872830Z Received 15083308 of 15083308 (100.0%), 7.9 MBs/sec
+ios	Cache Bundler	2025-11-12T15:33:45.4975040Z Cache Size: ~14 MB (15083308 B)
+ios	Cache Bundler	2025-11-12T15:33:45.5077350Z [command]/opt/homebrew/bin/gtar -xf /Users/runner/work/_temp/9df4a89b-f8ea-43d1-b52d-a6ff4f34e967/cache.tzst -P -C /Users/runner/work/Codex_Vs_Code/Codex_Vs_Code --delay-directory-restore --use-compress-program unzstd
+ios	Cache Bundler	2025-11-12T15:33:46.1912230Z Cache restored successfully
+ios	Cache Bundler	2025-11-12T15:33:46.2173910Z Cache restored from key: bundler-macOS-e9d160ca110ce7e7fbd7001cc376718740b386fee76335ad0677b2978eac3046
+ios	Install Ruby gems	﻿2025-11-12T15:33:46.2318970Z ##[group]Run bundle config path vendor/bundle
+ios	Install Ruby gems	2025-11-12T15:33:46.2319480Z [36;1mbundle config path vendor/bundle[0m
+ios	Install Ruby gems	2025-11-12T15:33:46.2319890Z [36;1mbundle install --jobs 4[0m
+ios	Install Ruby gems	2025-11-12T15:33:46.2589940Z shell: /bin/bash -e {0}
+ios	Install Ruby gems	2025-11-12T15:33:46.2590240Z env:
+ios	Install Ruby gems	2025-11-12T15:33:46.2590590Z   MD_APPLE_SDK_ROOT: /Applications/Xcode_16.1.app
+ios	Install Ruby gems	2025-11-12T15:33:46.2590860Z ##[endgroup]
+ios	Install Ruby gems	2025-11-12T15:33:46.9858620Z Bundle complete! 1 Gemfile dependency, 93 gems now installed.
+ios	Install Ruby gems	2025-11-12T15:33:46.9960480Z Bundled gems are installed into `./vendor/bundle`
+ios	Prepare CI keychain	﻿2025-11-12T15:33:48.0851440Z ##[group]Run set -eo pipefail
+ios	Prepare CI keychain	2025-11-12T15:33:48.0851870Z [36;1mset -eo pipefail[0m
+ios	Prepare CI keychain	2025-11-12T15:33:48.0852240Z [36;1msecurity create-keychain -p "$KEYCHAIN_PASSWORD" build.keychain[0m
+ios	Prepare CI keychain	2025-11-12T15:33:48.0852700Z [36;1msecurity set-keychain-settings -lut 21600 build.keychain[0m
+ios	Prepare CI keychain	2025-11-12T15:33:48.0853140Z [36;1msecurity unlock-keychain -p "$KEYCHAIN_PASSWORD" build.keychain[0m
+ios	Prepare CI keychain	2025-11-12T15:33:48.0853560Z [36;1msecurity list-keychains -s build.keychain login.keychain[0m
+ios	Prepare CI keychain	2025-11-12T15:33:48.0853950Z [36;1msecurity default-keychain -s build.keychain[0m
+ios	Prepare CI keychain	2025-11-12T15:33:48.0937070Z shell: /bin/bash -e {0}
+ios	Prepare CI keychain	2025-11-12T15:33:48.0937420Z env:
+ios	Prepare CI keychain	2025-11-12T15:33:48.0937710Z   MD_APPLE_SDK_ROOT: /Applications/Xcode_16.1.app
+ios	Prepare CI keychain	2025-11-12T15:33:48.0939420Z   KEYCHAIN_PASSWORD: ***
+ios	Prepare CI keychain	2025-11-12T15:33:48.0939720Z ##[endgroup]
+ios	Match (readonly)	﻿2025-11-12T15:33:48.5002280Z ##[group]Run bundle exec fastlane match appstore \
+ios	Match (readonly)	2025-11-12T15:33:48.5002710Z [36;1mbundle exec fastlane match appstore \[0m
+ios	Match (readonly)	2025-11-12T15:33:48.5003000Z [36;1m  --readonly \[0m
+ios	Match (readonly)	2025-11-12T15:33:48.5003410Z [36;1m  --keychain_name build.keychain \[0m
+ios	Match (readonly)	2025-11-12T15:33:48.5003750Z [36;1m  --keychain_password "$KEYCHAIN_PASSWORD"[0m
+ios	Match (readonly)	2025-11-12T15:33:48.5004220Z [36;1msecurity set-key-partition-list -S apple-tool:,apple: -s -k "$KEYCHAIN_PASSWORD" build.keychain[0m
+ios	Match (readonly)	2025-11-12T15:33:48.5005220Z [36;1msecurity find-identity -v -p codesigning[0m
+ios	Match (readonly)	2025-11-12T15:33:48.5100210Z shell: /bin/bash -e {0}
+ios	Match (readonly)	2025-11-12T15:33:48.5100470Z env:
+ios	Match (readonly)	2025-11-12T15:33:48.5100720Z   MD_APPLE_SDK_ROOT: /Applications/Xcode_16.1.app
+ios	Match (readonly)	2025-11-12T15:33:48.5101240Z   MATCH_PASSWORD: ***
+ios	Match (readonly)	2025-11-12T15:33:48.5101670Z   MATCH_GIT_URL: ***
+ios	Match (readonly)	2025-11-12T15:33:48.5103220Z   MATCH_GIT_BASIC_AUTHORIZATION: ***
+ios	Match (readonly)	2025-11-12T15:33:48.5103570Z   KEYCHAIN_PASSWORD: ***
+ios	Match (readonly)	2025-11-12T15:33:48.5103820Z   MATCH_KEYCHAIN_NAME: build.keychain
+ios	Match (readonly)	2025-11-12T15:33:48.5104180Z   MATCH_KEYCHAIN_PASSWORD: ***
+ios	Match (readonly)	2025-11-12T15:33:48.5104440Z ##[endgroup]
+ios	Match (readonly)	2025-11-12T15:33:50.7101700Z [15:33:50]: Sending anonymous analytics information
+ios	Match (readonly)	2025-11-12T15:33:50.7202670Z [15:33:50]: Learn more at https://docs.fastlane.tools/#metrics
+ios	Match (readonly)	2025-11-12T15:33:50.7304620Z [15:33:50]: No personal or sensitive data is sent.
+ios	Match (readonly)	2025-11-12T15:33:50.7404950Z [15:33:50]: You can disable this by adding `opt_out_usage` at the top of your Fastfile
+ios	Match (readonly)	2025-11-12T15:33:50.7506590Z [15:33:50]: [32mSuccessfully loaded '/Users/runner/work/Codex_Vs_Code/Codex_Vs_Code/fastlane/Matchfile' 📄[0m
+ios	Match (readonly)	2025-11-12T15:33:50.7606280Z 
+ios	Match (readonly)	2025-11-12T15:33:50.7707310Z +------------------------------------------------------------------------------------------------+
+ios	Match (readonly)	2025-11-12T15:33:50.7808870Z |                          Detected Values from './fastlane/Matchfile'                           |
+ios	Match (readonly)	2025-11-12T15:33:50.7912620Z +-------------------------+----------------------------------------------------------------------+
+ios	Match (readonly)	2025-11-12T15:33:50.8014710Z | storage_mode            | git                                                                  |
+ios	Match (readonly)	2025-11-12T15:33:50.8114800Z | git_url                 | ***               |
+ios	Match (readonly)	2025-11-12T15:33:50.8215750Z | git_basic_authorization | *** |
+ios	Match (readonly)	2025-11-12T15:33:50.8322500Z | type                    | appstore                                                             |
+ios	Match (readonly)	2025-11-12T15:33:50.8424270Z | app_identifier          | ["com.skyfeeder.field"]                                              |
+ios	Match (readonly)	2025-11-12T15:33:50.8530040Z | readonly                | true                                                                 |
+ios	Match (readonly)	2025-11-12T15:33:50.8624530Z +-------------------------+----------------------------------------------------------------------+
+ios	Match (readonly)	2025-11-12T15:33:50.8726100Z 
+ios	Match (readonly)	2025-11-12T15:33:50.8827360Z 
+ios	Match (readonly)	2025-11-12T15:33:50.8928350Z +-------------------------------------------------------------------------------------------------+
+ios	Match (readonly)	2025-11-12T15:33:50.9028810Z |                                    [32mSummary for match 2.228.0[0m                                    |
+ios	Match (readonly)	2025-11-12T15:33:50.9129360Z +----------------------------------------+--------------------------------------------------------+
+ios	Match (readonly)	2025-11-12T15:33:50.9230400Z | readonly                               | true                                                   |
+ios	Match (readonly)	2025-11-12T15:33:50.9331140Z | keychain_name                          | build.keychain                                         |
+ios	Match (readonly)	2025-11-12T15:33:50.9432070Z | keychain_password                      | ********                                               |
+ios	Match (readonly)	2025-11-12T15:33:50.9532980Z | type                                   | appstore                                               |
+ios	Match (readonly)	2025-11-12T15:33:50.9633860Z | generate_apple_certs                   | true                                                   |
+ios	Match (readonly)	2025-11-12T15:33:50.9734460Z | skip_provisioning_profiles             | false                                                  |
+ios	Match (readonly)	2025-11-12T15:33:50.9837940Z | app_identifier                         | ["com.skyfeeder.field"]                                |
+ios	Match (readonly)	2025-11-12T15:33:50.9939390Z | storage_mode                           | git                                                    |
+ios	Match (readonly)	2025-11-12T15:33:51.0041540Z | git_url                                | *** |
+ios	Match (readonly)	2025-11-12T15:33:51.0141500Z | git_branch                             | master                                                 |
+ios	Match (readonly)	2025-11-12T15:33:51.0241370Z | shallow_clone                          | false                                                  |
+ios	Match (readonly)	2025-11-12T15:33:51.0343110Z | clone_branch_directly                  | false                                                  |
+ios	Match (readonly)	2025-11-12T15:33:51.0444040Z | git_basic_authorization                | ********                                               |
+ios	Match (readonly)	2025-11-12T15:33:51.0546140Z | skip_google_cloud_account_confirmation | false                                                  |
+ios	Match (readonly)	2025-11-12T15:33:51.0647100Z | s3_skip_encryption                     | false                                                  |
+ios	Match (readonly)	2025-11-12T15:33:51.0748330Z | gitlab_host                            | https://gitlab.com                                     |
+ios	Match (readonly)	2025-11-12T15:33:51.0851090Z | force                                  | false                                                  |
+ios	Match (readonly)	2025-11-12T15:33:51.0952650Z | force_for_new_devices                  | false                                                  |
+ios	Match (readonly)	2025-11-12T15:33:51.1053710Z | include_mac_in_profiles                | false                                                  |
+ios	Match (readonly)	2025-11-12T15:33:51.1155400Z | include_all_certificates               | false                                                  |
+ios	Match (readonly)	2025-11-12T15:33:51.1254690Z | force_for_new_certificates             | false                                                  |
+ios	Match (readonly)	2025-11-12T15:33:51.1356910Z | skip_confirmation                      | false                                                  |
+ios	Match (readonly)	2025-11-12T15:33:51.1457110Z | safe_remove_certs                      | false                                                  |
+ios	Match (readonly)	2025-11-12T15:33:51.1558700Z | skip_docs                              | false                                                  |
+ios	Match (readonly)	2025-11-12T15:33:51.1659340Z | platform                               | ios                                                    |
+ios	Match (readonly)	2025-11-12T15:33:51.1759890Z | derive_catalyst_app_identifier         | false                                                  |
+ios	Match (readonly)	2025-11-12T15:33:51.1861140Z | fail_on_name_taken                     | false                                                  |
+ios	Match (readonly)	2025-11-12T15:33:51.1961670Z | skip_certificate_matching              | false                                                  |
+ios	Match (readonly)	2025-11-12T15:33:51.2062040Z | skip_set_partition_list                | false                                                  |
+ios	Match (readonly)	2025-11-12T15:33:51.2162400Z | force_legacy_encryption                | false                                                  |
+ios	Match (readonly)	2025-11-12T15:33:51.2264040Z | verbose                                | false                                                  |
+ios	Match (readonly)	2025-11-12T15:33:51.2364480Z +----------------------------------------+--------------------------------------------------------+
+ios	Match (readonly)	2025-11-12T15:33:51.2465500Z 
+ios	Match (readonly)	2025-11-12T15:33:51.2566270Z [15:33:50]: Cloning remote git repo...
+ios	Match (readonly)	2025-11-12T15:33:51.2667190Z [15:33:50]: If cloning the repo takes too long, you can use the `clone_branch_directly` option in match.
+ios	Match (readonly)	2025-11-12T15:33:51.3772410Z [15:33:51]: Checking out branch master...
+ios	Match (readonly)	2025-11-12T15:33:51.4175070Z [15:33:51]: [32m🔓  Successfully decrypted certificates repo[0m
+ios	Match (readonly)	2025-11-12T15:33:51.4277190Z [15:33:51]: Installing certificate...
+ios	Match (readonly)	2025-11-12T15:33:51.8304400Z [15:33:51]: [31mThere are no local code signing identities found.
+ios	Match (readonly)	2025-11-12T15:33:51.8405960Z You can run `security find-identity -v -p codesigning /Users/runner/Library/Keychains/build.keychain-db` to get this output.
+ios	Match (readonly)	2025-11-12T15:33:51.8506210Z This Stack Overflow thread has more information: https://stackoverflow.com/q/35390072/774.
+ios	Match (readonly)	2025-11-12T15:33:51.8609820Z (Check in Keychain Access for an expired WWDR certificate: https://stackoverflow.com/a/35409835/774 has more info.)[0m
+ios	Match (readonly)	2025-11-12T15:33:52.0427220Z [15:33:52]: Setting key partition list... (this can take a minute if there are a lot of keys installed)
+ios	Match (readonly)	2025-11-12T15:33:52.0823250Z [15:33:52]: [31msecurity: SecItemCopyMatching: The specified item could not be found in the keychain.[0m
+ios	Match (readonly)	2025-11-12T15:33:52.2635160Z [15:33:52]: Setting key partition list... (this can take a minute if there are a lot of keys installed)
+ios	Match (readonly)	2025-11-12T15:33:52.3038610Z 
+ios	Match (readonly)	2025-11-12T15:33:52.3140630Z +-----------------------------------------------------------------------+
+ios	Match (readonly)	2025-11-12T15:33:52.3241450Z |                         [32mInstalled Certificate[0m                         |
+ios	Match (readonly)	2025-11-12T15:33:52.3342770Z +-------------------+---------------------------------------------------+
+ios	Match (readonly)	2025-11-12T15:33:52.3444350Z | User ID           | ***                                        |
+ios	Match (readonly)	2025-11-12T15:33:52.3544720Z | Common Name       | Apple Distribution: Ardavan Aliabadi (***) |
+ios	Match (readonly)	2025-11-12T15:33:52.3647970Z | Organisation Unit | ***                                        |
+ios	Match (readonly)	2025-11-12T15:33:52.3751020Z | Organisation      | Ardavan Aliabadi                                  |
+ios	Match (readonly)	2025-11-12T15:33:52.3852760Z | Country           | US                                                |
+ios	Match (readonly)	2025-11-12T15:33:52.3953660Z | Start Datetime    | 2025-11-05 03:32:59 UTC                           |
+ios	Match (readonly)	2025-11-12T15:33:52.4053710Z | End Datetime      | 2026-11-05 03:32:58 UTC                           |
+ios	Match (readonly)	2025-11-12T15:33:52.4154130Z +-------------------+---------------------------------------------------+
+ios	Match (readonly)	2025-11-12T15:33:52.4263130Z 
+ios	Match (readonly)	2025-11-12T15:33:52.4363730Z [15:33:52]: Installing provisioning profile...
+ios	Match (readonly)	2025-11-12T15:33:52.4664180Z 
+ios	Match (readonly)	2025-11-12T15:33:52.4765390Z +------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+ios	Match (readonly)	2025-11-12T15:33:52.4866530Z |                                                                              [32mInstalled Provisioning Profile[0m                                                                              |
+ios	Match (readonly)	2025-11-12T15:33:52.4967170Z +---------------------+----------------------------------------------------+---------------------------------------------------------------------------------------------------------------+
+ios	Match (readonly)	2025-11-12T15:33:52.5068670Z | Parameter           | Environment Variable                               | Value                                                                                                         |
+ios	Match (readonly)	2025-11-12T15:33:52.5168960Z +---------------------+----------------------------------------------------+---------------------------------------------------------------------------------------------------------------+
+ios	Match (readonly)	2025-11-12T15:33:52.5269500Z | App Identifier      |                                                    | com.skyfeeder.field                                                                                           |
+ios	Match (readonly)	2025-11-12T15:33:52.5370030Z | Type                |                                                    | appstore                                                                                                      |
+ios	Match (readonly)	2025-11-12T15:33:52.5473470Z | Platform            |                                                    | ios                                                                                                           |
+ios	Match (readonly)	2025-11-12T15:33:52.5573500Z | Profile UUID        | sigh_com.skyfeeder.field_appstore                  | 9d03b08f-fbad-46c4-9287-4c797b63420b                                                                          |
+ios	Match (readonly)	2025-11-12T15:33:52.5674360Z | Profile Name        | sigh_com.skyfeeder.field_appstore_profile-name     | match AppStore com.skyfeeder.field                                                                            |
+ios	Match (readonly)	2025-11-12T15:33:52.5776700Z | Profile Path        | sigh_com.skyfeeder.field_appstore_profile-path     | /Users/runner/Library/MobileDevice/Provisioning Profiles/9d03b08f-fbad-46c4-9287-4c797b63420b.mobileprovision |
+ios	Match (readonly)	2025-11-12T15:33:52.5876470Z | Development Team ID | sigh_com.skyfeeder.field_appstore_team-id          | ***                                                                                                    |
+ios	Match (readonly)	2025-11-12T15:33:52.5978700Z | Certificate Name    | sigh_com.skyfeeder.field_appstore_certificate-name | Apple Distribution: Ardavan Aliabadi (***)                                                             |
+ios	Match (readonly)	2025-11-12T15:33:52.6079540Z +---------------------+----------------------------------------------------+---------------------------------------------------------------------------------------------------------------+
+ios	Match (readonly)	2025-11-12T15:33:52.6180450Z 
+ios	Match (readonly)	2025-11-12T15:33:52.6281900Z [15:33:52]: [32m[32mAll required keys, certificates and provisioning profiles are installed 🙌[0m
+ios	Match (readonly)	2025-11-12T15:33:52.6383220Z keychain: "/Users/runner/Library/Keychains/build.keychain-db"
+ios	Match (readonly)	2025-11-12T15:33:52.6483510Z version: 512
+ios	Match (readonly)	2025-11-12T15:33:52.6584550Z class: 0x00000010 
+ios	Match (readonly)	2025-11-12T15:33:52.6685760Z attributes:
+ios	Match (readonly)	2025-11-12T15:33:52.6787100Z     0x00000000 <uint32>=0x00000010 
+ios	Match (readonly)	2025-11-12T15:33:52.6887270Z     0x00000001 <blob>="Imported Private Key"
+ios	Match (readonly)	2025-11-12T15:33:52.6987150Z     0x00000002 <blob>=<NULL>
+ios	Match (readonly)	2025-11-12T15:33:52.7088460Z     0x00000003 <uint32>=0x00000001 
+ios	Match (readonly)	2025-11-12T15:33:52.7188780Z     0x00000004 <uint32>=0x00000000 
+ios	Match (readonly)	2025-11-12T15:33:52.7289710Z     0x00000005 <uint32>=0x00000000 
+ios	Match (readonly)	2025-11-12T15:33:52.7391520Z     0x00000006 <blob>=0xB4E5A454852163FEC3B89EEC1F30257D9EEDDE40  "\264\345\244T\205!c\376\303\270\236\354\0370%}\236\355\336@"
+ios	Match (readonly)	2025-11-12T15:33:52.7491010Z     0x00000007 <blob>=<NULL>
+ios	Match (readonly)	2025-11-12T15:33:52.7592630Z     0x00000008 <blob>=0x7B38373139316361322D306663392D313164342D383439612D3030303530326235323132327D00  "{87191ca2-0fc9-11d4-849a-000502b52122}\000"
+ios	Match (readonly)	2025-11-12T15:33:52.7692420Z     0x00000009 <uint32>=0x0000002A  "\000\000\000*"
+ios	Match (readonly)	2025-11-12T15:33:52.7793820Z     0x0000000A <uint32>=0x00000800 
+ios	Match (readonly)	2025-11-12T15:33:52.7895070Z     0x0000000B <uint32>=0x00000800 
+ios	Match (readonly)	2025-11-12T15:33:52.7995290Z     0x0000000C <blob>=0x0000000000000000 
+ios	Match (readonly)	2025-11-12T15:33:52.8096480Z     0x0000000D <blob>=0x0000000000000000 
+ios	Match (readonly)	2025-11-12T15:33:52.8196890Z     0x0000000E <uint32>=0x00000001 
+ios	Match (readonly)	2025-11-12T15:33:52.8297870Z     0x0000000F <uint32>=0x00000001 
+ios	Match (readonly)	2025-11-12T15:33:52.8398610Z     0x00000010 <uint32>=0x00000001 
+ios	Match (readonly)	2025-11-12T15:33:52.8499870Z     0x00000011 <uint32>=0x00000000 
+ios	Match (readonly)	2025-11-12T15:33:52.8600570Z     0x00000012 <uint32>=0x00000001 
+ios	Match (readonly)	2025-11-12T15:33:52.8701220Z     0x00000013 <uint32>=0x00000001 
+ios	Match (readonly)	2025-11-12T15:33:52.8802410Z     0x00000014 <uint32>=0x00000001 
+ios	Match (readonly)	2025-11-12T15:33:52.8903740Z     0x00000015 <uint32>=0x00000001 
+ios	Match (readonly)	2025-11-12T15:33:52.9004250Z     0x00000016 <uint32>=0x00000001 
+ios	Match (readonly)	2025-11-12T15:33:52.9104580Z     0x00000017 <uint32>=0x00000001 
+ios	Match (readonly)	2025-11-12T15:33:52.9206530Z     0x00000018 <uint32>=0x00000001 
+ios	Match (readonly)	2025-11-12T15:33:52.9306480Z     0x00000019 <uint32>=0x00000001 
+ios	Match (readonly)	2025-11-12T15:33:52.9408170Z     0x0000001A <uint32>=0x00000001 
+ios	Match (readonly)	2025-11-12T15:33:52.9510210Z   1) AEABF3C3B1C5AF24DA434FE72C18EEEC4FFECFD7 "Apple Distribution: Ardavan Aliabadi (***)"
+ios	Match (readonly)	2025-11-12T15:33:52.9611160Z      1 valid identities found
+ios	Build & Upload to TestFlight	﻿2025-11-12T15:33:52.9685470Z ##[group]Run bundle exec fastlane ios testflight_upload
+ios	Build & Upload to TestFlight	2025-11-12T15:33:52.9686520Z [36;1mbundle exec fastlane ios testflight_upload[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:33:52.9775940Z shell: /bin/bash -e {0}
+ios	Build & Upload to TestFlight	2025-11-12T15:33:52.9776600Z env:
+ios	Build & Upload to TestFlight	2025-11-12T15:33:52.9777310Z   MD_APPLE_SDK_ROOT: /Applications/Xcode_16.1.app
+ios	Build & Upload to TestFlight	2025-11-12T15:33:52.9778470Z   KEYCHAIN_PASSWORD: ***
+ios	Build & Upload to TestFlight	2025-11-12T15:33:52.9779080Z   ASC_ISSUER_ID: ***
+ios	Build & Upload to TestFlight	2025-11-12T15:33:52.9779570Z   ASC_KEY_ID: ***
+ios	Build & Upload to TestFlight	2025-11-12T15:33:52.9782200Z   ASC_API_KEY_P8: ***
+ios	Build & Upload to TestFlight	2025-11-12T15:33:52.9782770Z   TEAM_ID: ***
+ios	Build & Upload to TestFlight	2025-11-12T15:33:52.9783300Z   MATCH_PASSWORD: ***
+ios	Build & Upload to TestFlight	2025-11-12T15:33:52.9784120Z   MATCH_GIT_URL: ***
+ios	Build & Upload to TestFlight	2025-11-12T15:33:52.9785220Z   MATCH_GIT_BASIC_AUTHORIZATION: ***
+ios	Build & Upload to TestFlight	2025-11-12T15:33:52.9785860Z   MATCH_KEYCHAIN_NAME: build.keychain
+ios	Build & Upload to TestFlight	2025-11-12T15:33:52.9786580Z   MATCH_KEYCHAIN_PASSWORD: ***
+ios	Build & Upload to TestFlight	2025-11-12T15:33:52.9787150Z   FASTLANE_SKIP_UPDATE_CHECK: 1
+ios	Build & Upload to TestFlight	2025-11-12T15:33:52.9787680Z   CI: true
+ios	Build & Upload to TestFlight	2025-11-12T15:33:52.9788100Z ##[endgroup]
+ios	Build & Upload to TestFlight	2025-11-12T15:33:54.7825160Z [15:33:54]: [32m------------------------------[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:33:54.7825860Z [15:33:54]: [32m--- Step: default_platform ---[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:33:54.7826190Z [15:33:54]: [32m------------------------------[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:33:54.7827680Z [15:33:54]: [32mDriving the lane 'ios testflight_upload' 🚀[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:33:54.7831120Z [15:33:54]: [32m----------------------[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:33:54.7834480Z [15:33:54]: [32m--- Step: setup_ci ---[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:33:54.7834790Z [15:33:54]: [32m----------------------[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:33:54.7835410Z [15:33:54]: Skipping Keychain setup as a keychain was already specified
+ios	Build & Upload to TestFlight	2025-11-12T15:33:54.7843280Z [15:33:54]: [32m---------------------------------------[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:33:54.7843660Z [15:33:54]: [32m--- Step: app_store_connect_api_key ---[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:33:54.7844010Z [15:33:54]: [32m---------------------------------------[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:33:54.9356770Z [15:33:54]: [32m-------------------[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:33:54.9425740Z [15:33:54]: [32m--- Step: match ---[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:33:54.9432230Z [15:33:54]: [32m-------------------[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:33:54.9451680Z [15:33:54]: [32mSuccessfully loaded '/Users/runner/work/Codex_Vs_Code/Codex_Vs_Code/fastlane/Matchfile' 📄[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:33:54.9469360Z 
+ios	Build & Upload to TestFlight	2025-11-12T15:33:54.9506180Z +------------------------------------------------------------------------------------------------+
+ios	Build & Upload to TestFlight	2025-11-12T15:33:54.9514040Z |                          Detected Values from './fastlane/Matchfile'                           |
+ios	Build & Upload to TestFlight	2025-11-12T15:33:54.9563820Z +-------------------------+----------------------------------------------------------------------+
+ios	Build & Upload to TestFlight	2025-11-12T15:33:54.9564970Z | storage_mode            | git                                                                  |
+ios	Build & Upload to TestFlight	2025-11-12T15:33:54.9567120Z | git_url                 | ***               |
+ios	Build & Upload to TestFlight	2025-11-12T15:33:54.9567770Z | git_basic_authorization | *** |
+ios	Build & Upload to TestFlight	2025-11-12T15:33:54.9568110Z | type                    | appstore                                                             |
+ios	Build & Upload to TestFlight	2025-11-12T15:33:54.9568660Z | app_identifier          | ["com.skyfeeder.field"]                                              |
+ios	Build & Upload to TestFlight	2025-11-12T15:33:54.9571500Z | readonly                | true                                                                 |
+ios	Build & Upload to TestFlight	2025-11-12T15:33:54.9573250Z +-------------------------+----------------------------------------------------------------------+
+ios	Build & Upload to TestFlight	2025-11-12T15:33:54.9573930Z 
+ios	Build & Upload to TestFlight	2025-11-12T15:33:54.9573940Z 
+ios	Build & Upload to TestFlight	2025-11-12T15:33:54.9574380Z +-------------------------------------------------------------------------------------------------+
+ios	Build & Upload to TestFlight	2025-11-12T15:33:54.9576850Z |                                    [32mSummary for match 2.228.0[0m                                    |
+ios	Build & Upload to TestFlight	2025-11-12T15:33:54.9578940Z +----------------------------------------+--------------------------------------------------------+
+ios	Build & Upload to TestFlight	2025-11-12T15:33:54.9579960Z | type                                   | appstore                                               |
+ios	Build & Upload to TestFlight	2025-11-12T15:33:54.9580900Z | readonly                               | true                                                   |
+ios	Build & Upload to TestFlight	2025-11-12T15:33:54.9584380Z | api_key                                | ********                                               |
+ios	Build & Upload to TestFlight	2025-11-12T15:33:54.9585460Z | clone_branch_directly                  | true                                                   |
+ios	Build & Upload to TestFlight	2025-11-12T15:33:54.9586940Z | git_url                                | *** |
+ios	Build & Upload to TestFlight	2025-11-12T15:33:54.9587810Z | git_basic_authorization                | ********                                               |
+ios	Build & Upload to TestFlight	2025-11-12T15:33:54.9588930Z | keychain_name                          | build.keychain                                         |
+ios	Build & Upload to TestFlight	2025-11-12T15:33:54.9590090Z | keychain_password                      | ********                                               |
+ios	Build & Upload to TestFlight	2025-11-12T15:33:54.9591130Z | generate_apple_certs                   | true                                                   |
+ios	Build & Upload to TestFlight	2025-11-12T15:33:54.9592240Z | skip_provisioning_profiles             | false                                                  |
+ios	Build & Upload to TestFlight	2025-11-12T15:33:54.9593380Z | app_identifier                         | ["com.skyfeeder.field"]                                |
+ios	Build & Upload to TestFlight	2025-11-12T15:33:54.9595340Z | storage_mode                           | git                                                    |
+ios	Build & Upload to TestFlight	2025-11-12T15:33:54.9596420Z | git_branch                             | master                                                 |
+ios	Build & Upload to TestFlight	2025-11-12T15:33:54.9597430Z | shallow_clone                          | false                                                  |
+ios	Build & Upload to TestFlight	2025-11-12T15:33:54.9598610Z | skip_google_cloud_account_confirmation | false                                                  |
+ios	Build & Upload to TestFlight	2025-11-12T15:33:54.9599770Z | s3_skip_encryption                     | false                                                  |
+ios	Build & Upload to TestFlight	2025-11-12T15:33:54.9600290Z | gitlab_host                            | https://gitlab.com                                     |
+ios	Build & Upload to TestFlight	2025-11-12T15:33:54.9600710Z | force                                  | false                                                  |
+ios	Build & Upload to TestFlight	2025-11-12T15:33:54.9601140Z | force_for_new_devices                  | false                                                  |
+ios	Build & Upload to TestFlight	2025-11-12T15:33:54.9601600Z | include_mac_in_profiles                | false                                                  |
+ios	Build & Upload to TestFlight	2025-11-12T15:33:54.9602050Z | include_all_certificates               | false                                                  |
+ios	Build & Upload to TestFlight	2025-11-12T15:33:54.9602550Z | force_for_new_certificates             | false                                                  |
+ios	Build & Upload to TestFlight	2025-11-12T15:33:54.9603970Z | skip_confirmation                      | false                                                  |
+ios	Build & Upload to TestFlight	2025-11-12T15:33:54.9605000Z | safe_remove_certs                      | false                                                  |
+ios	Build & Upload to TestFlight	2025-11-12T15:33:54.9606030Z | skip_docs                              | false                                                  |
+ios	Build & Upload to TestFlight	2025-11-12T15:33:54.9607070Z | platform                               | ios                                                    |
+ios	Build & Upload to TestFlight	2025-11-12T15:33:54.9608170Z | derive_catalyst_app_identifier         | false                                                  |
+ios	Build & Upload to TestFlight	2025-11-12T15:33:54.9609830Z | fail_on_name_taken                     | false                                                  |
+ios	Build & Upload to TestFlight	2025-11-12T15:33:54.9610450Z | skip_certificate_matching              | false                                                  |
+ios	Build & Upload to TestFlight	2025-11-12T15:33:54.9610930Z | skip_set_partition_list                | false                                                  |
+ios	Build & Upload to TestFlight	2025-11-12T15:33:54.9611930Z | force_legacy_encryption                | false                                                  |
+ios	Build & Upload to TestFlight	2025-11-12T15:33:54.9612370Z | verbose                                | false                                                  |
+ios	Build & Upload to TestFlight	2025-11-12T15:33:54.9612790Z +----------------------------------------+--------------------------------------------------------+
+ios	Build & Upload to TestFlight	2025-11-12T15:33:54.9613040Z 
+ios	Build & Upload to TestFlight	2025-11-12T15:33:54.9613150Z [15:33:54]: Cloning remote git repo...
+ios	Build & Upload to TestFlight	2025-11-12T15:33:55.4732840Z [15:33:55]: Checking out branch master...
+ios	Build & Upload to TestFlight	2025-11-12T15:33:55.5135770Z [15:33:55]: [32m🔓  Successfully decrypted certificates repo[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:33:55.5237340Z [15:33:55]: Installing certificate...
+ios	Build & Upload to TestFlight	2025-11-12T15:33:55.6531620Z 
+ios	Build & Upload to TestFlight	2025-11-12T15:33:55.6552360Z +-----------------------------------------------------------------------+
+ios	Build & Upload to TestFlight	2025-11-12T15:33:55.6553300Z |                         [32mInstalled Certificate[0m                         |
+ios	Build & Upload to TestFlight	2025-11-12T15:33:55.6553730Z +-------------------+---------------------------------------------------+
+ios	Build & Upload to TestFlight	2025-11-12T15:33:55.6556360Z | User ID           | ***                                        |
+ios	Build & Upload to TestFlight	2025-11-12T15:33:55.6557450Z | Common Name       | Apple Distribution: Ardavan Aliabadi (***) |
+ios	Build & Upload to TestFlight	2025-11-12T15:33:55.6558830Z | Organisation Unit | ***                                        |
+ios	Build & Upload to TestFlight	2025-11-12T15:33:55.6559770Z | Organisation      | Ardavan Aliabadi                                  |
+ios	Build & Upload to TestFlight	2025-11-12T15:33:55.6560930Z | Country           | US                                                |
+ios	Build & Upload to TestFlight	2025-11-12T15:33:55.6561930Z | Start Datetime    | 2025-11-05 03:32:59 UTC                           |
+ios	Build & Upload to TestFlight	2025-11-12T15:33:55.6562850Z | End Datetime      | 2026-11-05 03:32:58 UTC                           |
+ios	Build & Upload to TestFlight	2025-11-12T15:33:55.6563770Z +-------------------+---------------------------------------------------+
+ios	Build & Upload to TestFlight	2025-11-12T15:33:55.6564800Z 
+ios	Build & Upload to TestFlight	2025-11-12T15:33:55.7020310Z [15:33:55]: Installing provisioning profile...
+ios	Build & Upload to TestFlight	2025-11-12T15:33:55.7842450Z 
+ios	Build & Upload to TestFlight	2025-11-12T15:33:55.7847430Z +------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+ios	Build & Upload to TestFlight	2025-11-12T15:33:55.7848460Z |                                                                              [32mInstalled Provisioning Profile[0m                                                                              |
+ios	Build & Upload to TestFlight	2025-11-12T15:33:55.7849150Z +---------------------+----------------------------------------------------+---------------------------------------------------------------------------------------------------------------+
+ios	Build & Upload to TestFlight	2025-11-12T15:33:55.7849850Z | Parameter           | Environment Variable                               | Value                                                                                                         |
+ios	Build & Upload to TestFlight	2025-11-12T15:33:55.7850530Z +---------------------+----------------------------------------------------+---------------------------------------------------------------------------------------------------------------+
+ios	Build & Upload to TestFlight	2025-11-12T15:33:55.7851210Z | App Identifier      |                                                    | com.skyfeeder.field                                                                                           |
+ios	Build & Upload to TestFlight	2025-11-12T15:33:55.7853330Z | Type                |                                                    | appstore                                                                                                      |
+ios	Build & Upload to TestFlight	2025-11-12T15:33:55.7854770Z | Platform            |                                                    | ios                                                                                                           |
+ios	Build & Upload to TestFlight	2025-11-12T15:33:55.7858300Z | Profile UUID        | sigh_com.skyfeeder.field_appstore                  | 9d03b08f-fbad-46c4-9287-4c797b63420b                                                                          |
+ios	Build & Upload to TestFlight	2025-11-12T15:33:55.7861480Z | Profile Name        | sigh_com.skyfeeder.field_appstore_profile-name     | match AppStore com.skyfeeder.field                                                                            |
+ios	Build & Upload to TestFlight	2025-11-12T15:33:55.7863150Z | Profile Path        | sigh_com.skyfeeder.field_appstore_profile-path     | /Users/runner/Library/MobileDevice/Provisioning Profiles/9d03b08f-fbad-46c4-9287-4c797b63420b.mobileprovision |
+ios	Build & Upload to TestFlight	2025-11-12T15:33:55.7864450Z | Development Team ID | sigh_com.skyfeeder.field_appstore_team-id          | ***                                                                                                    |
+ios	Build & Upload to TestFlight	2025-11-12T15:33:55.7865660Z | Certificate Name    | sigh_com.skyfeeder.field_appstore_certificate-name | Apple Distribution: Ardavan Aliabadi (***)                                                             |
+ios	Build & Upload to TestFlight	2025-11-12T15:33:55.7866480Z +---------------------+----------------------------------------------------+---------------------------------------------------------------------------------------------------------------+
+ios	Build & Upload to TestFlight	2025-11-12T15:33:55.7868220Z 
+ios	Build & Upload to TestFlight	2025-11-12T15:33:55.7869420Z [15:33:55]: [32m[32mAll required keys, certificates and provisioning profiles are installed 🙌[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:33:55.7886180Z [15:33:55]: Setting Provisioning Profile type to 'app-store'
+ios	Build & Upload to TestFlight	2025-11-12T15:33:55.8049730Z [15:33:55]: [32m-----------------------[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:33:55.8050370Z [15:33:55]: [32m--- Step: build_app ---[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:33:55.8050870Z [15:33:55]: [32m-----------------------[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:33:55.8449680Z [15:33:55]: [33mResolving Swift Package Manager dependencies...[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:33:55.8451490Z [15:33:55]: [36m$ xcodebuild -resolvePackageDependencies -scheme SkyFeederFieldUtility -project mobile/ios-field-utility/SkyFeederFieldUtility.xcodeproj[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:33:57.5488400Z [15:33:57]: ▸ [35mCommand line invocation:[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:33:57.5590230Z [15:33:57]: ▸ [35m    /Applications/Xcode_16.1.app/Contents/Developer/usr/bin/xcodebuild -resolvePackageDependencies -scheme SkyFeederFieldUtility -project mobile/ios-field-utility/SkyFeederFieldUtility.xcodeproj[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:33:57.5643850Z [15:33:57]: ▸ [35mUser defaults from command line:[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:33:57.5645320Z [15:33:57]: ▸ [35m    IDEPackageSupportUseBuiltinSCM = YES[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:33:57.9152260Z [15:33:57]: ▸ [35mResolve Package Graph[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:33:59.5007450Z [15:33:59]: ▸ [35mResolved source packages:[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:33:59.5008610Z [15:33:59]: ▸ [35m  SkyFeederUI: /Users/runner/work/Codex_Vs_Code/Codex_Vs_Code/mobile/ios-field-utility/SkyFeederUI[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:33:59.5650130Z [15:33:59]: ▸ [35mresolved source packages: SkyFeederUI[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:33:59.5776590Z [15:33:59]: [36m$ xcodebuild -showBuildSettings -scheme SkyFeederFieldUtility -project mobile/ios-field-utility/SkyFeederFieldUtility.xcodeproj 2>&1[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:34:02.4766450Z [15:34:02]: Detected provisioning profile mapping: {:"com.skyfeeder.field"=>"match AppStore com.skyfeeder.field"}
+ios	Build & Upload to TestFlight	2025-11-12T15:34:02.5339640Z 
+ios	Build & Upload to TestFlight	2025-11-12T15:34:02.5362330Z +-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+ios	Build & Upload to TestFlight	2025-11-12T15:34:02.5368020Z |                                                                                                                                                                                                                           [32mSummary for gym 2.228.0[0m                                                                                                                                                                                                                           |
+ios	Build & Upload to TestFlight	2025-11-12T15:34:02.5369960Z +---------------------------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+ios	Build & Upload to TestFlight	2025-11-12T15:34:02.5384010Z | project                                                 | mobile/ios-field-utility/SkyFeederFieldUtility.xcodeproj                                                                                                                                                                                                                                                                                                                                                          |
+ios	Build & Upload to TestFlight	2025-11-12T15:34:02.5389020Z | scheme                                                  | SkyFeederFieldUtility                                                                                                                                                                                                                                                                                                                                                                                             |
+ios	Build & Upload to TestFlight	2025-11-12T15:34:02.5389750Z | export_method                                           | app-store                                                                                                                                                                                                                                                                                                                                                                                                         |
+ios	Build & Upload to TestFlight	2025-11-12T15:34:02.5391070Z | export_team_id                                          | ***                                                                                                                                                                                                                                                                                                                                                                                                        |
+ios	Build & Upload to TestFlight	2025-11-12T15:34:02.5393940Z | xcargs                                                  | -showBuildTimingSummary PRODUCT_BUNDLE_IDENTIFIER=com.skyfeeder.field APP_BUNDLE_IDENTIFIER=com.skyfeeder.field DEVELOPMENT_TEAM=*** APP_DEVELOPMENT_TEAM=*** CODE_SIGN_STYLE=Manual APP_CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY='Apple Distribution' PROVISIONING_PROFILE_SPECIFIER='match AppStore com.skyfeeder.field' APP_PROVISIONING_PROFILE_SPECIFIER='match AppStore com.skyfeeder.field' |
+ios	Build & Upload to TestFlight	2025-11-12T15:34:02.5395500Z | output_directory                                        | build                                                                                                                                                                                                                                                                                                                                                                                                             |
+ios	Build & Upload to TestFlight	2025-11-12T15:34:02.5396320Z | output_name                                             | SkyFeederFieldUtility                                                                                                                                                                                                                                                                                                                                                                                             |
+ios	Build & Upload to TestFlight	2025-11-12T15:34:02.5397260Z | export_options.provisioningProfiles.com.skyfeeder.field | match AppStore com.skyfeeder.field                                                                                                                                                                                                                                                                                                                                                                                |
+ios	Build & Upload to TestFlight	2025-11-12T15:34:02.5399180Z | clean                                                   | false                                                                                                                                                                                                                                                                                                                                                                                                             |
+ios	Build & Upload to TestFlight	2025-11-12T15:34:02.5400160Z | silent                                                  | false                                                                                                                                                                                                                                                                                                                                                                                                             |
+ios	Build & Upload to TestFlight	2025-11-12T15:34:02.5400890Z | skip_package_ipa                                        | false                                                                                                                                                                                                                                                                                                                                                                                                             |
+ios	Build & Upload to TestFlight	2025-11-12T15:34:02.5401630Z | skip_package_pkg                                        | false                                                                                                                                                                                                                                                                                                                                                                                                             |
+ios	Build & Upload to TestFlight	2025-11-12T15:34:02.5402550Z | build_path                                              | /Users/runner/Library/Developer/Xcode/Archives/2025-11-12                                                                                                                                                                                                                                                                                                                                                         |
+ios	Build & Upload to TestFlight	2025-11-12T15:34:02.5403430Z | result_bundle                                           | false                                                                                                                                                                                                                                                                                                                                                                                                             |
+ios	Build & Upload to TestFlight	2025-11-12T15:34:02.5404140Z | buildlog_path                                           | ~/Library/Logs/gym                                                                                                                                                                                                                                                                                                                                                                                                |
+ios	Build & Upload to TestFlight	2025-11-12T15:34:02.5404950Z | destination                                             | generic/platform=iOS                                                                                                                                                                                                                                                                                                                                                                                              |
+ios	Build & Upload to TestFlight	2025-11-12T15:34:02.5405950Z | xcodebuild_formatter                                    | xcbeautify                                                                                                                                                                                                                                                                                                                                                                                                        |
+ios	Build & Upload to TestFlight	2025-11-12T15:34:02.5406840Z | build_timing_summary                                    | false                                                                                                                                                                                                                                                                                                                                                                                                             |
+ios	Build & Upload to TestFlight	2025-11-12T15:34:02.5407550Z | skip_profile_detection                                  | false                                                                                                                                                                                                                                                                                                                                                                                                             |
+ios	Build & Upload to TestFlight	2025-11-12T15:34:02.5408290Z | xcodebuild_command                                      | xcodebuild                                                                                                                                                                                                                                                                                                                                                                                                        |
+ios	Build & Upload to TestFlight	2025-11-12T15:34:02.5409130Z | skip_package_dependencies_resolution                    | false                                                                                                                                                                                                                                                                                                                                                                                                             |
+ios	Build & Upload to TestFlight	2025-11-12T15:34:02.5409940Z | disable_package_automatic_updates                       | false                                                                                                                                                                                                                                                                                                                                                                                                             |
+ios	Build & Upload to TestFlight	2025-11-12T15:34:02.5410680Z | use_system_scm                                          | false                                                                                                                                                                                                                                                                                                                                                                                                             |
+ios	Build & Upload to TestFlight	2025-11-12T15:34:02.5411420Z | xcode_path                                              | /Applications/Xcode_16.1.app                                                                                                                                                                                                                                                                                                                                                                                      |
+ios	Build & Upload to TestFlight	2025-11-12T15:34:02.5412550Z +---------------------------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+ios	Build & Upload to TestFlight	2025-11-12T15:34:02.5414160Z 
+ios	Build & Upload to TestFlight	2025-11-12T15:34:02.5425290Z [15:34:02]: [36m$ set -o pipefail && xcodebuild -scheme SkyFeederFieldUtility -project mobile/ios-field-utility/SkyFeederFieldUtility.xcodeproj -destination 'generic/platform=iOS' -archivePath /Users/runner/Library/Developer/Xcode/Archives/2025-11-12/SkyFeederFieldUtility\ 2025-11-12\ 15.34.02.xcarchive -showBuildTimingSummary PRODUCT_BUNDLE_IDENTIFIER=com.skyfeeder.field APP_BUNDLE_IDENTIFIER=com.skyfeeder.field DEVELOPMENT_TEAM=*** APP_DEVELOPMENT_TEAM=*** CODE_SIGN_STYLE=Manual APP_CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY='Apple Distribution' PROVISIONING_PROFILE_SPECIFIER='match AppStore com.skyfeeder.field' APP_PROVISIONING_PROFILE_SPECIFIER='match AppStore com.skyfeeder.field' archive | tee /Users/runner/Library/Logs/gym/SkyFeederFieldUtility-SkyFeederFieldUtility.log | xcbeautify[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:34:02.5789900Z [15:34:02]: ▸ [35m----- xcbeautify -----[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:34:02.5790790Z [15:34:02]: ▸ [35mVersion: 3.1.0[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:34:02.5795800Z [15:34:02]: ▸ [35m----------------------[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:34:03.6041760Z [15:34:03]: ▸ [35m[36;1mResolving Package Graph[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:34:03.7720270Z [15:34:03]: ▸ [35m[32;1mResolved source packages[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:34:03.8956960Z [15:34:03]: ▸ [35m[36;1mnote: [0mUsing codesigning identity override: Apple Distribution[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:34:04.2813500Z [15:34:04]: ▸ [35m[36;1mnote: [0mBuilding targets in dependency order[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:34:04.2814140Z [15:34:04]: ▸ [35m[36;1mnote: [0mTarget dependency graph (3 targets)[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:34:07.9184790Z [15:34:07]: ▸ [35m[[36mSkyFeederUI[0m] [1mWrite Auxiliary File[0m SkyFeederUI.modulemap[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:34:07.9185760Z [15:34:07]: ▸ [35m[[36mSkyFeederUI[0m] [1mWrite Auxiliary File[0m SkyFeederUI.DependencyMetadataFileList[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:34:07.9186590Z [15:34:07]: ▸ [35m[[36mSkyFeederUI[0m] [1mWrite Auxiliary File[0m SkyFeederUI_const_extract_protocols.json[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:34:07.9187310Z [15:34:07]: ▸ [35m[[36mSkyFeederUI[0m] [1mWrite Auxiliary File[0m SkyFeederUI.SwiftFileList[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:34:07.9189270Z [15:34:07]: ▸ [35m[[36mSkyFeederUI[0m] [1mWrite Auxiliary File[0m SkyFeederUI.LinkFileList[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:34:07.9190110Z [15:34:07]: ▸ [35m[[36mSkyFeederUI[0m] [1mWrite Auxiliary File[0m SkyFeederUI-OutputFileMap.json[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:34:07.9190850Z [15:34:07]: ▸ [35m[[36mSkyFeederFieldUtility[0m] [1mWrite Auxiliary File[0m SkyFeederFieldUtility.hmap[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:34:07.9191580Z [15:34:07]: ▸ [35m[[36mSkyFeederFieldUtility[0m] [1mWrite Auxiliary File[0m SkyFeederFieldUtility.DependencyMetadataFileList[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:34:07.9192550Z [15:34:07]: ▸ [35m[[36mSkyFeederFieldUtility[0m] [1mWrite Auxiliary File[0m SkyFeederFieldUtility-project-headers.hmap[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:34:07.9193360Z [15:34:07]: ▸ [35m[[36mSkyFeederFieldUtility[0m] [1mWrite Auxiliary File[0m SkyFeederFieldUtility-own-target-headers.hmap[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:34:07.9194270Z [15:34:07]: ▸ [35m[[36mSkyFeederFieldUtility[0m] [1mWrite Auxiliary File[0m SkyFeederFieldUtility-generated-files.hmap[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:34:07.9195170Z [15:34:07]: ▸ [35m[[36mSkyFeederFieldUtility[0m] [1mWrite Auxiliary File[0m SkyFeederFieldUtility-all-target-headers.hmap[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:34:07.9196250Z [15:34:07]: ▸ [35m[[36mSkyFeederFieldUtility[0m] [1mWrite Auxiliary File[0m SkyFeederFieldUtility-all-non-framework-target-headers.hmap[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:34:07.9197260Z [15:34:07]: ▸ [35m[[36mSkyFeederFieldUtility[0m] [1mWrite Auxiliary File[0m SkyFeederFieldUtility_const_extract_protocols.json[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:34:07.9198650Z [15:34:07]: ▸ [35m[[36mSkyFeederFieldUtility[0m] [1mWrite Auxiliary File[0m SkyFeederFieldUtility.SwiftFileList[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:34:07.9199490Z [15:34:07]: ▸ [35m[[36mSkyFeederFieldUtility[0m] [1mWrite Auxiliary File[0m SkyFeederFieldUtility.SwiftConstValuesFileList[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:34:07.9200250Z [15:34:07]: ▸ [35m[[36mSkyFeederFieldUtility[0m] [1mWrite Auxiliary File[0m SkyFeederFieldUtility.LinkFileList[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:34:07.9200970Z [15:34:07]: ▸ [35m[[36mSkyFeederFieldUtility[0m] [1mWrite Auxiliary File[0m SkyFeederFieldUtility-OutputFileMap.json[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:34:07.9202020Z [15:34:07]: ▸ [35m[[36mSkyFeederFieldUtility[0m] [1mWrite Auxiliary File[0m Entitlements.plist[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:34:07.9202630Z [15:34:07]: ▸ [35m[[36mSkyFeederUI[0m] [1mCopy[0m SkyFeederUI.modulemap -> SkyFeederUI.modulemap[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:34:30.4199570Z [15:34:30]: ▸ [35m::warning file=/Users/runner/work/Codex_Vs_Code/Codex_Vs_Code/mobile/ios-field-utility/SkyFeederUI/Sources/SkyFeederUI/Models/EventLogEntry.swift,line=30,col=30::left side of nil coalescing operator '??' has non-optional type 'String', so the right side is never used[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:34:30.4214890Z [15:34:30]: ▸ [35m            message: message ?? "Event received",[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:34:30.4276910Z [15:34:30]: ▸ [35m                     ~~~~~~~~^~~~~~~~~~~~~~~~~~~[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:34:30.4386010Z [15:34:30]: ▸ [35m::warning file=/Users/runner/work/Codex_Vs_Code/Codex_Vs_Code/mobile/ios-field-utility/SkyFeederUI/Sources/SkyFeederUI/Support/CacheManager.swift,line=49,col=13::variable 'resourceValues' was never mutated; consider changing to 'let' constant[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:34:30.4493660Z [15:34:30]: ▸ [35m        var resourceValues = try? url.resourceValues(forKeys: [.contentModificationDateKey])[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:34:30.4505190Z [15:34:30]: ▸ [35m        ~~~ ^[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:34:30.4507720Z [15:34:30]: ▸ [35m::warning file=/Users/runner/work/Codex_Vs_Code/Codex_Vs_Code/mobile/ios-field-utility/SkyFeederUI/Sources/SkyFeederUI/Support/CacheManager.swift,line=77,col=30::capture of 'fileManager' with non-sendable type 'FileManager' in a `@Sendable` closure; this is an error in the Swift 6 language mode[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:34:30.4549340Z [15:34:30]: ▸ [35m            let urls = (try? fileManager.contentsOfDirectory(at: directory, includingPropertiesForKeys: [.contentModificationDateKey])) ?? [][0m
+ios	Build & Upload to TestFlight	2025-11-12T15:34:30.4572380Z [15:34:30]: ▸ [35m                             ^[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:34:30.4577710Z [15:34:30]: ▸ [35m::warning file=/Users/runner/work/Codex_Vs_Code/Codex_Vs_Code/mobile/ios-field-utility/SkyFeederUI/Sources/SkyFeederUI/Support/CacheManager.swift,line=82,col=26::capture of 'fileManager' with non-sendable type 'FileManager' in an isolated closure; this is an error in the Swift 6 language mode[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:34:30.4582710Z [15:34:30]: ▸ [35m                    try? fileManager.removeItem(at: url)[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:34:30.4585970Z [15:34:30]: ▸ [35m                         ^[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:34:30.4595460Z [15:34:30]: ▸ [35m::warning file=/Users/runner/work/Codex_Vs_Code/Codex_Vs_Code/mobile/ios-field-utility/SkyFeederUI/Sources/SkyFeederUI/Support/CacheManager.swift,line=99,col=35::capture of 'fileManager' with non-sendable type 'FileManager' in a `@Sendable` closure; this is an error in the Swift 6 language mode[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:34:30.4600230Z [15:34:30]: ▸ [35m            guard let urls = try? fileManager.contentsOfDirectory(at: directory, includingPropertiesForKeys: [.contentModificationDateKey, .fileSizeKey]) else { return }[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:34:30.4603930Z [15:34:30]: ▸ [35m                                  ^[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:34:30.4607230Z [15:34:30]: ▸ [35m::warning file=/Users/runner/work/Codex_Vs_Code/Codex_Vs_Code/mobile/ios-field-utility/SkyFeederUI/Sources/SkyFeederUI/ViewModels/GalleryViewModel.swift,line=24,col=53::main actor-isolated static property 'shared' can not be referenced from a nonisolated context; this is an error in the Swift 6 language mode[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:34:30.4635210Z [15:34:30]: ▸ [35m        connectivityMonitor: ConnectivityMonitor = .shared,[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:34:30.4636640Z [15:34:30]: ▸ [35m                                                    ^[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:34:30.4638080Z [15:34:30]: ▸ [35m[[36mSkyFeederUI[0m] [1mCopy[0m arm64-apple-ios.swiftdoc -> SkyFeederUI.swiftdoc[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:34:30.4639960Z [15:34:30]: ▸ [35m[[36mSkyFeederUI[0m] [1mCopy[0m arm64-apple-ios.swiftmodule -> SkyFeederUI.swiftmodule[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:34:30.4648370Z [15:34:30]: ▸ [35m[[36mSkyFeederUI[0m] [1mCopy[0m arm64-apple-ios.abi.json -> SkyFeederUI.abi.json[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:34:30.4650390Z [15:34:30]: ▸ [35m[[36mSkyFeederUI[0m] [1mLinking[0m SkyFeederUI.o[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:34:43.5430440Z [15:34:43]: ▸ [35m::warning file=/Users/runner/work/Codex_Vs_Code/Codex_Vs_Code/mobile/ios-field-utility/SkyFeederFieldUtility/Views/CaptureDetailView.swift,line=63,col=24::value 'assetURL' was defined but never used; consider replacing with boolean test[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:34:43.5436500Z [15:34:43]: ▸ [35m                if let assetURL {[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:34:43.5437000Z [15:34:43]: ▸ [35m                   ~~~~^[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:34:43.5438090Z [15:34:43]: ▸ [35m::warning file=/Users/runner/work/Codex_Vs_Code/Codex_Vs_Code/mobile/ios-field-utility/SkyFeederFieldUtility/Support/DiskCache.swift,line=49,col=13::variable 'resourceValues' was never mutated; consider changing to 'let' constant[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:34:43.5439960Z [15:34:43]: ▸ [35m        var resourceValues = try? url.resourceValues(forKeys: [.contentModificationDateKey])[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:34:43.5441030Z [15:34:43]: ▸ [35m        ~~~ ^[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:34:43.5442470Z [15:34:43]: ▸ [35m::warning file=/Users/runner/work/Codex_Vs_Code/Codex_Vs_Code/mobile/ios-field-utility/SkyFeederFieldUtility/Support/DiskCache.swift,line=76,col=30::capture of 'fileManager' with non-sendable type 'FileManager' in a `@Sendable` closure; this is an error in the Swift 6 language mode[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:34:43.5444110Z [15:34:43]: ▸ [35m            let urls = (try? fileManager.contentsOfDirectory(at: directory, includingPropertiesForKeys: [.contentModificationDateKey])) ?? [][0m
+ios	Build & Upload to TestFlight	2025-11-12T15:34:43.5444860Z [15:34:43]: ▸ [35m                             ^[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:34:43.5446020Z [15:34:43]: ▸ [35m::warning file=/Users/runner/work/Codex_Vs_Code/Codex_Vs_Code/mobile/ios-field-utility/SkyFeederFieldUtility/Support/DiskCache.swift,line=81,col=26::capture of 'fileManager' with non-sendable type 'FileManager' in an isolated closure; this is an error in the Swift 6 language mode[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:34:43.5447180Z [15:34:43]: ▸ [35m                    try? fileManager.removeItem(at: url)[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:34:43.5447670Z [15:34:43]: ▸ [35m                         ^[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:34:43.5448860Z [15:34:43]: ▸ [35m::warning file=/Users/runner/work/Codex_Vs_Code/Codex_Vs_Code/mobile/ios-field-utility/SkyFeederFieldUtility/Support/DiskCache.swift,line=98,col=35::capture of 'fileManager' with non-sendable type 'FileManager' in a `@Sendable` closure; this is an error in the Swift 6 language mode[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:34:43.5450750Z [15:34:43]: ▸ [35m            guard let urls = try? fileManager.contentsOfDirectory(at: directory, includingPropertiesForKeys: [.contentModificationDateKey, .fileSizeKey]) else { return }[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:34:43.5451720Z [15:34:43]: ▸ [35m                                  ^[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:34:43.5453330Z [15:34:43]: ▸ [35m::warning file=/Users/runner/work/Codex_Vs_Code/Codex_Vs_Code/mobile/ios-field-utility/SkyFeederFieldUtility/ViewModels/GalleryViewModel.swift,line=22,col=53::main actor-isolated static property 'shared' can not be referenced from a nonisolated context; this is an error in the Swift 6 language mode[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:34:43.5455060Z [15:34:43]: ▸ [35m        connectivityMonitor: ConnectivityMonitor = .shared[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:34:43.5455980Z [15:34:43]: ▸ [35m                                                    ^[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:34:43.5688660Z [15:34:43]: ▸ [35m[[36mSkyFeederUI[0m] [1mRegisterExecutionPolicyException[0m SkyFeederUI.o[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:34:43.5705950Z [15:34:43]: ▸ [35m[[36mSkyFeederFieldUtility[0m] [1mProcessing[0m Info.plist[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:34:43.5706920Z [15:34:43]: ▸ [35m[[36mSkyFeederFieldUtility[0m] [1mCopy[0m arm64-apple-ios.swiftmodule -> SkyFeederFieldUtility.swiftmodule[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:34:43.5707860Z [15:34:43]: ▸ [35m[[36mSkyFeederFieldUtility[0m] [1mCopy[0m arm64-apple-ios.swiftdoc -> SkyFeederFieldUtility.swiftdoc[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:34:43.5712800Z [15:34:43]: ▸ [35m[[36mSkyFeederFieldUtility[0m] [1mCopy[0m arm64-apple-ios.abi.json -> SkyFeederFieldUtility.abi.json[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:34:43.5713520Z [15:34:43]: ▸ [35m[[36mSkyFeederFieldUtility[0m] [1mLinking[0m SkyFeederFieldUtility[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:34:44.0072250Z [15:34:44]: ▸ [35m[[36mSkyFeederFieldUtility[0m] [1mGenerating[0m SkyFeederFieldUtility.app.dSYM[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:34:44.7791990Z [15:34:44]: ▸ [35m[[36mSkyFeederFieldUtility[0m] [1mExtract App Intents Metadata[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:34:44.7797600Z [15:34:44]: ▸ [35m[36;1mnote: [0mMetadata extraction skipped. No AppIntents.framework dependency found. (in target 'SkyFeederFieldUtility' from project 'SkyFeederFieldUtility')[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:34:44.8131130Z [15:34:44]: ▸ [35m[1mSigning[0m SkyFeederFieldUtility.app (in target 'SkyFeederFieldUtility' from project 'SkyFeederFieldUtility')[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:34:44.9053800Z [15:34:44]: ▸ [35m[[36mSkyFeederFieldUtility[0m] [1mRegisterExecutionPolicyException[0m SkyFeederFieldUtility.app[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:34:44.9156710Z [15:34:44]: ▸ [35m[[36mSkyFeederFieldUtility[0m] [1mValidate[0m SkyFeederFieldUtility.app[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:34:44.9257410Z [15:34:44]: ▸ [35m[[36mSkyFeederFieldUtility[0m] [1mTouching[0m SkyFeederFieldUtility.app[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:34:44.9474650Z [15:34:44]: ▸ [35m[36;1mnote: [0mDisabling previews because SWIFT_VERSION is set and SWIFT_OPTIMIZATION_LEVEL=-Owholemodule, expected -Onone (in target 'SkyFeederUI' from project 'SkyFeederUI')[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:34:44.9572230Z [15:34:44]: ▸ [35m[36;1mnote: [0mDisabling previews because SWIFT_VERSION is set and SWIFT_OPTIMIZATION_LEVEL=-O, expected -Onone (in target 'SkyFeederFieldUtility' from project 'SkyFeederFieldUtility')[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:34:44.9896730Z [15:34:44]: ▸ [35m[32;1mArchive Succeeded[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:34:45.0847290Z [15:34:45]: [33mGenerated plist file with the following values:[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:34:45.0850000Z [15:34:45]: ▸ [35m-----------------------------------------[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:34:45.0852040Z [15:34:45]: ▸ [35m{[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:34:45.0853500Z [15:34:45]: ▸ [35m  "provisioningProfiles": {[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:34:45.0855250Z [15:34:45]: ▸ [35m    "com.skyfeeder.field": "match AppStore com.skyfeeder.field"[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:34:45.0856570Z [15:34:45]: ▸ [35m  },[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:34:45.0857570Z [15:34:45]: ▸ [35m  "method": "app-store",[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:34:45.0897030Z [15:34:45]: ▸ [35m  "signingStyle": "manual",[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:34:45.0898100Z [15:34:45]: ▸ [35m  "teamID": "***"[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:34:45.0898690Z [15:34:45]: ▸ [35m}[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:34:45.0899970Z [15:34:45]: ▸ [35m-----------------------------------------[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:34:45.0903970Z [15:34:45]: [36m$ /usr/bin/xcrun /Users/runner/work/Codex_Vs_Code/Codex_Vs_Code/vendor/bundle/ruby/3.3.0/gems/fastlane-2.228.0/gym/lib/assets/wrap_xcodebuild/xcbuild-safe.sh -exportArchive -exportOptionsPlist '/var/folders/n_/92y65kqs02vgpz5ry3fdyjf00000gn/T/gym_config20251112-2920-4njz5n.plist' -archivePath /Users/runner/Library/Developer/Xcode/Archives/2025-11-12/SkyFeederFieldUtility\ 2025-11-12\ 15.34.02.xcarchive -exportPath '/var/folders/n_/92y65kqs02vgpz5ry3fdyjf00000gn/T/gym_output20251112-2920-o2a68l' -showBuildTimingSummary PRODUCT_BUNDLE_IDENTIFIER=com.skyfeeder.field APP_BUNDLE_IDENTIFIER=com.skyfeeder.field DEVELOPMENT_TEAM=*** APP_DEVELOPMENT_TEAM=*** CODE_SIGN_STYLE=Manual APP_CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY='Apple Distribution' PROVISIONING_PROFILE_SPECIFIER='match AppStore com.skyfeeder.field' APP_PROVISIONING_PROFILE_SPECIFIER='match AppStore com.skyfeeder.field' [0m
+ios	Build & Upload to TestFlight	2025-11-12T15:34:47.2995220Z [15:34:47]: Compressing 1 dSYM(s)
+ios	Build & Upload to TestFlight	2025-11-12T15:34:47.3101300Z [15:34:47]: [36m$ cd '/Users/runner/Library/Developer/Xcode/Archives/2025-11-12/SkyFeederFieldUtility 2025-11-12 15.34.02.xcarchive/dSYMs' && zip -r '/Users/runner/work/Codex_Vs_Code/Codex_Vs_Code/build/SkyFeederFieldUtility.app.dSYM.zip' *.dSYM[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:34:47.6167330Z [15:34:47]: ▸ [35m  adding: SkyFeederFieldUtility.app.dSYM/ (stored 0%)[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:34:47.6168770Z [15:34:47]: ▸ [35m  adding: SkyFeederFieldUtility.app.dSYM/Contents/ (stored 0%)[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:34:47.6169530Z [15:34:47]: ▸ [35m  adding: SkyFeederFieldUtility.app.dSYM/Contents/Resources/ (stored 0%)[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:34:47.6170380Z [15:34:47]: ▸ [35m  adding: SkyFeederFieldUtility.app.dSYM/Contents/Resources/Relocations/ (stored 0%)[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:34:47.6171240Z [15:34:47]: ▸ [35m  adding: SkyFeederFieldUtility.app.dSYM/Contents/Resources/Relocations/aarch64/ (stored 0%)[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:34:47.6172260Z [15:34:47]: ▸ [35m  adding: SkyFeederFieldUtility.app.dSYM/Contents/Resources/Relocations/aarch64/SkyFeederFieldUtility.yml (deflated 89%)[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:34:47.6173230Z [15:34:47]: ▸ [35m  adding: SkyFeederFieldUtility.app.dSYM/Contents/Resources/DWARF/ (stored 0%)[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:34:47.6174190Z [15:34:47]: ▸ [35m  adding: SkyFeederFieldUtility.app.dSYM/Contents/Resources/DWARF/SkyFeederFieldUtility (deflated 71%)[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:34:47.6175100Z [15:34:47]: ▸ [35m  adding: SkyFeederFieldUtility.app.dSYM/Contents/Info.plist (deflated 52%)[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:34:47.6175600Z 
+ios	Build & Upload to TestFlight	2025-11-12T15:34:47.6175980Z [15:34:47]: [32mSuccessfully exported and compressed dSYM file[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:34:47.6231880Z [15:34:47]: [32mSuccessfully exported and signed the ipa file:[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:34:47.6232600Z [15:34:47]: /Users/runner/work/Codex_Vs_Code/Codex_Vs_Code/build/SkyFeederFieldUtility.ipa
+ios	Build & Upload to TestFlight	2025-11-12T15:34:47.6903450Z [15:34:47]: [32m----------------------------------[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:34:47.6905910Z [15:34:47]: [32m--- Step: upload_to_testflight ---[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:34:47.6907180Z [15:34:47]: [32m----------------------------------[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:34:47.6926140Z [15:34:47]: Creating authorization token for App Store Connect API
+ios	Build & Upload to TestFlight	2025-11-12T15:34:48.0873720Z [15:34:48]: [32mReady to upload new build to TestFlight (App: 6754707840)...[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:34:48.1018760Z [15:34:48]: Going to upload updated app to App Store Connect
+ios	Build & Upload to TestFlight	2025-11-12T15:34:48.1019840Z [15:34:48]: [32mThis might take a few minutes. Please don't interrupt the script.[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:35:12.9591780Z [15:35:12]: [33m[altool] Running altool at path '/Applications/Xcode_16.1.app/Contents/SharedFrameworks/ContentDeliveryServices.framework/Frameworks/AppStoreService.framework/Support/altool'...
+ios	Build & Upload to TestFlight	2025-11-12T15:35:12.9607450Z [0m
+ios	Build & Upload to TestFlight	2025-11-12T15:35:12.9614770Z [15:35:12]: [33m[altool] 2025-11-12 15:35:02.998 *** Error: [ContentDelivery.Uploader.60000329C1C0] Validation failed (409) Missing required icon file. The bundle does not contain an app icon for iPhone / iPod Touch of exactly '120x120' pixels, in .png format for iOS versions >= 10.0. To support older versions of iOS, the icon may be required in the bundle outside of an asset catalog. Make sure the Info.plist file includes appropriate entries referencing the file. See https://developer.apple.com/documentation/bundleresources/information_property_list/user_interface. (ID: 51dc0e03-2d7e-4c9e-a268-545aed0c281b)
+ios	Build & Upload to TestFlight	2025-11-12T15:35:12.9622710Z [0m
+ios	Build & Upload to TestFlight	2025-11-12T15:35:12.9629280Z [15:35:12]: [33m[altool] 2025-11-12 15:35:02.999 *** Error: [ContentDelivery.Uploader.60000329C1C0] Validation failed (409) Missing required icon file. The bundle does not contain an app icon for iPad of exactly '152x152' pixels, in .png format for iOS versions >= 10.0. To support older operating systems, the icon may be required in the bundle outside of an asset catalog. Make sure the Info.plist file includes appropriate entries referencing the file. See https://developer.apple.com/documentation/bundleresources/information_property_list/user_interface. (ID: b729a66d-f8ba-4bcf-84ba-8c269e4bb201)
+ios	Build & Upload to TestFlight	2025-11-12T15:35:12.9645330Z [0m
+ios	Build & Upload to TestFlight	2025-11-12T15:35:12.9663320Z [15:35:12]: [33m[altool] 2025-11-12 15:35:02.999 *** Error: [ContentDelivery.Uploader.60000329C1C0] Validation failed (409) Missing Info.plist value. A value for the Info.plist key 'CFBundleIconName' is missing in the bundle 'com.skyfeeder.field'. Apps built with iOS 11 or later SDK must supply app icons in an asset catalog and must also provide a value for this Info.plist key. For more information see http://help.apple.com/xcode/mac/current/#/dev10510b1f7. (ID: a27cfa72-d5cc-49bb-a6d7-063e0e78d84f)
+ios	Build & Upload to TestFlight	2025-11-12T15:35:12.9679600Z [0m
+ios	Build & Upload to TestFlight	2025-11-12T15:35:12.9680870Z [15:35:12]: [33m[altool] 2025-11-12 15:35:12.944 [ContentDelivery.Uploader.60000329C1C0] 
+ios	Build & Upload to TestFlight	2025-11-12T15:35:12.9681360Z [0m
+ios	Build & Upload to TestFlight	2025-11-12T15:35:12.9681690Z [15:35:12]: [33m[altool] =============
+ios	Build & Upload to TestFlight	2025-11-12T15:35:12.9682090Z [0m
+ios	Build & Upload to TestFlight	2025-11-12T15:35:12.9682380Z [15:35:12]: [33m[altool] UPLOAD FAILED with 3 errors.
+ios	Build & Upload to TestFlight	2025-11-12T15:35:12.9682800Z [0m
+ios	Build & Upload to TestFlight	2025-11-12T15:35:12.9683160Z [15:35:12]: [33m[altool] =============
+ios	Build & Upload to TestFlight	2025-11-12T15:35:12.9683690Z [0m
+ios	Build & Upload to TestFlight	2025-11-12T15:35:12.9684350Z [15:35:12]: [33m[altool] 2025-11-12 15:35:12.946 *** Error: Error uploading '/var/folders/n_/92y65kqs02vgpz5ry3fdyjf00000gn/T/8a294b76-b32d-49e9-bb99-b9c8d66648da.ipa'.
+ios	Build & Upload to TestFlight	2025-11-12T15:35:12.9684960Z [0m
+ios	Build & Upload to TestFlight	2025-11-12T15:35:12.9687150Z [15:35:12]: [33m[altool] 2025-11-12 15:35:12.946 *** Error: Validation failed Missing required icon file. The bundle does not contain an app icon for iPhone / iPod Touch of exactly '120x120' pixels, in .png format for iOS versions >= 10.0. To support older versions of iOS, the icon may be required in the bundle outside of an asset catalog. Make sure the Info.plist file includes appropriate entries referencing the file. See https://developer.apple.com/documentation/bundleresources/information_property_list/user_interface. (ID: 51dc0e03-2d7e-4c9e-a268-545aed0c281b) (409)
+ios	Build & Upload to TestFlight	2025-11-12T15:35:12.9688890Z [0m
+ios	Build & Upload to TestFlight	2025-11-12T15:35:12.9689170Z [15:35:12]: [33m[altool]  {
+ios	Build & Upload to TestFlight	2025-11-12T15:35:12.9689470Z [0m
+ios	Build & Upload to TestFlight	2025-11-12T15:35:12.9689880Z [15:35:12]: [33m[altool]     NSLocalizedDescription = "Validation failed";
+ios	Build & Upload to TestFlight	2025-11-12T15:35:12.9690270Z [0m
+ios	Build & Upload to TestFlight	2025-11-12T15:35:12.9691990Z [15:35:12]: [33m[altool]     NSLocalizedFailureReason = "Missing required icon file. The bundle does not contain an app icon for iPhone / iPod Touch of exactly '120x120' pixels, in .png format for iOS versions >= 10.0. To support older versions of iOS, the icon may be required in the bundle outside of an asset catalog. Make sure the Info.plist file includes appropriate entries referencing the file. See https://developer.apple.com/documentation/bundleresources/information_property_list/user_interface. (ID: 51dc0e03-2d7e-4c9e-a268-545aed0c281b)";
+ios	Build & Upload to TestFlight	2025-11-12T15:35:12.9694470Z [0m
+ios	Build & Upload to TestFlight	2025-11-12T15:35:12.9704390Z [15:35:12]: [33m[altool]     NSUnderlyingError = "Error Domain=IrisAPI Code=-19241 \"Validation failed\" UserInfo={status=409, detail=Missing required icon file. The bundle does not contain an app icon for iPhone / iPod Touch of exactly '120x120' pixels, in .png format for iOS versions >= 10.0. To support older versions of iOS, the icon may be required in the bundle outside of an asset catalog. Make sure the Info.plist file includes appropriate entries referencing the file. See https://developer.apple.com/documentation/bundleresources/information_property_list/user_interface., id=51dc0e03-2d7e-4c9e-a268-545aed0c281b, code=STATE_ERROR.VALIDATION_ERROR, title=Validation failed, NSLocalizedFailureReason=Missing required icon file. The bundle does not contain an app icon for iPhone / iPod Touch of exactly '120x120' pixels, in .png format for iOS versions >= 10.0. To support older versions of iOS, the icon may be required in the bundle outside of an asset catalog. Make sure the Info.plist file includes appropriate entries referencing the file. See https://developer.apple.com/documentation/bundleresources/information_property_list/user_interface., NSLocalizedDescription=Validation failed}";
+ios	Build & Upload to TestFlight	2025-11-12T15:35:12.9710080Z [0m
+ios	Build & Upload to TestFlight	2025-11-12T15:35:12.9710550Z [15:35:12]: [33m[altool]     "iris-code" = "STATE_ERROR.VALIDATION_ERROR";
+ios	Build & Upload to TestFlight	2025-11-12T15:35:12.9711000Z [0m
+ios	Build & Upload to TestFlight	2025-11-12T15:35:12.9711350Z [15:35:12]: [33m[altool] }
+ios	Build & Upload to TestFlight	2025-11-12T15:35:12.9711660Z [0m
+ios	Build & Upload to TestFlight	2025-11-12T15:35:12.9713410Z [15:35:12]: [33m[altool] 2025-11-12 15:35:12.947 *** Error: Validation failed Missing required icon file. The bundle does not contain an app icon for iPad of exactly '152x152' pixels, in .png format for iOS versions >= 10.0. To support older operating systems, the icon may be required in the bundle outside of an asset catalog. Make sure the Info.plist file includes appropriate entries referencing the file. See https://developer.apple.com/documentation/bundleresources/information_property_list/user_interface. (ID: b729a66d-f8ba-4bcf-84ba-8c269e4bb201) (409)
+ios	Build & Upload to TestFlight	2025-11-12T15:35:12.9715590Z [0m
+ios	Build & Upload to TestFlight	2025-11-12T15:35:12.9715880Z [15:35:12]: [33m[altool]  {
+ios	Build & Upload to TestFlight	2025-11-12T15:35:12.9716200Z [0m
+ios	Build & Upload to TestFlight	2025-11-12T15:35:12.9716530Z [15:35:12]: [33m[altool]     NSLocalizedDescription = "Validation failed";
+ios	Build & Upload to TestFlight	2025-11-12T15:35:12.9716980Z [0m
+ios	Build & Upload to TestFlight	2025-11-12T15:35:12.9718650Z [15:35:12]: [33m[altool]     NSLocalizedFailureReason = "Missing required icon file. The bundle does not contain an app icon for iPad of exactly '152x152' pixels, in .png format for iOS versions >= 10.0. To support older operating systems, the icon may be required in the bundle outside of an asset catalog. Make sure the Info.plist file includes appropriate entries referencing the file. See https://developer.apple.com/documentation/bundleresources/information_property_list/user_interface. (ID: b729a66d-f8ba-4bcf-84ba-8c269e4bb201)";
+ios	Build & Upload to TestFlight	2025-11-12T15:35:12.9720600Z [0m
+ios	Build & Upload to TestFlight	2025-11-12T15:35:12.9724380Z [15:35:12]: [33m[altool]     NSUnderlyingError = "Error Domain=IrisAPI Code=-19241 \"Validation failed\" UserInfo={status=409, detail=Missing required icon file. The bundle does not contain an app icon for iPad of exactly '152x152' pixels, in .png format for iOS versions >= 10.0. To support older operating systems, the icon may be required in the bundle outside of an asset catalog. Make sure the Info.plist file includes appropriate entries referencing the file. See https://developer.apple.com/documentation/bundleresources/information_property_list/user_interface., id=b729a66d-f8ba-4bcf-84ba-8c269e4bb201, code=STATE_ERROR.VALIDATION_ERROR, title=Validation failed, NSLocalizedFailureReason=Missing required icon file. The bundle does not contain an app icon for iPad of exactly '152x152' pixels, in .png format for iOS versions >= 10.0. To support older operating systems, the icon may be required in the bundle outside of an asset catalog. Make sure the Info.plist file includes appropriate entries referencing the file. See https://developer.apple.com/documentation/bundleresources/information_property_list/user_interface., NSLocalizedDescription=Validation failed}";
+ios	Build & Upload to TestFlight	2025-11-12T15:35:12.9728340Z [0m
+ios	Build & Upload to TestFlight	2025-11-12T15:35:12.9728730Z [15:35:12]: [33m[altool]     "iris-code" = "STATE_ERROR.VALIDATION_ERROR";
+ios	Build & Upload to TestFlight	2025-11-12T15:35:12.9729190Z [0m
+ios	Build & Upload to TestFlight	2025-11-12T15:35:12.9729420Z [15:35:12]: [33m[altool] }
+ios	Build & Upload to TestFlight	2025-11-12T15:35:12.9729720Z [0m
+ios	Build & Upload to TestFlight	2025-11-12T15:35:12.9731140Z [15:35:12]: [33m[altool] 2025-11-12 15:35:12.948 *** Error: Validation failed Missing Info.plist value. A value for the Info.plist key 'CFBundleIconName' is missing in the bundle 'com.skyfeeder.field'. Apps built with iOS 11 or later SDK must supply app icons in an asset catalog and must also provide a value for this Info.plist key. For more information see http://help.apple.com/xcode/mac/current/#/dev10510b1f7. (ID: a27cfa72-d5cc-49bb-a6d7-063e0e78d84f) (409)
+ios	Build & Upload to TestFlight	2025-11-12T15:35:12.9732410Z [0m
+ios	Build & Upload to TestFlight	2025-11-12T15:35:12.9732690Z [15:35:12]: [33m[altool]  {
+ios	Build & Upload to TestFlight	2025-11-12T15:35:12.9732990Z [0m
+ios	Build & Upload to TestFlight	2025-11-12T15:35:12.9733360Z [15:35:12]: [33m[altool]     NSLocalizedDescription = "Validation failed";
+ios	Build & Upload to TestFlight	2025-11-12T15:35:12.9733780Z [0m
+ios	Build & Upload to TestFlight	2025-11-12T15:35:12.9735070Z [15:35:12]: [33m[altool]     NSLocalizedFailureReason = "Missing Info.plist value. A value for the Info.plist key 'CFBundleIconName' is missing in the bundle 'com.skyfeeder.field'. Apps built with iOS 11 or later SDK must supply app icons in an asset catalog and must also provide a value for this Info.plist key. For more information see http://help.apple.com/xcode/mac/current/#/dev10510b1f7. (ID: a27cfa72-d5cc-49bb-a6d7-063e0e78d84f)";
+ios	Build & Upload to TestFlight	2025-11-12T15:35:12.9739150Z [0m
+ios	Build & Upload to TestFlight	2025-11-12T15:35:12.9747930Z [15:35:12]: [33m[altool]     NSUnderlyingError = "Error Domain=IrisAPI Code=-19241 \"Validation failed\" UserInfo={status=409, detail=Missing Info.plist value. A value for the Info.plist key 'CFBundleIconName' is missing in the bundle 'com.skyfeeder.field'. Apps built with iOS 11 or later SDK must supply app icons in an asset catalog and must also provide a value for this Info.plist key. For more information see http://help.apple.com/xcode/mac/current/#/dev10510b1f7., id=a27cfa72-d5cc-49bb-a6d7-063e0e78d84f, code=STATE_ERROR.VALIDATION_ERROR, title=Validation failed, NSLocalizedFailureReason=Missing Info.plist value. A value for the Info.plist key 'CFBundleIconName' is missing in the bundle 'com.skyfeeder.field'. Apps built with iOS 11 or later SDK must supply app icons in an asset catalog and must also provide a value for this Info.plist key. For more information see http://help.apple.com/xcode/mac/current/#/dev10510b1f7., NSLocalizedDescription=Validation failed}";
+ios	Build & Upload to TestFlight	2025-11-12T15:35:12.9756940Z [0m
+ios	Build & Upload to TestFlight	2025-11-12T15:35:12.9757420Z [15:35:12]: [33m[altool]     "iris-code" = "STATE_ERROR.VALIDATION_ERROR";
+ios	Build & Upload to TestFlight	2025-11-12T15:35:12.9757870Z [0m
+ios	Build & Upload to TestFlight	2025-11-12T15:35:12.9758170Z [15:35:12]: [33m[altool] }
+ios	Build & Upload to TestFlight	2025-11-12T15:35:12.9758480Z [0m
+ios	Build & Upload to TestFlight	2025-11-12T15:35:12.9758800Z [15:35:12]: Application Loader output above ^
+ios	Build & Upload to TestFlight	2025-11-12T15:35:12.9760670Z [15:35:12]: [31m[ContentDelivery.Uploader.60000329C1C0] Validation failed (409) Missing required icon file. The bundle does not contain an app icon for iPhone / iPod Touch of exactly '120x120' pixels, in .png format for iOS versions >= 10.0. To support older versions of iOS, the icon may be required in the bundle outside of an asset catalog. Make sure the Info.plist file includes appropriate entries referencing the file. See https://developer.apple.com/documentation/bundleresources/information_property_list/user_interface. (ID: 51dc0e03-2d7e-4c9e-a268-545aed0c281b)
+ios	Build & Upload to TestFlight	2025-11-12T15:35:12.9762320Z [0m
+ios	Build & Upload to TestFlight	2025-11-12T15:35:12.9764090Z [15:35:12]: [31m[ContentDelivery.Uploader.60000329C1C0] Validation failed (409) Missing required icon file. The bundle does not contain an app icon for iPad of exactly '152x152' pixels, in .png format for iOS versions >= 10.0. To support older operating systems, the icon may be required in the bundle outside of an asset catalog. Make sure the Info.plist file includes appropriate entries referencing the file. See https://developer.apple.com/documentation/bundleresources/information_property_list/user_interface. (ID: b729a66d-f8ba-4bcf-84ba-8c269e4bb201)
+ios	Build & Upload to TestFlight	2025-11-12T15:35:12.9765680Z [0m
+ios	Build & Upload to TestFlight	2025-11-12T15:35:12.9768040Z [15:35:12]: [31m[ContentDelivery.Uploader.60000329C1C0] Validation failed (409) Missing Info.plist value. A value for the Info.plist key 'CFBundleIconName' is missing in the bundle 'com.skyfeeder.field'. Apps built with iOS 11 or later SDK must supply app icons in an asset catalog and must also provide a value for this Info.plist key. For more information see http://help.apple.com/xcode/mac/current/#/dev10510b1f7. (ID: a27cfa72-d5cc-49bb-a6d7-063e0e78d84f)
+ios	Build & Upload to TestFlight	2025-11-12T15:35:12.9769930Z [0m
+ios	Build & Upload to TestFlight	2025-11-12T15:35:12.9770460Z [15:35:12]: [31mError uploading '/var/folders/n_/92y65kqs02vgpz5ry3fdyjf00000gn/T/8a294b76-b32d-49e9-bb99-b9c8d66648da.ipa'.
+ios	Build & Upload to TestFlight	2025-11-12T15:35:12.9770990Z [0m
+ios	Build & Upload to TestFlight	2025-11-12T15:35:12.9773490Z [15:35:12]: [31mValidation failed Missing required icon file. The bundle does not contain an app icon for iPhone / iPod Touch of exactly '120x120' pixels, in .png format for iOS versions >= 10.0. To support older versions of iOS, the icon may be required in the bundle outside of an asset catalog. Make sure the Info.plist file includes appropriate entries referencing the file. See https://developer.apple.com/documentation/bundleresources/information_property_list/user_interface. (ID: 51dc0e03-2d7e-4c9e-a268-545aed0c281b) (409)
+ios	Build & Upload to TestFlight	2025-11-12T15:35:12.9779030Z [0m
+ios	Build & Upload to TestFlight	2025-11-12T15:35:12.9782110Z [15:35:12]: [31mValidation failed Missing required icon file. The bundle does not contain an app icon for iPad of exactly '152x152' pixels, in .png format for iOS versions >= 10.0. To support older operating systems, the icon may be required in the bundle outside of an asset catalog. Make sure the Info.plist file includes appropriate entries referencing the file. See https://developer.apple.com/documentation/bundleresources/information_property_list/user_interface. (ID: b729a66d-f8ba-4bcf-84ba-8c269e4bb201) (409)
+ios	Build & Upload to TestFlight	2025-11-12T15:35:12.9784370Z [0m
+ios	Build & Upload to TestFlight	2025-11-12T15:35:12.9788150Z [15:35:12]: [31mValidation failed Missing Info.plist value. A value for the Info.plist key 'CFBundleIconName' is missing in the bundle 'com.skyfeeder.field'. Apps built with iOS 11 or later SDK must supply app icons in an asset catalog and must also provide a value for this Info.plist key. For more information see http://help.apple.com/xcode/mac/current/#/dev10510b1f7. (ID: a27cfa72-d5cc-49bb-a6d7-063e0e78d84f) (409)
+ios	Build & Upload to TestFlight	2025-11-12T15:35:12.9791570Z [0m
+ios	Build & Upload to TestFlight	2025-11-12T15:35:12.9792200Z [15:35:12]: [31mThe call to the altool completed with a non-zero exit status: 1. This indicates a failure.[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:35:12.9792970Z [15:35:12]: [31mCould not download/upload from App Store Connect![0m
+ios	Build & Upload to TestFlight	2025-11-12T15:35:12.9793510Z +----------------------------------------------------------------------------------------------------------------------------------------------------+
+ios	Build & Upload to TestFlight	2025-11-12T15:35:12.9794180Z |                                                                    [33mLane Context[0m                                                                    |
+ios	Build & Upload to TestFlight	2025-11-12T15:35:12.9794810Z +------------------------------------+---------------------------------------------------------------------------------------------------------------+
+ios	Build & Upload to TestFlight	2025-11-12T15:35:12.9795740Z | DEFAULT_PLATFORM                   | ios                                                                                                           |
+ios	Build & Upload to TestFlight	2025-11-12T15:35:12.9796410Z | PLATFORM_NAME                      | ios                                                                                                           |
+ios	Build & Upload to TestFlight	2025-11-12T15:35:12.9796960Z | LANE_NAME                          | ios testflight_upload                                                                                         |
+ios	Build & Upload to TestFlight	2025-11-12T15:35:12.9797570Z | SIGH_PROFILE_TYPE                  | app-store                                                                                                     |
+ios	Build & Upload to TestFlight	2025-11-12T15:35:12.9798260Z | MATCH_PROVISIONING_PROFILE_MAPPING | {"com.skyfeeder.field"=>"match AppStore com.skyfeeder.field"}                                                 |
+ios	Build & Upload to TestFlight	2025-11-12T15:35:12.9799170Z | IPA_OUTPUT_PATH                    | /Users/runner/work/Codex_Vs_Code/Codex_Vs_Code/build/SkyFeederFieldUtility.ipa                                |
+ios	Build & Upload to TestFlight	2025-11-12T15:35:12.9800050Z | XCODEBUILD_ARCHIVE                 | /Users/runner/Library/Developer/Xcode/Archives/2025-11-12/SkyFeederFieldUtility 2025-11-12 15.34.02.xcarchive |
+ios	Build & Upload to TestFlight	2025-11-12T15:35:12.9801400Z | DSYM_OUTPUT_PATH                   | /Users/runner/work/Codex_Vs_Code/Codex_Vs_Code/build/SkyFeederFieldUtility.app.dSYM.zip                       |
+ios	Build & Upload to TestFlight	2025-11-12T15:35:12.9802080Z +------------------------------------+---------------------------------------------------------------------------------------------------------------+
+ios	Build & Upload to TestFlight	2025-11-12T15:35:12.9802740Z [15:35:12]: [31mCalled from Fastfile at line 64[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:35:12.9804070Z [15:35:12]: [31m```[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:35:12.9804990Z [15:35:12]: [31m    62:	    )[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:35:12.9805790Z [15:35:12]: [31m    63:	[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:35:12.9806280Z [15:35:12]: [31m => 64:	    uploaded_build = upload_to_testflight([0m
+ios	Build & Upload to TestFlight	2025-11-12T15:35:12.9807200Z [15:35:12]: [31m    65:	      api_key: api_key,[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:35:12.9807820Z [15:35:12]: [31m    66:	      skip_waiting_for_build_processing: true[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:35:12.9808250Z [15:35:12]: [31m```[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:35:12.9808660Z [15:35:12]: [31mError uploading ipa file: 
+ios	Build & Upload to TestFlight	2025-11-12T15:35:12.9810520Z  [Application Loader Error Output]: [ContentDelivery.Uploader.60000329C1C0] Validation failed (409) Missing required icon file. The bundle does not contain an app icon for iPhone / iPod Touch of exactly '120x120' pixels, in .png format for iOS versions >= 10.0. To support older versions of iOS, the icon may be required in the bundle outside of an asset catalog. Make sure the Info.plist file includes appropriate entries referencing the file. See https://developer.apple.com/documentation/bundleresources/information_property_list/user_interface. (ID: 51dc0e03-2d7e-4c9e-a268-545aed0c281b)
+ios	Build & Upload to TestFlight	2025-11-12T15:35:12.9814040Z [Application Loader Error Output]: [ContentDelivery.Uploader.60000329C1C0] Validation failed (409) Missing required icon file. The bundle does not contain an app icon for iPad of exactly '152x152' pixels, in .png format for iOS versions >= 10.0. To support older operating systems, the icon may be required in the bundle outside of an asset catalog. Make sure the Info.plist file includes appropriate entries referencing the file. See https://developer.apple.com/documentation/bundleresources/information_property_list/user_interface. (ID: b729a66d-f8ba-4bcf-84ba-8c269e4bb201)
+ios	Build & Upload to TestFlight	2025-11-12T15:35:12.9822490Z [Application Loader Error Output]: [ContentDelivery.Uploader.60000329C1C0] Validation failed (409) Missing Info.plist value. A value for the Info.plist key 'CFBundleIconName' is missing in the bundle 'com.skyfeeder.field'. Apps built with iOS 11 or later SDK must supply app icons in an asset catalog and must also provide a value for this Info.plist key. For more information see http://help.apple.com/xcode/mac/current/#/dev10510b1f7. (ID: a27cfa72-d5cc-49bb-a6d7-063e0e78d84f)
+ios	Build & Upload to TestFlight	2025-11-12T15:35:12.9828050Z [Application Loader Error Output]: Error uploading '/var/folders/n_/92y65kqs02vgpz5ry3fdyjf00000gn/T/8a294b76-b32d-49e9-bb99-b9c8d66648da.ipa'.
+ios	Build & Upload to TestFlight	2025-11-12T15:35:12.9833650Z [Application Loader Error Output]: Validation failed Missing required icon file. The bundle does not contain an app icon for iPhone / iPod Touch of exactly '120x120' pixels, in .png format for iOS versions >= 10.0. To support older versions of iOS, the icon may be required in the bundle outside of an asset catalog. Make sure the Info.plist file includes appropriate entries referencing the file. See https://developer.apple.com/documentation/bundleresources/information_property_list/user_interface. (ID: 51dc0e03-2d7e-4c9e-a268-545aed0c281b) (409)
+ios	Build & Upload to TestFlight	2025-11-12T15:35:12.9841760Z [Application Loader Error Output]: Validation failed Missing required icon file. The bundle does not contain an app icon for iPad of exactly '152x152' pixels, in .png format for iOS versions >= 10.0. To support older operating systems, the icon may be required in the bundle outside of an asset catalog. Make sure the Info.plist file includes appropriate entries referencing the file. See https://developer.apple.com/documentation/bundleresources/information_property_list/user_interface. (ID: b729a66d-f8ba-4bcf-84ba-8c269e4bb201) (409)
+ios	Build & Upload to TestFlight	2025-11-12T15:35:12.9846290Z [Application Loader Error Output]: Validation failed Missing Info.plist value. A value for the Info.plist key 'CFBundleIconName' is missing in the bundle 'com.skyfeeder.field'. Apps built with iOS 11 or later SDK must supply app icons in an asset catalog and must also provide a value for this Info.plist key. For more information see http://help.apple.com/xcode/mac/current/#/dev10510b1f7. (ID: a27cfa72-d5cc-49bb-a6d7-063e0e78d84f) (409)
+ios	Build & Upload to TestFlight	2025-11-12T15:35:12.9848160Z [Application Loader Error Output]: The call to the altool completed with a non-zero exit status: 1. This indicates a failure.[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:35:12.9957080Z 
+ios	Build & Upload to TestFlight	2025-11-12T15:35:12.9976210Z +------------------------------------------------+
+ios	Build & Upload to TestFlight	2025-11-12T15:35:12.9981970Z [31m
+ios	Build & Upload to TestFlight	2025-11-12T15:35:12.9982700Z |                [32mfastlane summary[0m                |
+ios	Build & Upload to TestFlight	2025-11-12T15:35:12.9983560Z [!] Error uploading ipa file: 
+ios	Build & Upload to TestFlight	2025-11-12T15:35:12.9983940Z +------+---------------------------+-------------+
+ios	Build & Upload to TestFlight	2025-11-12T15:35:12.9986490Z  [Application Loader Error Output]: [ContentDelivery.Uploader.60000329C1C0] Validation failed (409) Missing required icon file. The bundle does not contain an app icon for iPhone / iPod Touch of exactly '120x120' pixels, in .png format for iOS versions >= 10.0. To support older versions of iOS, the icon may be required in the bundle outside of an asset catalog. Make sure the Info.plist file includes appropriate entries referencing the file. See https://developer.apple.com/documentation/bundleresources/information_property_list/user_interface. (ID: 51dc0e03-2d7e-4c9e-a268-545aed0c281b)
+ios	Build & Upload to TestFlight	2025-11-12T15:35:12.9989040Z | Step | Action                    | Time (in s) |
+ios	Build & Upload to TestFlight	2025-11-12T15:35:12.9993380Z [Application Loader Error Output]: [ContentDelivery.Uploader.60000329C1C0] Validation failed (409) Missing required icon file. The bundle does not contain an app icon for iPad of exactly '152x152' pixels, in .png format for iOS versions >= 10.0. To support older operating systems, the icon may be required in the bundle outside of an asset catalog. Make sure the Info.plist file includes appropriate entries referencing the file. See https://developer.apple.com/documentation/bundleresources/information_property_list/user_interface. (ID: b729a66d-f8ba-4bcf-84ba-8c269e4bb201)
+ios	Build & Upload to TestFlight	2025-11-12T15:35:12.9998850Z +------+---------------------------+-------------+
+ios	Build & Upload to TestFlight	2025-11-12T15:35:13.0003350Z [Application Loader Error Output]: [ContentDelivery.Uploader.60000329C1C0] Validation failed (409) Missing Info.plist value. A value for the Info.plist key 'CFBundleIconName' is missing in the bundle 'com.skyfeeder.field'. Apps built with iOS 11 or later SDK must supply app icons in an asset catalog and must also provide a value for this Info.plist key. For more information see http://help.apple.com/xcode/mac/current/#/dev10510b1f7. (ID: a27cfa72-d5cc-49bb-a6d7-063e0e78d84f)
+ios	Build & Upload to TestFlight	2025-11-12T15:35:13.0008520Z [Application Loader Error Output]: Error uploading '/var/folders/n_/92y65kqs02vgpz5ry3fdyjf00000gn/T/8a294b76-b32d-49e9-bb99-b9c8d66648da.ipa'.
+ios	Build & Upload to TestFlight	2025-11-12T15:35:13.0013940Z [Application Loader Error Output]: Validation failed Missing required icon file. The bundle does not contain an app icon for iPhone / iPod Touch of exactly '120x120' pixels, in .png format for iOS versions >= 10.0. To support older versions of iOS, the icon may be required in the bundle outside of an asset catalog. Make sure the Info.plist file includes appropriate entries referencing the file. See https://developer.apple.com/documentation/bundleresources/information_property_list/user_interface. (ID: 51dc0e03-2d7e-4c9e-a268-545aed0c281b) (409)
+ios	Build & Upload to TestFlight	2025-11-12T15:35:13.0022830Z [Application Loader Error Output]: Validation failed Missing required icon file. The bundle does not contain an app icon for iPad of exactly '152x152' pixels, in .png format for iOS versions >= 10.0. To support older operating systems, the icon may be required in the bundle outside of an asset catalog. Make sure the Info.plist file includes appropriate entries referencing the file. See https://developer.apple.com/documentation/bundleresources/information_property_list/user_interface. (ID: b729a66d-f8ba-4bcf-84ba-8c269e4bb201) (409)
+ios	Build & Upload to TestFlight	2025-11-12T15:35:13.0030530Z [Application Loader Error Output]: Validation failed Missing Info.plist value. A value for the Info.plist key 'CFBundleIconName' is missing in the bundle 'com.skyfeeder.field'. Apps built with iOS 11 or later SDK must supply app icons in an asset catalog and must also provide a value for this Info.plist key. For more information see http://help.apple.com/xcode/mac/current/#/dev10510b1f7. (ID: a27cfa72-d5cc-49bb-a6d7-063e0e78d84f) (409)
+ios	Build & Upload to TestFlight	2025-11-12T15:35:13.0034340Z [Application Loader Error Output]: The call to the altool completed with a non-zero exit status: 1. This indicates a failure.[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:35:13.0035700Z | 1    | default_platform          | 0           |
+ios	Build & Upload to TestFlight	2025-11-12T15:35:13.0036080Z | 2    | setup_ci                  | 0           |
+ios	Build & Upload to TestFlight	2025-11-12T15:35:13.0036980Z | 3    | app_store_connect_api_key | 0           |
+ios	Build & Upload to TestFlight	2025-11-12T15:35:13.0037700Z | 4    | match                     | 0           |
+ios	Build & Upload to TestFlight	2025-11-12T15:35:13.0038090Z | 5    | build_app                 | 51          |
+ios	Build & Upload to TestFlight	2025-11-12T15:35:13.0038670Z | 💥   | [31mupload_to_testflight[0m      | 25          |
+ios	Build & Upload to TestFlight	2025-11-12T15:35:13.0039260Z +------+---------------------------+-------------+
+ios	Build & Upload to TestFlight	2025-11-12T15:35:13.0039500Z 
+ios	Build & Upload to TestFlight	2025-11-12T15:35:13.0039830Z [15:35:12]: [31mfastlane finished with errors[0m
+ios	Build & Upload to TestFlight	2025-11-12T15:35:13.0295130Z ##[error]Process completed with exit code 1.
+ios	Post Run actions/checkout@v4	﻿2025-11-12T15:35:13.0528310Z Post job cleanup.
+ios	Post Run actions/checkout@v4	2025-11-12T15:35:13.4714360Z [command]/opt/homebrew/bin/git version
+ios	Post Run actions/checkout@v4	2025-11-12T15:35:13.5007180Z git version 2.50.1
+ios	Post Run actions/checkout@v4	2025-11-12T15:35:13.5231810Z Copying '/Users/runner/.gitconfig' to '/Users/runner/work/_temp/7af445c3-e7d3-467b-9b49-18de6abd8c62/.gitconfig'
+ios	Post Run actions/checkout@v4	2025-11-12T15:35:13.5260030Z Temporarily overriding HOME='/Users/runner/work/_temp/7af445c3-e7d3-467b-9b49-18de6abd8c62' before making global git config changes
+ios	Post Run actions/checkout@v4	2025-11-12T15:35:13.5294790Z Adding repository directory to the temporary git global config as a safe directory
+ios	Post Run actions/checkout@v4	2025-11-12T15:35:13.5334120Z [command]/opt/homebrew/bin/git config --global --add safe.directory /Users/runner/work/Codex_Vs_Code/Codex_Vs_Code
+ios	Post Run actions/checkout@v4	2025-11-12T15:35:13.5371750Z [command]/opt/homebrew/bin/git config --local --name-only --get-regexp core\.sshCommand
+ios	Post Run actions/checkout@v4	2025-11-12T15:35:13.5377260Z [command]/opt/homebrew/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+ios	Post Run actions/checkout@v4	2025-11-12T15:35:13.6768230Z [command]/opt/homebrew/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+ios	Post Run actions/checkout@v4	2025-11-12T15:35:13.6812280Z http.https://github.com/.extraheader
+ios	Post Run actions/checkout@v4	2025-11-12T15:35:13.6823470Z [command]/opt/homebrew/bin/git config --local --unset-all http.https://github.com/.extraheader
+ios	Post Run actions/checkout@v4	2025-11-12T15:35:13.6911100Z [command]/opt/homebrew/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+ios	Complete job	﻿2025-11-12T15:35:13.7844260Z Cleaning up orphan processes

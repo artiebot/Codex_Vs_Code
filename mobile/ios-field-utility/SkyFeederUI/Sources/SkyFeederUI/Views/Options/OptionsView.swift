@@ -1,4 +1,4 @@
-import SwiftUI
+ï»¿import SwiftUI
 
 public struct OptionsView: View {
     @ObservedObject var viewModel: OptionsViewModel
@@ -244,7 +244,7 @@ struct StorageRetentionSection: View {
 
                     Divider()
 
-                    Text("Controlled by SkyFeeder — not adjustable here.")
+                    Text("Controlled by SkyFeeder - not adjustable here.")
                         .font(DesignSystem.caption())
                         .foregroundColor(DesignSystem.textSecondary)
                         .padding()

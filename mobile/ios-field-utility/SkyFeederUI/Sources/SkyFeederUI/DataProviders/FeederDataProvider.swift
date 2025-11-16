@@ -10,7 +10,6 @@ public struct FeederMediaSnapshot {
     }
 }
 
-@MainActor
 public protocol FeederDataProviding {
     func fetchBatteryStatus() async throws -> BatteryStatus
     func fetchRetentionPolicy() async throws -> RetentionPolicy

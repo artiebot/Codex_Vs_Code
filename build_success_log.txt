@@ -1,0 +1,649 @@
+ios	UNKNOWN STEP	﻿2025-11-12T04:22:44.2913440Z Current runner version: '2.329.0'
+ios	UNKNOWN STEP	2025-11-12T04:22:44.2927390Z ##[group]Runner Image Provisioner
+ios	UNKNOWN STEP	2025-11-12T04:22:44.2928000Z Hosted Compute Agent
+ios	UNKNOWN STEP	2025-11-12T04:22:44.2928420Z Version: 20251016.436
+ios	UNKNOWN STEP	2025-11-12T04:22:44.2929000Z Commit: 8ab8ac8bfd662a3739dab9fe09456aba92132568
+ios	UNKNOWN STEP	2025-11-12T04:22:44.2929520Z Build Date: 2025-10-15T20:44:12Z
+ios	UNKNOWN STEP	2025-11-12T04:22:44.2929960Z ##[endgroup]
+ios	UNKNOWN STEP	2025-11-12T04:22:44.2930360Z ##[group]Operating System
+ios	UNKNOWN STEP	2025-11-12T04:22:44.2930780Z macOS
+ios	UNKNOWN STEP	2025-11-12T04:22:44.2931140Z 14.8.1
+ios	UNKNOWN STEP	2025-11-12T04:22:44.2931500Z 23J30
+ios	UNKNOWN STEP	2025-11-12T04:22:44.2931870Z ##[endgroup]
+ios	UNKNOWN STEP	2025-11-12T04:22:44.2932270Z ##[group]Runner Image
+ios	UNKNOWN STEP	2025-11-12T04:22:44.2932690Z Image: macos-14-arm64
+ios	UNKNOWN STEP	2025-11-12T04:22:44.2933100Z Version: 20251103.0081
+ios	UNKNOWN STEP	2025-11-12T04:22:44.2933880Z Included Software: https://github.com/actions/runner-images/blob/macos-14-arm64/20251103.0081/images/macos/macos-14-arm64-Readme.md
+ios	UNKNOWN STEP	2025-11-12T04:22:44.2935070Z Image Release: https://github.com/actions/runner-images/releases/tag/macos-14-arm64%2F20251103.0081
+ios	UNKNOWN STEP	2025-11-12T04:22:44.2935780Z ##[endgroup]
+ios	UNKNOWN STEP	2025-11-12T04:22:44.2936630Z ##[group]GITHUB_TOKEN Permissions
+ios	UNKNOWN STEP	2025-11-12T04:22:44.2937770Z Contents: read
+ios	UNKNOWN STEP	2025-11-12T04:22:44.2938160Z Metadata: read
+ios	UNKNOWN STEP	2025-11-12T04:22:44.2938560Z Packages: read
+ios	UNKNOWN STEP	2025-11-12T04:22:44.2938950Z ##[endgroup]
+ios	UNKNOWN STEP	2025-11-12T04:22:44.2940330Z Secret source: Actions
+ios	UNKNOWN STEP	2025-11-12T04:22:44.2940810Z Prepare workflow directory
+ios	UNKNOWN STEP	2025-11-12T04:22:44.3139120Z Prepare all required actions
+ios	UNKNOWN STEP	2025-11-12T04:22:44.3164640Z Getting action download info
+ios	UNKNOWN STEP	2025-11-12T04:22:44.7140700Z Download action repository 'actions/checkout@v4' (SHA:08eba0b27e820071cde6df949e0beb9ba4906955)
+ios	UNKNOWN STEP	2025-11-12T04:22:44.9786070Z Download action repository 'maxim-lobanov/setup-xcode@v1' (SHA:60606e260d2fc5762a71e64e74b2174e8ea3c8bd)
+ios	UNKNOWN STEP	2025-11-12T04:22:45.8623600Z Download action repository 'actions/cache@v4' (SHA:0057852bfaa89a56745cba8c7296529d2fc39830)
+ios	UNKNOWN STEP	2025-11-12T04:22:46.0134670Z Complete job name: ios
+ios	UNKNOWN STEP	2025-11-12T04:22:46.0517460Z ##[group]Run actions/checkout@v4
+ios	UNKNOWN STEP	2025-11-12T04:22:46.0518130Z with:
+ios	UNKNOWN STEP	2025-11-12T04:22:46.0518540Z   repository: artiebot/Codex_Vs_Code
+ios	UNKNOWN STEP	2025-11-12T04:22:46.0519130Z   token: ***
+ios	UNKNOWN STEP	2025-11-12T04:22:46.0519500Z   ssh-strict: true
+ios	UNKNOWN STEP	2025-11-12T04:22:46.0519880Z   ssh-user: git
+ios	UNKNOWN STEP	2025-11-12T04:22:46.0520260Z   persist-credentials: true
+ios	UNKNOWN STEP	2025-11-12T04:22:46.0520690Z   clean: true
+ios	UNKNOWN STEP	2025-11-12T04:22:46.0521100Z   sparse-checkout-cone-mode: true
+ios	UNKNOWN STEP	2025-11-12T04:22:46.0521550Z   fetch-depth: 1
+ios	UNKNOWN STEP	2025-11-12T04:22:46.0521930Z   fetch-tags: false
+ios	UNKNOWN STEP	2025-11-12T04:22:46.0522320Z   show-progress: true
+ios	UNKNOWN STEP	2025-11-12T04:22:46.0522720Z   lfs: false
+ios	UNKNOWN STEP	2025-11-12T04:22:46.0523230Z   submodules: false
+ios	UNKNOWN STEP	2025-11-12T04:22:46.0523650Z   set-safe-directory: true
+ios	UNKNOWN STEP	2025-11-12T04:22:46.0524200Z ##[endgroup]
+ios	UNKNOWN STEP	2025-11-12T04:22:46.3368270Z Syncing repository: artiebot/Codex_Vs_Code
+ios	UNKNOWN STEP	2025-11-12T04:22:46.3370170Z ##[group]Getting Git version info
+ios	UNKNOWN STEP	2025-11-12T04:22:46.3371960Z Working directory is '/Users/runner/work/Codex_Vs_Code/Codex_Vs_Code'
+ios	UNKNOWN STEP	2025-11-12T04:22:46.3373100Z [command]/opt/homebrew/bin/git version
+ios	UNKNOWN STEP	2025-11-12T04:22:46.3877620Z git version 2.50.1
+ios	UNKNOWN STEP	2025-11-12T04:22:46.3904780Z ##[endgroup]
+ios	UNKNOWN STEP	2025-11-12T04:22:46.3914070Z Copying '/Users/runner/.gitconfig' to '/Users/runner/work/_temp/71d92dd0-1bfa-41b7-bd5a-3fac7fd2be66/.gitconfig'
+ios	UNKNOWN STEP	2025-11-12T04:22:46.3920220Z Temporarily overriding HOME='/Users/runner/work/_temp/71d92dd0-1bfa-41b7-bd5a-3fac7fd2be66' before making global git config changes
+ios	UNKNOWN STEP	2025-11-12T04:22:46.3921360Z Adding repository directory to the temporary git global config as a safe directory
+ios	UNKNOWN STEP	2025-11-12T04:22:46.3923910Z [command]/opt/homebrew/bin/git config --global --add safe.directory /Users/runner/work/Codex_Vs_Code/Codex_Vs_Code
+ios	UNKNOWN STEP	2025-11-12T04:22:46.4013330Z Deleting the contents of '/Users/runner/work/Codex_Vs_Code/Codex_Vs_Code'
+ios	UNKNOWN STEP	2025-11-12T04:22:46.4015530Z ##[group]Initializing the repository
+ios	UNKNOWN STEP	2025-11-12T04:22:46.4019610Z [command]/opt/homebrew/bin/git init /Users/runner/work/Codex_Vs_Code/Codex_Vs_Code
+ios	UNKNOWN STEP	2025-11-12T04:22:46.4176840Z hint: Using 'master' as the name for the initial branch. This default branch name
+ios	UNKNOWN STEP	2025-11-12T04:22:46.4179140Z hint: is subject to change. To configure the initial branch name to use in all
+ios	UNKNOWN STEP	2025-11-12T04:22:46.4180080Z hint: of your new repositories, which will suppress this warning, call:
+ios	UNKNOWN STEP	2025-11-12T04:22:46.4180710Z hint:
+ios	UNKNOWN STEP	2025-11-12T04:22:46.4181200Z hint: 	git config --global init.defaultBranch <name>
+ios	UNKNOWN STEP	2025-11-12T04:22:46.4181730Z hint:
+ios	UNKNOWN STEP	2025-11-12T04:22:46.4182360Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+ios	UNKNOWN STEP	2025-11-12T04:22:46.4183190Z hint: 'development'. The just-created branch can be renamed via this command:
+ios	UNKNOWN STEP	2025-11-12T04:22:46.4183840Z hint:
+ios	UNKNOWN STEP	2025-11-12T04:22:46.4184280Z hint: 	git branch -m <name>
+ios	UNKNOWN STEP	2025-11-12T04:22:46.4184720Z hint:
+ios	UNKNOWN STEP	2025-11-12T04:22:46.4185550Z hint: Disable this message with "git config set advice.defaultBranchName false"
+ios	UNKNOWN STEP	2025-11-12T04:22:46.4186620Z Initialized empty Git repository in /Users/runner/work/Codex_Vs_Code/Codex_Vs_Code/.git/
+ios	UNKNOWN STEP	2025-11-12T04:22:46.4188370Z [command]/opt/homebrew/bin/git remote add origin https://github.com/artiebot/Codex_Vs_Code
+ios	UNKNOWN STEP	2025-11-12T04:22:46.4248290Z ##[endgroup]
+ios	UNKNOWN STEP	2025-11-12T04:22:46.4249190Z ##[group]Disabling automatic garbage collection
+ios	UNKNOWN STEP	2025-11-12T04:22:46.4251200Z [command]/opt/homebrew/bin/git config --local gc.auto 0
+ios	UNKNOWN STEP	2025-11-12T04:22:46.4293150Z ##[endgroup]
+ios	UNKNOWN STEP	2025-11-12T04:22:46.4293920Z ##[group]Setting up auth
+ios	UNKNOWN STEP	2025-11-12T04:22:46.4297510Z [command]/opt/homebrew/bin/git config --local --name-only --get-regexp core\.sshCommand
+ios	UNKNOWN STEP	2025-11-12T04:22:46.4340010Z [command]/opt/homebrew/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+ios	UNKNOWN STEP	2025-11-12T04:22:46.4940590Z [command]/opt/homebrew/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+ios	UNKNOWN STEP	2025-11-12T04:22:46.4979490Z [command]/opt/homebrew/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+ios	UNKNOWN STEP	2025-11-12T04:22:46.5416120Z [command]/opt/homebrew/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+ios	UNKNOWN STEP	2025-11-12T04:22:46.5459240Z ##[endgroup]
+ios	UNKNOWN STEP	2025-11-12T04:22:46.5460000Z ##[group]Fetching the repository
+ios	UNKNOWN STEP	2025-11-12T04:22:46.5464620Z [command]/opt/homebrew/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +6215b6f83220a7fa381eaee7115b6e38eaca0eae:refs/remotes/origin/main
+ios	UNKNOWN STEP	2025-11-12T04:22:48.1640230Z From https://github.com/artiebot/Codex_Vs_Code
+ios	UNKNOWN STEP	2025-11-12T04:22:48.1641780Z  * [new ref]         6215b6f83220a7fa381eaee7115b6e38eaca0eae -> origin/main
+ios	UNKNOWN STEP	2025-11-12T04:22:48.1701330Z ##[endgroup]
+ios	UNKNOWN STEP	2025-11-12T04:22:48.1704140Z ##[group]Determining the checkout info
+ios	UNKNOWN STEP	2025-11-12T04:22:48.1705300Z ##[endgroup]
+ios	UNKNOWN STEP	2025-11-12T04:22:48.1705970Z [command]/opt/homebrew/bin/git sparse-checkout disable
+ios	UNKNOWN STEP	2025-11-12T04:22:48.1762540Z [command]/opt/homebrew/bin/git config --local --unset-all extensions.worktreeConfig
+ios	UNKNOWN STEP	2025-11-12T04:22:48.1804230Z ##[group]Checking out the ref
+ios	UNKNOWN STEP	2025-11-12T04:22:48.1805900Z [command]/opt/homebrew/bin/git checkout --progress --force -B main refs/remotes/origin/main
+ios	UNKNOWN STEP	2025-11-12T04:22:48.8371810Z Switched to a new branch 'main'
+ios	UNKNOWN STEP	2025-11-12T04:22:48.8378720Z branch 'main' set up to track 'origin/main'.
+ios	UNKNOWN STEP	2025-11-12T04:22:48.8409370Z ##[endgroup]
+ios	UNKNOWN STEP	2025-11-12T04:22:48.8485870Z [command]/opt/homebrew/bin/git log -1 --format=%H
+ios	UNKNOWN STEP	2025-11-12T04:22:48.8528950Z 6215b6f83220a7fa381eaee7115b6e38eaca0eae
+ios	UNKNOWN STEP	2025-11-12T04:22:48.8672750Z ##[group]Run maxim-lobanov/setup-xcode@v1
+ios	UNKNOWN STEP	2025-11-12T04:22:48.8673090Z with:
+ios	UNKNOWN STEP	2025-11-12T04:22:48.8673240Z   xcode-version: 16.1
+ios	UNKNOWN STEP	2025-11-12T04:22:48.8673450Z ##[endgroup]
+ios	UNKNOWN STEP	2025-11-12T04:22:48.9268560Z Switching Xcode to version '16.1'...
+ios	UNKNOWN STEP	2025-11-12T04:22:48.9909910Z Xcode is set to 16.1.0 (16B40)
+ios	UNKNOWN STEP	2025-11-12T04:22:48.9969160Z ##[group]Run brew install xcodegen || true
+ios	UNKNOWN STEP	2025-11-12T04:22:48.9969480Z [36;1mbrew install xcodegen || true[0m
+ios	UNKNOWN STEP	2025-11-12T04:22:49.0028420Z shell: /bin/bash -e {0}
+ios	UNKNOWN STEP	2025-11-12T04:22:49.0029200Z env:
+ios	UNKNOWN STEP	2025-11-12T04:22:49.0029420Z   MD_APPLE_SDK_ROOT: /Applications/Xcode_16.1.app
+ios	UNKNOWN STEP	2025-11-12T04:22:49.0029740Z ##[endgroup]
+ios	UNKNOWN STEP	2025-11-12T04:22:54.0981340Z [32m==>[0m [1mFetching downloads for: [32mxcodegen[39m[0m
+ios	UNKNOWN STEP	2025-11-12T04:22:54.1084090Z [34m==>[0m [1mDownloading https://ghcr.io/v2/homebrew/core/xcodegen/manifests/2.44.1[0m
+ios	UNKNOWN STEP	2025-11-12T04:22:54.4739980Z [32m==>[0m [1mFetching [32mxcodegen[39m[0m
+ios	UNKNOWN STEP	2025-11-12T04:22:54.4756740Z [34m==>[0m [1mDownloading https://ghcr.io/v2/homebrew/core/xcodegen/blobs/sha256:eb57b2b779fdab389d7c8975749bbaab6cecd75227b8bd45d6c6f8121b953fd6[0m
+ios	UNKNOWN STEP	2025-11-12T04:22:54.9762560Z [34m==>[0m [1mPouring xcodegen--2.44.1.arm64_sonoma.bottle.tar.gz[0m
+ios	UNKNOWN STEP	2025-11-12T04:22:55.1727200Z 🍺  /opt/homebrew/Cellar/xcodegen/2.44.1: 38 files, 7MB
+ios	UNKNOWN STEP	2025-11-12T04:22:55.1931450Z ##[group]Run xcodegen generate
+ios	UNKNOWN STEP	2025-11-12T04:22:55.1931770Z [36;1mxcodegen generate[0m
+ios	UNKNOWN STEP	2025-11-12T04:22:55.1932280Z [36;1mxcodebuild -resolvePackageDependencies -project SkyFeederFieldUtility.xcodeproj[0m
+ios	UNKNOWN STEP	2025-11-12T04:22:55.1989700Z shell: /bin/bash -e {0}
+ios	UNKNOWN STEP	2025-11-12T04:22:55.1990040Z env:
+ios	UNKNOWN STEP	2025-11-12T04:22:55.1990390Z   MD_APPLE_SDK_ROOT: /Applications/Xcode_16.1.app
+ios	UNKNOWN STEP	2025-11-12T04:22:55.1990760Z ##[endgroup]
+ios	UNKNOWN STEP	2025-11-12T04:22:55.2598460Z ⚙️  Generating plists...
+ios	UNKNOWN STEP	2025-11-12T04:22:55.2609320Z ⚙️  Generating project...
+ios	UNKNOWN STEP	2025-11-12T04:22:55.2716230Z ⚙️  Writing project...
+ios	UNKNOWN STEP	2025-11-12T04:22:55.2790190Z Created project at /Users/runner/work/Codex_Vs_Code/Codex_Vs_Code/mobile/ios-field-utility/SkyFeederFieldUtility.xcodeproj
+ios	UNKNOWN STEP	2025-11-12T04:22:56.0404950Z Command line invocation:
+ios	UNKNOWN STEP	2025-11-12T04:22:56.0409180Z     /Applications/Xcode_16.1.app/Contents/Developer/usr/bin/xcodebuild -resolvePackageDependencies -project SkyFeederFieldUtility.xcodeproj
+ios	UNKNOWN STEP	2025-11-12T04:22:56.0409820Z 
+ios	UNKNOWN STEP	2025-11-12T04:22:56.0410160Z User defaults from command line:
+ios	UNKNOWN STEP	2025-11-12T04:22:56.0410670Z     IDEPackageSupportUseBuiltinSCM = YES
+ios	UNKNOWN STEP	2025-11-12T04:22:56.0411000Z 
+ios	UNKNOWN STEP	2025-11-12T04:22:58.2352260Z Resolve Package Graph
+ios	UNKNOWN STEP	2025-11-12T04:23:08.3930020Z 
+ios	UNKNOWN STEP	2025-11-12T04:23:08.3970540Z 
+ios	UNKNOWN STEP	2025-11-12T04:23:08.3983050Z Resolved source packages:
+ios	UNKNOWN STEP	2025-11-12T04:23:08.3992890Z   SkyFeederUI: /Users/runner/work/Codex_Vs_Code/Codex_Vs_Code/mobile/ios-field-utility/SkyFeederUI
+ios	UNKNOWN STEP	2025-11-12T04:23:08.3993690Z 
+ios	UNKNOWN STEP	2025-11-12T04:23:08.3994040Z resolved source packages: SkyFeederUI
+ios	UNKNOWN STEP	2025-11-12T04:23:08.9530410Z ##[group]Run actions/cache@v4
+ios	UNKNOWN STEP	2025-11-12T04:23:08.9530900Z with:
+ios	UNKNOWN STEP	2025-11-12T04:23:08.9531450Z   path: vendor/bundle
+ios	UNKNOWN STEP	2025-11-12T04:23:08.9531990Z   key: bundler-macOS-e9d160ca110ce7e7fbd7001cc376718740b386fee76335ad0677b2978eac3046
+ios	UNKNOWN STEP	2025-11-12T04:23:08.9532700Z   restore-keys: bundler-macOS-
+ios	UNKNOWN STEP	
+ios	UNKNOWN STEP	2025-11-12T04:23:08.9533090Z   enableCrossOsArchive: false
+ios	UNKNOWN STEP	2025-11-12T04:23:08.9533470Z   fail-on-cache-miss: false
+ios	UNKNOWN STEP	2025-11-12T04:23:08.9533860Z   lookup-only: false
+ios	UNKNOWN STEP	2025-11-12T04:23:08.9534110Z   save-always: false
+ios	UNKNOWN STEP	2025-11-12T04:23:08.9534390Z env:
+ios	UNKNOWN STEP	2025-11-12T04:23:08.9534770Z   MD_APPLE_SDK_ROOT: /Applications/Xcode_16.1.app
+ios	UNKNOWN STEP	2025-11-12T04:23:08.9535230Z ##[endgroup]
+ios	UNKNOWN STEP	2025-11-12T04:23:09.4037660Z Cache hit for: bundler-macOS-e9d160ca110ce7e7fbd7001cc376718740b386fee76335ad0677b2978eac3046
+ios	UNKNOWN STEP	2025-11-12T04:23:10.2358650Z Received 15083308 of 15083308 (100.0%), 21.8 MBs/sec
+ios	UNKNOWN STEP	2025-11-12T04:23:10.2468510Z Cache Size: ~14 MB (15083308 B)
+ios	UNKNOWN STEP	2025-11-12T04:23:10.2570710Z [command]/opt/homebrew/bin/gtar -xf /Users/runner/work/_temp/902cdfa2-d495-4aba-959b-16f5055167cc/cache.tzst -P -C /Users/runner/work/Codex_Vs_Code/Codex_Vs_Code --delay-directory-restore --use-compress-program unzstd
+ios	UNKNOWN STEP	2025-11-12T04:23:10.9196480Z Cache restored successfully
+ios	UNKNOWN STEP	2025-11-12T04:23:10.9427460Z Cache restored from key: bundler-macOS-e9d160ca110ce7e7fbd7001cc376718740b386fee76335ad0677b2978eac3046
+ios	UNKNOWN STEP	2025-11-12T04:23:10.9590540Z ##[group]Run bundle config path vendor/bundle
+ios	UNKNOWN STEP	2025-11-12T04:23:10.9590880Z [36;1mbundle config path vendor/bundle[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:10.9591140Z [36;1mbundle install --jobs 4[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:10.9823240Z shell: /bin/bash -e {0}
+ios	UNKNOWN STEP	2025-11-12T04:23:10.9823560Z env:
+ios	UNKNOWN STEP	2025-11-12T04:23:10.9827540Z   MD_APPLE_SDK_ROOT: /Applications/Xcode_16.1.app
+ios	UNKNOWN STEP	2025-11-12T04:23:10.9827790Z ##[endgroup]
+ios	UNKNOWN STEP	2025-11-12T04:23:11.6752960Z Bundle complete! 1 Gemfile dependency, 93 gems now installed.
+ios	UNKNOWN STEP	2025-11-12T04:23:11.6753430Z Bundled gems are installed into `./vendor/bundle`
+ios	UNKNOWN STEP	2025-11-12T04:23:12.2069210Z ##[group]Run set -eo pipefail
+ios	UNKNOWN STEP	2025-11-12T04:23:12.2069500Z [36;1mset -eo pipefail[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:12.2069860Z [36;1msecurity create-keychain -p "$KEYCHAIN_PASSWORD" build.keychain[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:12.2070280Z [36;1msecurity set-keychain-settings -lut 21600 build.keychain[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:12.2070690Z [36;1msecurity unlock-keychain -p "$KEYCHAIN_PASSWORD" build.keychain[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:12.2071130Z [36;1msecurity list-keychains -s build.keychain login.keychain[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:12.2071480Z [36;1msecurity default-keychain -s build.keychain[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:12.2133040Z shell: /bin/bash -e {0}
+ios	UNKNOWN STEP	2025-11-12T04:23:12.2133310Z env:
+ios	UNKNOWN STEP	2025-11-12T04:23:12.2133550Z   MD_APPLE_SDK_ROOT: /Applications/Xcode_16.1.app
+ios	UNKNOWN STEP	2025-11-12T04:23:12.2134650Z   KEYCHAIN_PASSWORD: ***
+ios	UNKNOWN STEP	2025-11-12T04:23:12.2134900Z ##[endgroup]
+ios	UNKNOWN STEP	2025-11-12T04:23:12.3268070Z ##[group]Run bundle exec fastlane match appstore \
+ios	UNKNOWN STEP	2025-11-12T04:23:12.3268460Z [36;1mbundle exec fastlane match appstore \[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:12.3268720Z [36;1m  --readonly \[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:12.3269090Z [36;1m  --keychain_name build.keychain \[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:12.3269410Z [36;1m  --keychain_password "$KEYCHAIN_PASSWORD"[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:12.3269910Z [36;1msecurity set-key-partition-list -S apple-tool:,apple: -s -k "$KEYCHAIN_PASSWORD" build.keychain[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:12.3270360Z [36;1msecurity find-identity -v -p codesigning[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:12.3323750Z shell: /bin/bash -e {0}
+ios	UNKNOWN STEP	2025-11-12T04:23:12.3324000Z env:
+ios	UNKNOWN STEP	2025-11-12T04:23:12.3324260Z   MD_APPLE_SDK_ROOT: /Applications/Xcode_16.1.app
+ios	UNKNOWN STEP	2025-11-12T04:23:12.3324810Z   MATCH_PASSWORD: ***
+ios	UNKNOWN STEP	2025-11-12T04:23:12.3325130Z   MATCH_GIT_URL: ***
+ios	UNKNOWN STEP	2025-11-12T04:23:12.3325570Z   MATCH_GIT_BASIC_AUTHORIZATION: ***
+ios	UNKNOWN STEP	2025-11-12T04:23:12.3325920Z   KEYCHAIN_PASSWORD: ***
+ios	UNKNOWN STEP	2025-11-12T04:23:12.3326200Z   MATCH_KEYCHAIN_NAME: build.keychain
+ios	UNKNOWN STEP	2025-11-12T04:23:12.3326620Z   MATCH_KEYCHAIN_PASSWORD: ***
+ios	UNKNOWN STEP	2025-11-12T04:23:12.3326880Z ##[endgroup]
+ios	UNKNOWN STEP	2025-11-12T04:23:13.7548460Z [04:23:13]: Sending anonymous analytics information
+ios	UNKNOWN STEP	2025-11-12T04:23:13.7549220Z [04:23:13]: Learn more at https://docs.fastlane.tools/#metrics
+ios	UNKNOWN STEP	2025-11-12T04:23:13.7549870Z [04:23:13]: No personal or sensitive data is sent.
+ios	UNKNOWN STEP	2025-11-12T04:23:13.7550780Z [04:23:13]: You can disable this by adding `opt_out_usage` at the top of your Fastfile
+ios	UNKNOWN STEP	2025-11-12T04:23:13.7636230Z [04:23:13]: [32mSuccessfully loaded '/Users/runner/work/Codex_Vs_Code/Codex_Vs_Code/fastlane/Matchfile' 📄[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:13.7636850Z 
+ios	UNKNOWN STEP	2025-11-12T04:23:13.7639820Z +------------------------------------------------------------------------------------------------+
+ios	UNKNOWN STEP	2025-11-12T04:23:13.7640330Z |                          Detected Values from './fastlane/Matchfile'                           |
+ios	UNKNOWN STEP	2025-11-12T04:23:13.7640900Z +-------------------------+----------------------------------------------------------------------+
+ios	UNKNOWN STEP	2025-11-12T04:23:13.7641350Z | storage_mode            | git                                                                  |
+ios	UNKNOWN STEP	2025-11-12T04:23:13.7642420Z | git_url                 | ***               |
+ios	UNKNOWN STEP	2025-11-12T04:23:13.7642990Z | git_basic_authorization | *** |
+ios	UNKNOWN STEP	2025-11-12T04:23:13.7652010Z | type                    | appstore                                                             |
+ios	UNKNOWN STEP	2025-11-12T04:23:13.7652510Z | app_identifier          | ["com.skyfeeder.field"]                                              |
+ios	UNKNOWN STEP	2025-11-12T04:23:13.7652970Z | readonly                | true                                                                 |
+ios	UNKNOWN STEP	2025-11-12T04:23:13.7654410Z +-------------------------+----------------------------------------------------------------------+
+ios	UNKNOWN STEP	2025-11-12T04:23:13.7654760Z 
+ios	UNKNOWN STEP	2025-11-12T04:23:13.7654820Z 
+ios	UNKNOWN STEP	2025-11-12T04:23:13.7655050Z +-------------------------------------------------------------------------------------------------+
+ios	UNKNOWN STEP	2025-11-12T04:23:13.7656140Z |                                    [32mSummary for match 2.228.0[0m                                    |
+ios	UNKNOWN STEP	2025-11-12T04:23:13.7656610Z +----------------------------------------+--------------------------------------------------------+
+ios	UNKNOWN STEP	2025-11-12T04:23:13.7657060Z | readonly                               | true                                                   |
+ios	UNKNOWN STEP	2025-11-12T04:23:13.7657550Z | keychain_name                          | build.keychain                                         |
+ios	UNKNOWN STEP	2025-11-12T04:23:13.7658060Z | keychain_password                      | ********                                               |
+ios	UNKNOWN STEP	2025-11-12T04:23:13.7658490Z | type                                   | appstore                                               |
+ios	UNKNOWN STEP	2025-11-12T04:23:13.7658930Z | generate_apple_certs                   | true                                                   |
+ios	UNKNOWN STEP	2025-11-12T04:23:13.7659420Z | skip_provisioning_profiles             | false                                                  |
+ios	UNKNOWN STEP	2025-11-12T04:23:13.7660380Z | app_identifier                         | ["com.skyfeeder.field"]                                |
+ios	UNKNOWN STEP	2025-11-12T04:23:13.7660970Z | storage_mode                           | git                                                    |
+ios	UNKNOWN STEP	2025-11-12T04:23:13.7661580Z | git_url                                | *** |
+ios	UNKNOWN STEP	2025-11-12T04:23:13.7662000Z | git_branch                             | master                                                 |
+ios	UNKNOWN STEP	2025-11-12T04:23:13.7663010Z | shallow_clone                          | false                                                  |
+ios	UNKNOWN STEP	2025-11-12T04:23:13.7663470Z | clone_branch_directly                  | false                                                  |
+ios	UNKNOWN STEP	2025-11-12T04:23:13.7663930Z | git_basic_authorization                | ********                                               |
+ios	UNKNOWN STEP	2025-11-12T04:23:13.7664430Z | skip_google_cloud_account_confirmation | false                                                  |
+ios	UNKNOWN STEP	2025-11-12T04:23:13.7664940Z | s3_skip_encryption                     | false                                                  |
+ios	UNKNOWN STEP	2025-11-12T04:23:13.7665440Z | gitlab_host                            | https://gitlab.com                                     |
+ios	UNKNOWN STEP	2025-11-12T04:23:13.7665860Z | force                                  | false                                                  |
+ios	UNKNOWN STEP	2025-11-12T04:23:13.7666310Z | force_for_new_devices                  | false                                                  |
+ios	UNKNOWN STEP	2025-11-12T04:23:13.7666970Z | include_mac_in_profiles                | false                                                  |
+ios	UNKNOWN STEP	2025-11-12T04:23:13.7667420Z | include_all_certificates               | false                                                  |
+ios	UNKNOWN STEP	2025-11-12T04:23:13.7667930Z | force_for_new_certificates             | false                                                  |
+ios	UNKNOWN STEP	2025-11-12T04:23:13.7668400Z | skip_confirmation                      | false                                                  |
+ios	UNKNOWN STEP	2025-11-12T04:23:13.7668870Z | safe_remove_certs                      | false                                                  |
+ios	UNKNOWN STEP	2025-11-12T04:23:13.7669380Z | skip_docs                              | false                                                  |
+ios	UNKNOWN STEP	2025-11-12T04:23:13.7669810Z | platform                               | ios                                                    |
+ios	UNKNOWN STEP	2025-11-12T04:23:13.7670310Z | derive_catalyst_app_identifier         | false                                                  |
+ios	UNKNOWN STEP	2025-11-12T04:23:13.7670790Z | fail_on_name_taken                     | false                                                  |
+ios	UNKNOWN STEP	2025-11-12T04:23:13.7671230Z | skip_certificate_matching              | false                                                  |
+ios	UNKNOWN STEP	2025-11-12T04:23:13.7671710Z | skip_set_partition_list                | false                                                  |
+ios	UNKNOWN STEP	2025-11-12T04:23:13.7672210Z | force_legacy_encryption                | false                                                  |
+ios	UNKNOWN STEP	2025-11-12T04:23:13.7673050Z | verbose                                | false                                                  |
+ios	UNKNOWN STEP	2025-11-12T04:23:13.7673450Z +----------------------------------------+--------------------------------------------------------+
+ios	UNKNOWN STEP	2025-11-12T04:23:13.7673750Z 
+ios	UNKNOWN STEP	2025-11-12T04:23:13.7673890Z [04:23:13]: Cloning remote git repo...
+ios	UNKNOWN STEP	2025-11-12T04:23:13.7674340Z [04:23:13]: If cloning the repo takes too long, you can use the `clone_branch_directly` option in match.
+ios	UNKNOWN STEP	2025-11-12T04:23:14.5044220Z [04:23:14]: Checking out branch master...
+ios	UNKNOWN STEP	2025-11-12T04:23:14.5274340Z [04:23:14]: [32m🔓  Successfully decrypted certificates repo[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:14.5278960Z [04:23:14]: Installing certificate...
+ios	UNKNOWN STEP	2025-11-12T04:23:15.0767180Z [04:23:15]: [31mThere are no local code signing identities found.
+ios	UNKNOWN STEP	2025-11-12T04:23:15.0775630Z You can run `security find-identity -v -p codesigning /Users/runner/Library/Keychains/build.keychain-db` to get this output.
+ios	UNKNOWN STEP	2025-11-12T04:23:15.0778530Z This Stack Overflow thread has more information: https://stackoverflow.com/q/35390072/774.
+ios	UNKNOWN STEP	2025-11-12T04:23:15.0779600Z (Check in Keychain Access for an expired WWDR certificate: https://stackoverflow.com/a/35409835/774 has more info.)[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:15.1609790Z [04:23:15]: Setting key partition list... (this can take a minute if there are a lot of keys installed)
+ios	UNKNOWN STEP	2025-11-12T04:23:15.1818500Z [04:23:15]: [31msecurity: SecItemCopyMatching: The specified item could not be found in the keychain.[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:15.2341460Z [04:23:15]: Setting key partition list... (this can take a minute if there are a lot of keys installed)
+ios	UNKNOWN STEP	2025-11-12T04:23:15.2577380Z 
+ios	UNKNOWN STEP	2025-11-12T04:23:15.2581550Z +-----------------------------------------------------------------------+
+ios	UNKNOWN STEP	2025-11-12T04:23:15.2582560Z |                         [32mInstalled Certificate[0m                         |
+ios	UNKNOWN STEP	2025-11-12T04:23:15.2583600Z +-------------------+---------------------------------------------------+
+ios	UNKNOWN STEP	2025-11-12T04:23:15.2584180Z | User ID           | ***                                        |
+ios	UNKNOWN STEP	2025-11-12T04:23:15.2584710Z | Common Name       | Apple Distribution: Ardavan Aliabadi (***) |
+ios	UNKNOWN STEP	2025-11-12T04:23:15.2585220Z | Organisation Unit | ***                                        |
+ios	UNKNOWN STEP	2025-11-12T04:23:15.2585640Z | Organisation      | Ardavan Aliabadi                                  |
+ios	UNKNOWN STEP	2025-11-12T04:23:15.2586030Z | Country           | US                                                |
+ios	UNKNOWN STEP	2025-11-12T04:23:15.2586450Z | Start Datetime    | 2025-11-05 03:32:59 UTC                           |
+ios	UNKNOWN STEP	2025-11-12T04:23:15.2586820Z | End Datetime      | 2026-11-05 03:32:58 UTC                           |
+ios	UNKNOWN STEP	2025-11-12T04:23:15.2587170Z +-------------------+---------------------------------------------------+
+ios	UNKNOWN STEP	2025-11-12T04:23:15.2587390Z 
+ios	UNKNOWN STEP	2025-11-12T04:23:15.3078890Z [04:23:15]: Installing provisioning profile...
+ios	UNKNOWN STEP	2025-11-12T04:23:15.3576770Z 
+ios	UNKNOWN STEP	2025-11-12T04:23:15.3584940Z +------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+ios	UNKNOWN STEP	2025-11-12T04:23:15.3585990Z |                                                                              [32mInstalled Provisioning Profile[0m                                                                              |
+ios	UNKNOWN STEP	2025-11-12T04:23:15.3586700Z +---------------------+----------------------------------------------------+---------------------------------------------------------------------------------------------------------------+
+ios	UNKNOWN STEP	2025-11-12T04:23:15.3587390Z | Parameter           | Environment Variable                               | Value                                                                                                         |
+ios	UNKNOWN STEP	2025-11-12T04:23:15.3588200Z +---------------------+----------------------------------------------------+---------------------------------------------------------------------------------------------------------------+
+ios	UNKNOWN STEP	2025-11-12T04:23:15.3589230Z | App Identifier      |                                                    | com.skyfeeder.field                                                                                           |
+ios	UNKNOWN STEP	2025-11-12T04:23:15.3589840Z | Type                |                                                    | appstore                                                                                                      |
+ios	UNKNOWN STEP	2025-11-12T04:23:15.3590260Z | Platform            |                                                    | ios                                                                                                           |
+ios	UNKNOWN STEP	2025-11-12T04:23:15.3590820Z | Profile UUID        | sigh_com.skyfeeder.field_appstore                  | 9d03b08f-fbad-46c4-9287-4c797b63420b                                                                          |
+ios	UNKNOWN STEP	2025-11-12T04:23:15.3591630Z | Profile Name        | sigh_com.skyfeeder.field_appstore_profile-name     | match AppStore com.skyfeeder.field                                                                            |
+ios	UNKNOWN STEP	2025-11-12T04:23:15.3592690Z | Profile Path        | sigh_com.skyfeeder.field_appstore_profile-path     | /Users/runner/Library/MobileDevice/Provisioning Profiles/9d03b08f-fbad-46c4-9287-4c797b63420b.mobileprovision |
+ios	UNKNOWN STEP	2025-11-12T04:23:15.3650070Z | Development Team ID | sigh_com.skyfeeder.field_appstore_team-id          | ***                                                                                                    |
+ios	UNKNOWN STEP	2025-11-12T04:23:15.3650950Z | Certificate Name    | sigh_com.skyfeeder.field_appstore_certificate-name | Apple Distribution: Ardavan Aliabadi (***)                                                             |
+ios	UNKNOWN STEP	2025-11-12T04:23:15.3651720Z +---------------------+----------------------------------------------------+---------------------------------------------------------------------------------------------------------------+
+ios	UNKNOWN STEP	2025-11-12T04:23:15.3652060Z 
+ios	UNKNOWN STEP	2025-11-12T04:23:15.3652590Z [04:23:15]: [32m[32mAll required keys, certificates and provisioning profiles are installed 🙌[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:15.3877160Z keychain: "/Users/runner/Library/Keychains/build.keychain-db"
+ios	UNKNOWN STEP	2025-11-12T04:23:15.3877870Z version: 512
+ios	UNKNOWN STEP	2025-11-12T04:23:15.3878080Z class: 0x00000010 
+ios	UNKNOWN STEP	2025-11-12T04:23:15.3878820Z attributes:
+ios	UNKNOWN STEP	2025-11-12T04:23:15.3879010Z     0x00000000 <uint32>=0x00000010 
+ios	UNKNOWN STEP	2025-11-12T04:23:15.3879260Z     0x00000001 <blob>="Imported Private Key"
+ios	UNKNOWN STEP	2025-11-12T04:23:15.3879510Z     0x00000002 <blob>=<NULL>
+ios	UNKNOWN STEP	2025-11-12T04:23:15.3879740Z     0x00000003 <uint32>=0x00000001 
+ios	UNKNOWN STEP	2025-11-12T04:23:15.3879960Z     0x00000004 <uint32>=0x00000000 
+ios	UNKNOWN STEP	2025-11-12T04:23:15.3880230Z     0x00000005 <uint32>=0x00000000 
+ios	UNKNOWN STEP	2025-11-12T04:23:15.3880700Z     0x00000006 <blob>=0xB4E5A454852163FEC3B89EEC1F30257D9EEDDE40  "\264\345\244T\205!c\376\303\270\236\354\0370%}\236\355\336@"
+ios	UNKNOWN STEP	2025-11-12T04:23:15.3881160Z     0x00000007 <blob>=<NULL>
+ios	UNKNOWN STEP	2025-11-12T04:23:15.3881660Z     0x00000008 <blob>=0x7B38373139316361322D306663392D313164342D383439612D3030303530326235323132327D00  "{87191ca2-0fc9-11d4-849a-000502b52122}\000"
+ios	UNKNOWN STEP	2025-11-12T04:23:15.3882220Z     0x00000009 <uint32>=0x0000002A  "\000\000\000*"
+ios	UNKNOWN STEP	2025-11-12T04:23:15.3882490Z     0x0000000A <uint32>=0x00000800 
+ios	UNKNOWN STEP	2025-11-12T04:23:15.3882740Z     0x0000000B <uint32>=0x00000800 
+ios	UNKNOWN STEP	2025-11-12T04:23:15.3882980Z     0x0000000C <blob>=0x0000000000000000 
+ios	UNKNOWN STEP	2025-11-12T04:23:15.3883230Z     0x0000000D <blob>=0x0000000000000000 
+ios	UNKNOWN STEP	2025-11-12T04:23:15.3883480Z     0x0000000E <uint32>=0x00000001 
+ios	UNKNOWN STEP	2025-11-12T04:23:15.3883700Z     0x0000000F <uint32>=0x00000001 
+ios	UNKNOWN STEP	2025-11-12T04:23:15.3883930Z     0x00000010 <uint32>=0x00000001 
+ios	UNKNOWN STEP	2025-11-12T04:23:15.3884150Z     0x00000011 <uint32>=0x00000000 
+ios	UNKNOWN STEP	2025-11-12T04:23:15.3884370Z     0x00000012 <uint32>=0x00000001 
+ios	UNKNOWN STEP	2025-11-12T04:23:15.3884600Z     0x00000013 <uint32>=0x00000001 
+ios	UNKNOWN STEP	2025-11-12T04:23:15.3884830Z     0x00000014 <uint32>=0x00000001 
+ios	UNKNOWN STEP	2025-11-12T04:23:15.3885050Z     0x00000015 <uint32>=0x00000001 
+ios	UNKNOWN STEP	2025-11-12T04:23:15.3885280Z     0x00000016 <uint32>=0x00000001 
+ios	UNKNOWN STEP	2025-11-12T04:23:15.3885490Z     0x00000017 <uint32>=0x00000001 
+ios	UNKNOWN STEP	2025-11-12T04:23:15.3886010Z     0x00000018 <uint32>=0x00000001 
+ios	UNKNOWN STEP	2025-11-12T04:23:15.3886220Z     0x00000019 <uint32>=0x00000001 
+ios	UNKNOWN STEP	2025-11-12T04:23:15.3886430Z     0x0000001A <uint32>=0x00000001 
+ios	UNKNOWN STEP	2025-11-12T04:23:15.4162120Z   1) AEABF3C3B1C5AF24DA434FE72C18EEEC4FFECFD7 "Apple Distribution: Ardavan Aliabadi (***)"
+ios	UNKNOWN STEP	2025-11-12T04:23:15.4162730Z      1 valid identities found
+ios	UNKNOWN STEP	2025-11-12T04:23:15.4191810Z ##[group]Run bundle exec fastlane ios testflight_upload
+ios	UNKNOWN STEP	2025-11-12T04:23:15.4192180Z [36;1mbundle exec fastlane ios testflight_upload[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:15.4269240Z shell: /bin/bash -e {0}
+ios	UNKNOWN STEP	2025-11-12T04:23:15.4269540Z env:
+ios	UNKNOWN STEP	2025-11-12T04:23:15.4269850Z   MD_APPLE_SDK_ROOT: /Applications/Xcode_16.1.app
+ios	UNKNOWN STEP	2025-11-12T04:23:15.4270440Z   KEYCHAIN_PASSWORD: ***
+ios	UNKNOWN STEP	2025-11-12T04:23:15.4270790Z   ASC_ISSUER_ID: ***
+ios	UNKNOWN STEP	2025-11-12T04:23:15.4271080Z   ASC_KEY_ID: ***
+ios	UNKNOWN STEP	2025-11-12T04:23:15.4272270Z   ASC_API_KEY_P8: ***
+ios	UNKNOWN STEP	2025-11-12T04:23:15.4272530Z   TEAM_ID: ***
+ios	UNKNOWN STEP	2025-11-12T04:23:15.4272760Z   MATCH_PASSWORD: ***
+ios	UNKNOWN STEP	2025-11-12T04:23:15.4273120Z   MATCH_GIT_URL: ***
+ios	UNKNOWN STEP	2025-11-12T04:23:15.4273550Z   MATCH_GIT_BASIC_AUTHORIZATION: ***
+ios	UNKNOWN STEP	2025-11-12T04:23:15.4273830Z   MATCH_KEYCHAIN_NAME: build.keychain
+ios	UNKNOWN STEP	2025-11-12T04:23:15.4274250Z   MATCH_KEYCHAIN_PASSWORD: ***
+ios	UNKNOWN STEP	2025-11-12T04:23:15.4274540Z   FASTLANE_SKIP_UPDATE_CHECK: 1
+ios	UNKNOWN STEP	2025-11-12T04:23:15.4275060Z   CI: true
+ios	UNKNOWN STEP	2025-11-12T04:23:15.4275280Z ##[endgroup]
+ios	UNKNOWN STEP	2025-11-12T04:23:16.5220010Z [04:23:16]: [32m------------------------------[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:16.5220420Z [04:23:16]: [32m--- Step: default_platform ---[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:16.5220740Z [04:23:16]: [32m------------------------------[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:16.5221120Z [04:23:16]: [32mDriving the lane 'ios testflight_upload' 🚀[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:16.5222810Z [04:23:16]: [32m----------------------[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:16.5223140Z [04:23:16]: [32m--- Step: setup_ci ---[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:16.5223440Z [04:23:16]: [32m----------------------[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:16.5223900Z [04:23:16]: Skipping Keychain setup as a keychain was already specified
+ios	UNKNOWN STEP	2025-11-12T04:23:16.5225320Z [04:23:16]: [32m---------------------------------------[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:16.5225680Z [04:23:16]: [32m--- Step: app_store_connect_api_key ---[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:16.5226030Z [04:23:16]: [32m---------------------------------------[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:16.6245670Z [04:23:16]: [32m-------------------[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:16.6350690Z [04:23:16]: [32m--- Step: match ---[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:16.6536710Z [04:23:16]: [32m-------------------[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:16.6638080Z [04:23:16]: [32mSuccessfully loaded '/Users/runner/work/Codex_Vs_Code/Codex_Vs_Code/fastlane/Matchfile' 📄[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:16.6737780Z 
+ios	UNKNOWN STEP	2025-11-12T04:23:16.6825680Z +------------------------------------------------------------------------------------------------+
+ios	UNKNOWN STEP	2025-11-12T04:23:16.6827700Z |                          Detected Values from './fastlane/Matchfile'                           |
+ios	UNKNOWN STEP	2025-11-12T04:23:16.6848370Z +-------------------------+----------------------------------------------------------------------+
+ios	UNKNOWN STEP	2025-11-12T04:23:16.6848990Z | storage_mode            | git                                                                  |
+ios	UNKNOWN STEP	2025-11-12T04:23:16.6849810Z | git_url                 | ***               |
+ios	UNKNOWN STEP	2025-11-12T04:23:16.6850400Z | git_basic_authorization | *** |
+ios	UNKNOWN STEP	2025-11-12T04:23:16.6850890Z | type                    | appstore                                                             |
+ios	UNKNOWN STEP	2025-11-12T04:23:16.6851430Z | app_identifier          | ["com.skyfeeder.field"]                                              |
+ios	UNKNOWN STEP	2025-11-12T04:23:16.6872570Z | readonly                | true                                                                 |
+ios	UNKNOWN STEP	2025-11-12T04:23:16.6873170Z +-------------------------+----------------------------------------------------------------------+
+ios	UNKNOWN STEP	2025-11-12T04:23:16.6873530Z 
+ios	UNKNOWN STEP	2025-11-12T04:23:16.6873640Z 
+ios	UNKNOWN STEP	2025-11-12T04:23:16.6873950Z +-------------------------------------------------------------------------------------------------+
+ios	UNKNOWN STEP	2025-11-12T04:23:16.6875090Z |                                    [32mSummary for match 2.228.0[0m                                    |
+ios	UNKNOWN STEP	2025-11-12T04:23:16.6875630Z +----------------------------------------+--------------------------------------------------------+
+ios	UNKNOWN STEP	2025-11-12T04:23:16.6876150Z | type                                   | appstore                                               |
+ios	UNKNOWN STEP	2025-11-12T04:23:16.6877330Z | readonly                               | true                                                   |
+ios	UNKNOWN STEP	2025-11-12T04:23:16.6878150Z | api_key                                | ********                                               |
+ios	UNKNOWN STEP	2025-11-12T04:23:16.6879050Z | clone_branch_directly                  | true                                                   |
+ios	UNKNOWN STEP	2025-11-12T04:23:16.6879850Z | git_url                                | *** |
+ios	UNKNOWN STEP	2025-11-12T04:23:16.6881970Z | git_basic_authorization                | ********                                               |
+ios	UNKNOWN STEP	2025-11-12T04:23:16.6882410Z | keychain_name                          | build.keychain                                         |
+ios	UNKNOWN STEP	2025-11-12T04:23:16.6882810Z | keychain_password                      | ********                                               |
+ios	UNKNOWN STEP	2025-11-12T04:23:16.6883210Z | generate_apple_certs                   | true                                                   |
+ios	UNKNOWN STEP	2025-11-12T04:23:16.6883710Z | skip_provisioning_profiles             | false                                                  |
+ios	UNKNOWN STEP	2025-11-12T04:23:16.6884150Z | app_identifier                         | ["com.skyfeeder.field"]                                |
+ios	UNKNOWN STEP	2025-11-12T04:23:16.6884630Z | storage_mode                           | git                                                    |
+ios	UNKNOWN STEP	2025-11-12T04:23:16.6885030Z | git_branch                             | master                                                 |
+ios	UNKNOWN STEP	2025-11-12T04:23:16.6885420Z | shallow_clone                          | false                                                  |
+ios	UNKNOWN STEP	2025-11-12T04:23:16.6885860Z | skip_google_cloud_account_confirmation | false                                                  |
+ios	UNKNOWN STEP	2025-11-12T04:23:16.6886300Z | s3_skip_encryption                     | false                                                  |
+ios	UNKNOWN STEP	2025-11-12T04:23:16.6886720Z | gitlab_host                            | https://gitlab.com                                     |
+ios	UNKNOWN STEP	2025-11-12T04:23:16.6887110Z | force                                  | false                                                  |
+ios	UNKNOWN STEP	2025-11-12T04:23:16.6887500Z | force_for_new_devices                  | false                                                  |
+ios	UNKNOWN STEP	2025-11-12T04:23:16.6887910Z | include_mac_in_profiles                | false                                                  |
+ios	UNKNOWN STEP	2025-11-12T04:23:16.6888370Z | include_all_certificates               | false                                                  |
+ios	UNKNOWN STEP	2025-11-12T04:23:16.6888890Z | force_for_new_certificates             | false                                                  |
+ios	UNKNOWN STEP	2025-11-12T04:23:16.6889320Z | skip_confirmation                      | false                                                  |
+ios	UNKNOWN STEP	2025-11-12T04:23:16.6889730Z | safe_remove_certs                      | false                                                  |
+ios	UNKNOWN STEP	2025-11-12T04:23:16.6890110Z | skip_docs                              | false                                                  |
+ios	UNKNOWN STEP	2025-11-12T04:23:16.6890490Z | platform                               | ios                                                    |
+ios	UNKNOWN STEP	2025-11-12T04:23:16.6890900Z | derive_catalyst_app_identifier         | false                                                  |
+ios	UNKNOWN STEP	2025-11-12T04:23:16.6891310Z | fail_on_name_taken                     | false                                                  |
+ios	UNKNOWN STEP	2025-11-12T04:23:16.6891730Z | skip_certificate_matching              | false                                                  |
+ios	UNKNOWN STEP	2025-11-12T04:23:16.6892160Z | skip_set_partition_list                | false                                                  |
+ios	UNKNOWN STEP	2025-11-12T04:23:16.6892940Z | force_legacy_encryption                | false                                                  |
+ios	UNKNOWN STEP	2025-11-12T04:23:16.6893330Z | verbose                                | false                                                  |
+ios	UNKNOWN STEP	2025-11-12T04:23:16.6893710Z +----------------------------------------+--------------------------------------------------------+
+ios	UNKNOWN STEP	2025-11-12T04:23:16.6893950Z 
+ios	UNKNOWN STEP	2025-11-12T04:23:16.6894210Z [04:23:16]: Cloning remote git repo...
+ios	UNKNOWN STEP	2025-11-12T04:23:17.3278650Z [04:23:17]: Checking out branch master...
+ios	UNKNOWN STEP	2025-11-12T04:23:17.3479700Z [04:23:17]: [32m🔓  Successfully decrypted certificates repo[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:17.3489750Z [04:23:17]: Installing certificate...
+ios	UNKNOWN STEP	2025-11-12T04:23:17.4363630Z 
+ios	UNKNOWN STEP	2025-11-12T04:23:17.4464590Z +-----------------------------------------------------------------------+
+ios	UNKNOWN STEP	2025-11-12T04:23:17.4565450Z |                         [32mInstalled Certificate[0m                         |
+ios	UNKNOWN STEP	2025-11-12T04:23:17.4665630Z +-------------------+---------------------------------------------------+
+ios	UNKNOWN STEP	2025-11-12T04:23:17.4766690Z | User ID           | ***                                        |
+ios	UNKNOWN STEP	2025-11-12T04:23:17.4867160Z | Common Name       | Apple Distribution: Ardavan Aliabadi (***) |
+ios	UNKNOWN STEP	2025-11-12T04:23:17.4967500Z | Organisation Unit | ***                                        |
+ios	UNKNOWN STEP	2025-11-12T04:23:17.5068360Z | Organisation      | Ardavan Aliabadi                                  |
+ios	UNKNOWN STEP	2025-11-12T04:23:17.5169900Z | Country           | US                                                |
+ios	UNKNOWN STEP	2025-11-12T04:23:17.5270560Z | Start Datetime    | 2025-11-05 03:32:59 UTC                           |
+ios	UNKNOWN STEP	2025-11-12T04:23:17.5371740Z | End Datetime      | 2026-11-05 03:32:58 UTC                           |
+ios	UNKNOWN STEP	2025-11-12T04:23:17.5409740Z +-------------------+---------------------------------------------------+
+ios	UNKNOWN STEP	2025-11-12T04:23:17.5510620Z 
+ios	UNKNOWN STEP	2025-11-12T04:23:17.5611730Z [04:23:17]: Installing provisioning profile...
+ios	UNKNOWN STEP	2025-11-12T04:23:17.5669620Z 
+ios	UNKNOWN STEP	2025-11-12T04:23:17.5765790Z +------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+ios	UNKNOWN STEP	2025-11-12T04:23:17.5782320Z |                                                                              [32mInstalled Provisioning Profile[0m                                                                              |
+ios	UNKNOWN STEP	2025-11-12T04:23:17.5790150Z +---------------------+----------------------------------------------------+---------------------------------------------------------------------------------------------------------------+
+ios	UNKNOWN STEP	2025-11-12T04:23:17.5793310Z | Parameter           | Environment Variable                               | Value                                                                                                         |
+ios	UNKNOWN STEP	2025-11-12T04:23:17.5794390Z +---------------------+----------------------------------------------------+---------------------------------------------------------------------------------------------------------------+
+ios	UNKNOWN STEP	2025-11-12T04:23:17.5795160Z | App Identifier      |                                                    | com.skyfeeder.field                                                                                           |
+ios	UNKNOWN STEP	2025-11-12T04:23:17.5795770Z | Type                |                                                    | appstore                                                                                                      |
+ios	UNKNOWN STEP	2025-11-12T04:23:17.5796340Z | Platform            |                                                    | ios                                                                                                           |
+ios	UNKNOWN STEP	2025-11-12T04:23:17.5804900Z | Profile UUID        | sigh_com.skyfeeder.field_appstore                  | 9d03b08f-fbad-46c4-9287-4c797b63420b                                                                          |
+ios	UNKNOWN STEP	2025-11-12T04:23:17.5806910Z | Profile Name        | sigh_com.skyfeeder.field_appstore_profile-name     | match AppStore com.skyfeeder.field                                                                            |
+ios	UNKNOWN STEP	2025-11-12T04:23:17.5821270Z | Profile Path        | sigh_com.skyfeeder.field_appstore_profile-path     | /Users/runner/Library/MobileDevice/Provisioning Profiles/9d03b08f-fbad-46c4-9287-4c797b63420b.mobileprovision |
+ios	UNKNOWN STEP	2025-11-12T04:23:17.5822880Z | Development Team ID | sigh_com.skyfeeder.field_appstore_team-id          | ***                                                                                                    |
+ios	UNKNOWN STEP	2025-11-12T04:23:17.5823880Z | Certificate Name    | sigh_com.skyfeeder.field_appstore_certificate-name | Apple Distribution: Ardavan Aliabadi (***)                                                             |
+ios	UNKNOWN STEP	2025-11-12T04:23:17.5824830Z +---------------------+----------------------------------------------------+---------------------------------------------------------------------------------------------------------------+
+ios	UNKNOWN STEP	2025-11-12T04:23:17.5825280Z 
+ios	UNKNOWN STEP	2025-11-12T04:23:17.5825850Z [04:23:17]: [32m[32mAll required keys, certificates and provisioning profiles are installed 🙌[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:17.5826430Z [04:23:17]: Setting Provisioning Profile type to 'app-store'
+ios	UNKNOWN STEP	2025-11-12T04:23:17.5826900Z [04:23:17]: [32m-----------------------[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:17.5827310Z [04:23:17]: [32m--- Step: build_app ---[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:17.5828780Z [04:23:17]: [32m-----------------------[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:17.5829420Z [04:23:17]: [33mResolving Swift Package Manager dependencies...[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:17.5830380Z [04:23:17]: [36m$ xcodebuild -resolvePackageDependencies -scheme SkyFeederFieldUtility -project mobile/ios-field-utility/SkyFeederFieldUtility.xcodeproj[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:18.5505040Z [04:23:18]: ▸ [35mCommand line invocation:[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:18.5614440Z [04:23:18]: ▸ [35m    /Applications/Xcode_16.1.app/Contents/Developer/usr/bin/xcodebuild -resolvePackageDependencies -scheme SkyFeederFieldUtility -project mobile/ios-field-utility/SkyFeederFieldUtility.xcodeproj[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:18.5721010Z [04:23:18]: ▸ [35mUser defaults from command line:[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:18.5822590Z [04:23:18]: ▸ [35m    IDEPackageSupportUseBuiltinSCM = YES[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:18.7602150Z [04:23:18]: ▸ [35mResolve Package Graph[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:19.5129810Z [04:23:19]: ▸ [35mResolved source packages:[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:19.5235340Z [04:23:19]: ▸ [35m  SkyFeederUI: /Users/runner/work/Codex_Vs_Code/Codex_Vs_Code/mobile/ios-field-utility/SkyFeederUI[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:19.5454330Z [04:23:19]: ▸ [35mresolved source packages: SkyFeederUI[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:19.5561000Z [04:23:19]: [36m$ xcodebuild -showBuildSettings -scheme SkyFeederFieldUtility -project mobile/ios-field-utility/SkyFeederFieldUtility.xcodeproj 2>&1[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:21.3302960Z [04:23:21]: Detected provisioning profile mapping: {:"com.skyfeeder.field"=>"match AppStore com.skyfeeder.field"}
+ios	UNKNOWN STEP	2025-11-12T04:23:21.3810720Z 
+ios	UNKNOWN STEP	2025-11-12T04:23:21.3913140Z +-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+ios	UNKNOWN STEP	2025-11-12T04:23:21.3916150Z |                                                                                                                                                                                                                           [32mSummary for gym 2.228.0[0m                                                                                                                                                                                                                           |
+ios	UNKNOWN STEP	2025-11-12T04:23:21.4019260Z +---------------------------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+ios	UNKNOWN STEP	2025-11-12T04:23:21.4122140Z | project                                                 | mobile/ios-field-utility/SkyFeederFieldUtility.xcodeproj                                                                                                                                                                                                                                                                                                                                                          |
+ios	UNKNOWN STEP	2025-11-12T04:23:21.4223840Z | scheme                                                  | SkyFeederFieldUtility                                                                                                                                                                                                                                                                                                                                                                                             |
+ios	UNKNOWN STEP	2025-11-12T04:23:21.4325710Z | export_method                                           | app-store                                                                                                                                                                                                                                                                                                                                                                                                         |
+ios	UNKNOWN STEP	2025-11-12T04:23:21.4426980Z | export_team_id                                          | ***                                                                                                                                                                                                                                                                                                                                                                                                        |
+ios	UNKNOWN STEP	2025-11-12T04:23:21.4530540Z | xcargs                                                  | -showBuildTimingSummary PRODUCT_BUNDLE_IDENTIFIER=com.skyfeeder.field APP_BUNDLE_IDENTIFIER=com.skyfeeder.field DEVELOPMENT_TEAM=*** APP_DEVELOPMENT_TEAM=*** CODE_SIGN_STYLE=Manual APP_CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY='Apple Distribution' PROVISIONING_PROFILE_SPECIFIER='match AppStore com.skyfeeder.field' APP_PROVISIONING_PROFILE_SPECIFIER='match AppStore com.skyfeeder.field' |
+ios	UNKNOWN STEP	2025-11-12T04:23:21.4632840Z | output_directory                                        | build                                                                                                                                                                                                                                                                                                                                                                                                             |
+ios	UNKNOWN STEP	2025-11-12T04:23:21.4734450Z | output_name                                             | SkyFeederFieldUtility                                                                                                                                                                                                                                                                                                                                                                                             |
+ios	UNKNOWN STEP	2025-11-12T04:23:21.4835950Z | export_options.provisioningProfiles.com.skyfeeder.field | match AppStore com.skyfeeder.field                                                                                                                                                                                                                                                                                                                                                                                |
+ios	UNKNOWN STEP	2025-11-12T04:23:21.4942930Z | clean                                                   | false                                                                                                                                                                                                                                                                                                                                                                                                             |
+ios	UNKNOWN STEP	2025-11-12T04:23:21.5045230Z | silent                                                  | false                                                                                                                                                                                                                                                                                                                                                                                                             |
+ios	UNKNOWN STEP	2025-11-12T04:23:21.5146470Z | skip_package_ipa                                        | false                                                                                                                                                                                                                                                                                                                                                                                                             |
+ios	UNKNOWN STEP	2025-11-12T04:23:21.5247210Z | skip_package_pkg                                        | false                                                                                                                                                                                                                                                                                                                                                                                                             |
+ios	UNKNOWN STEP	2025-11-12T04:23:21.5348010Z | build_path                                              | /Users/runner/Library/Developer/Xcode/Archives/2025-11-12                                                                                                                                                                                                                                                                                                                                                         |
+ios	UNKNOWN STEP	2025-11-12T04:23:21.5448690Z | result_bundle                                           | false                                                                                                                                                                                                                                                                                                                                                                                                             |
+ios	UNKNOWN STEP	2025-11-12T04:23:21.5549490Z | buildlog_path                                           | ~/Library/Logs/gym                                                                                                                                                                                                                                                                                                                                                                                                |
+ios	UNKNOWN STEP	2025-11-12T04:23:21.5650370Z | destination                                             | generic/platform=iOS                                                                                                                                                                                                                                                                                                                                                                                              |
+ios	UNKNOWN STEP	2025-11-12T04:23:21.5751830Z | xcodebuild_formatter                                    | xcbeautify                                                                                                                                                                                                                                                                                                                                                                                                        |
+ios	UNKNOWN STEP	2025-11-12T04:23:21.5852030Z | build_timing_summary                                    | false                                                                                                                                                                                                                                                                                                                                                                                                             |
+ios	UNKNOWN STEP	2025-11-12T04:23:21.5953830Z | skip_profile_detection                                  | false                                                                                                                                                                                                                                                                                                                                                                                                             |
+ios	UNKNOWN STEP	2025-11-12T04:23:21.6055410Z | xcodebuild_command                                      | xcodebuild                                                                                                                                                                                                                                                                                                                                                                                                        |
+ios	UNKNOWN STEP	2025-11-12T04:23:21.6155780Z | skip_package_dependencies_resolution                    | false                                                                                                                                                                                                                                                                                                                                                                                                             |
+ios	UNKNOWN STEP	2025-11-12T04:23:21.6257290Z | disable_package_automatic_updates                       | false                                                                                                                                                                                                                                                                                                                                                                                                             |
+ios	UNKNOWN STEP	2025-11-12T04:23:21.6368100Z | use_system_scm                                          | false                                                                                                                                                                                                                                                                                                                                                                                                             |
+ios	UNKNOWN STEP	2025-11-12T04:23:21.6471660Z | xcode_path                                              | /Applications/Xcode_16.1.app                                                                                                                                                                                                                                                                                                                                                                                      |
+ios	UNKNOWN STEP	2025-11-12T04:23:21.6573630Z +---------------------------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+ios	UNKNOWN STEP	2025-11-12T04:23:21.6675440Z 
+ios	UNKNOWN STEP	2025-11-12T04:23:21.6780320Z [04:23:21]: [36m$ set -o pipefail && xcodebuild -scheme SkyFeederFieldUtility -project mobile/ios-field-utility/SkyFeederFieldUtility.xcodeproj -destination 'generic/platform=iOS' -archivePath /Users/runner/Library/Developer/Xcode/Archives/2025-11-12/SkyFeederFieldUtility\ 2025-11-12\ 04.23.21.xcarchive -showBuildTimingSummary PRODUCT_BUNDLE_IDENTIFIER=com.skyfeeder.field APP_BUNDLE_IDENTIFIER=com.skyfeeder.field DEVELOPMENT_TEAM=*** APP_DEVELOPMENT_TEAM=*** CODE_SIGN_STYLE=Manual APP_CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY='Apple Distribution' PROVISIONING_PROFILE_SPECIFIER='match AppStore com.skyfeeder.field' APP_PROVISIONING_PROFILE_SPECIFIER='match AppStore com.skyfeeder.field' archive | tee /Users/runner/Library/Logs/gym/SkyFeederFieldUtility-SkyFeederFieldUtility.log | xcbeautify[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:21.6883800Z [04:23:21]: ▸ [35m----- xcbeautify -----[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:21.6985000Z [04:23:21]: ▸ [35mVersion: 3.1.0[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:21.7086950Z [04:23:21]: ▸ [35m----------------------[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:22.0992430Z [04:23:22]: ▸ [35m[36;1mResolving Package Graph[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:22.2194660Z [04:23:22]: ▸ [35m[32;1mResolved source packages[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:22.3061910Z [04:23:22]: ▸ [35m[36;1mnote: [0mUsing codesigning identity override: Apple Distribution[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:22.5410970Z [04:23:22]: ▸ [35m[36;1mnote: [0mBuilding targets in dependency order[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:22.5411610Z [04:23:22]: ▸ [35m[36;1mnote: [0mTarget dependency graph (3 targets)[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:25.0669290Z [04:23:25]: ▸ [35m[[36mSkyFeederUI[0m] [1mWrite Auxiliary File[0m SkyFeederUI.modulemap[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:25.0678030Z [04:23:25]: ▸ [35m[[36mSkyFeederUI[0m] [1mWrite Auxiliary File[0m SkyFeederUI.DependencyMetadataFileList[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:25.0678870Z [04:23:25]: ▸ [35m[[36mSkyFeederUI[0m] [1mWrite Auxiliary File[0m SkyFeederUI_const_extract_protocols.json[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:25.0685270Z [04:23:25]: ▸ [35m[[36mSkyFeederUI[0m] [1mWrite Auxiliary File[0m SkyFeederUI.SwiftFileList[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:25.0686010Z [04:23:25]: ▸ [35m[[36mSkyFeederUI[0m] [1mWrite Auxiliary File[0m SkyFeederUI.LinkFileList[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:25.0686850Z [04:23:25]: ▸ [35m[[36mSkyFeederUI[0m] [1mWrite Auxiliary File[0m SkyFeederUI-OutputFileMap.json[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:25.0693250Z [04:23:25]: ▸ [35m[[36mSkyFeederFieldUtility[0m] [1mWrite Auxiliary File[0m SkyFeederFieldUtility.hmap[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:25.0694180Z [04:23:25]: ▸ [35m[[36mSkyFeederFieldUtility[0m] [1mWrite Auxiliary File[0m SkyFeederFieldUtility.DependencyMetadataFileList[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:25.0695090Z [04:23:25]: ▸ [35m[[36mSkyFeederFieldUtility[0m] [1mWrite Auxiliary File[0m SkyFeederFieldUtility-project-headers.hmap[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:25.0695840Z [04:23:25]: ▸ [35m[[36mSkyFeederFieldUtility[0m] [1mWrite Auxiliary File[0m SkyFeederFieldUtility-own-target-headers.hmap[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:25.0698310Z [04:23:25]: ▸ [35m[[36mSkyFeederFieldUtility[0m] [1mWrite Auxiliary File[0m SkyFeederFieldUtility-generated-files.hmap[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:25.0699210Z [04:23:25]: ▸ [35m[[36mSkyFeederFieldUtility[0m] [1mWrite Auxiliary File[0m SkyFeederFieldUtility-all-target-headers.hmap[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:25.0701580Z [04:23:25]: ▸ [35m[[36mSkyFeederFieldUtility[0m] [1mWrite Auxiliary File[0m SkyFeederFieldUtility-all-non-framework-target-headers.hmap[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:25.0702490Z [04:23:25]: ▸ [35m[[36mSkyFeederFieldUtility[0m] [1mWrite Auxiliary File[0m SkyFeederFieldUtility_const_extract_protocols.json[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:25.0703400Z [04:23:25]: ▸ [35m[[36mSkyFeederFieldUtility[0m] [1mWrite Auxiliary File[0m SkyFeederFieldUtility.SwiftFileList[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:25.0707590Z [04:23:25]: ▸ [35m[[36mSkyFeederFieldUtility[0m] [1mWrite Auxiliary File[0m SkyFeederFieldUtility.SwiftConstValuesFileList[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:25.0708520Z [04:23:25]: ▸ [35m[[36mSkyFeederFieldUtility[0m] [1mWrite Auxiliary File[0m SkyFeederFieldUtility.LinkFileList[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:25.0719150Z [04:23:25]: ▸ [35m[[36mSkyFeederFieldUtility[0m] [1mWrite Auxiliary File[0m SkyFeederFieldUtility-OutputFileMap.json[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:25.0719990Z [04:23:25]: ▸ [35m[[36mSkyFeederFieldUtility[0m] [1mWrite Auxiliary File[0m Entitlements.plist[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:25.0722780Z [04:23:25]: ▸ [35m[[36mSkyFeederUI[0m] [1mCopy[0m SkyFeederUI.modulemap -> SkyFeederUI.modulemap[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:38.4539450Z [04:23:38]: ▸ [35m::warning file=/Users/runner/work/Codex_Vs_Code/Codex_Vs_Code/mobile/ios-field-utility/SkyFeederUI/Sources/SkyFeederUI/Models/EventLogEntry.swift,line=30,col=30::left side of nil coalescing operator '??' has non-optional type 'String', so the right side is never used[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:38.4545880Z [04:23:38]: ▸ [35m            message: message ?? "Event received",[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:38.4625150Z [04:23:38]: ▸ [35m                     ~~~~~~~~^~~~~~~~~~~~~~~~~~~[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:38.4626880Z [04:23:38]: ▸ [35m::warning file=/Users/runner/work/Codex_Vs_Code/Codex_Vs_Code/mobile/ios-field-utility/SkyFeederUI/Sources/SkyFeederUI/Support/CacheManager.swift,line=49,col=13::variable 'resourceValues' was never mutated; consider changing to 'let' constant[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:38.4628560Z [04:23:38]: ▸ [35m        var resourceValues = try? url.resourceValues(forKeys: [.contentModificationDateKey])[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:38.4629200Z [04:23:38]: ▸ [35m        ~~~ ^[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:38.4630580Z [04:23:38]: ▸ [35m::warning file=/Users/runner/work/Codex_Vs_Code/Codex_Vs_Code/mobile/ios-field-utility/SkyFeederUI/Sources/SkyFeederUI/Support/CacheManager.swift,line=77,col=30::capture of 'fileManager' with non-sendable type 'FileManager' in a `@Sendable` closure; this is an error in the Swift 6 language mode[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:38.4632050Z [04:23:38]: ▸ [35m            let urls = (try? fileManager.contentsOfDirectory(at: directory, includingPropertiesForKeys: [.contentModificationDateKey])) ?? [][0m
+ios	UNKNOWN STEP	2025-11-12T04:23:38.4632710Z [04:23:38]: ▸ [35m                             ^[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:38.4634040Z [04:23:38]: ▸ [35m::warning file=/Users/runner/work/Codex_Vs_Code/Codex_Vs_Code/mobile/ios-field-utility/SkyFeederUI/Sources/SkyFeederUI/Support/CacheManager.swift,line=82,col=26::capture of 'fileManager' with non-sendable type 'FileManager' in an isolated closure; this is an error in the Swift 6 language mode[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:38.4635230Z [04:23:38]: ▸ [35m                    try? fileManager.removeItem(at: url)[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:38.4635720Z [04:23:38]: ▸ [35m                         ^[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:38.4637710Z [04:23:38]: ▸ [35m::warning file=/Users/runner/work/Codex_Vs_Code/Codex_Vs_Code/mobile/ios-field-utility/SkyFeederUI/Sources/SkyFeederUI/Support/CacheManager.swift,line=99,col=35::capture of 'fileManager' with non-sendable type 'FileManager' in a `@Sendable` closure; this is an error in the Swift 6 language mode[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:38.4639310Z [04:23:38]: ▸ [35m            guard let urls = try? fileManager.contentsOfDirectory(at: directory, includingPropertiesForKeys: [.contentModificationDateKey, .fileSizeKey]) else { return }[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:38.4640040Z [04:23:38]: ▸ [35m                                  ^[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:38.4641410Z [04:23:38]: ▸ [35m::warning file=/Users/runner/work/Codex_Vs_Code/Codex_Vs_Code/mobile/ios-field-utility/SkyFeederUI/Sources/SkyFeederUI/ViewModels/GalleryViewModel.swift,line=24,col=53::main actor-isolated static property 'shared' can not be referenced from a nonisolated context; this is an error in the Swift 6 language mode[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:38.4642500Z [04:23:38]: ▸ [35m        connectivityMonitor: ConnectivityMonitor = .shared,[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:38.4648630Z [04:23:38]: ▸ [35m                                                    ^[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:38.4649220Z [04:23:38]: ▸ [35m[[36mSkyFeederUI[0m] [1mCopy[0m arm64-apple-ios.swiftdoc -> SkyFeederUI.swiftdoc[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:38.4650120Z [04:23:38]: ▸ [35m[[36mSkyFeederUI[0m] [1mCopy[0m arm64-apple-ios.swiftmodule -> SkyFeederUI.swiftmodule[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:38.4650800Z [04:23:38]: ▸ [35m[[36mSkyFeederUI[0m] [1mCopy[0m arm64-apple-ios.abi.json -> SkyFeederUI.abi.json[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:38.4651390Z [04:23:38]: ▸ [35m[[36mSkyFeederUI[0m] [1mLinking[0m SkyFeederUI.o[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:46.5151950Z [04:23:46]: ▸ [35m::warning file=/Users/runner/work/Codex_Vs_Code/Codex_Vs_Code/mobile/ios-field-utility/SkyFeederFieldUtility/Views/CaptureDetailView.swift,line=63,col=24::value 'assetURL' was defined but never used; consider replacing with boolean test[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:46.5248840Z [04:23:46]: ▸ [35m                if let assetURL {[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:46.5350490Z [04:23:46]: ▸ [35m                   ~~~~^[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:46.5453110Z [04:23:46]: ▸ [35m::warning file=/Users/runner/work/Codex_Vs_Code/Codex_Vs_Code/mobile/ios-field-utility/SkyFeederFieldUtility/Support/DiskCache.swift,line=49,col=13::variable 'resourceValues' was never mutated; consider changing to 'let' constant[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:46.5555430Z [04:23:46]: ▸ [35m        var resourceValues = try? url.resourceValues(forKeys: [.contentModificationDateKey])[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:46.5581110Z [04:23:46]: ▸ [35m        ~~~ ^[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:46.5612450Z [04:23:46]: ▸ [35m::warning file=/Users/runner/work/Codex_Vs_Code/Codex_Vs_Code/mobile/ios-field-utility/SkyFeederFieldUtility/Support/DiskCache.swift,line=76,col=30::capture of 'fileManager' with non-sendable type 'FileManager' in a `@Sendable` closure; this is an error in the Swift 6 language mode[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:46.5636050Z [04:23:46]: ▸ [35m            let urls = (try? fileManager.contentsOfDirectory(at: directory, includingPropertiesForKeys: [.contentModificationDateKey])) ?? [][0m
+ios	UNKNOWN STEP	2025-11-12T04:23:46.5738190Z [04:23:46]: ▸ [35m                             ^[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:46.5837150Z [04:23:46]: ▸ [35m::warning file=/Users/runner/work/Codex_Vs_Code/Codex_Vs_Code/mobile/ios-field-utility/SkyFeederFieldUtility/Support/DiskCache.swift,line=81,col=26::capture of 'fileManager' with non-sendable type 'FileManager' in an isolated closure; this is an error in the Swift 6 language mode[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:46.5939640Z [04:23:46]: ▸ [35m                    try? fileManager.removeItem(at: url)[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:46.6043600Z [04:23:46]: ▸ [35m                         ^[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:46.6115220Z [04:23:46]: ▸ [35m::warning file=/Users/runner/work/Codex_Vs_Code/Codex_Vs_Code/mobile/ios-field-utility/SkyFeederFieldUtility/Support/DiskCache.swift,line=98,col=35::capture of 'fileManager' with non-sendable type 'FileManager' in a `@Sendable` closure; this is an error in the Swift 6 language mode[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:46.6121730Z [04:23:46]: ▸ [35m            guard let urls = try? fileManager.contentsOfDirectory(at: directory, includingPropertiesForKeys: [.contentModificationDateKey, .fileSizeKey]) else { return }[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:46.6122700Z [04:23:46]: ▸ [35m                                  ^[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:46.6124200Z [04:23:46]: ▸ [35m::warning file=/Users/runner/work/Codex_Vs_Code/Codex_Vs_Code/mobile/ios-field-utility/SkyFeederFieldUtility/ViewModels/GalleryViewModel.swift,line=22,col=53::main actor-isolated static property 'shared' can not be referenced from a nonisolated context; this is an error in the Swift 6 language mode[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:46.6125690Z [04:23:46]: ▸ [35m        connectivityMonitor: ConnectivityMonitor = .shared[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:46.6126390Z [04:23:46]: ▸ [35m                                                    ^[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:46.6127220Z [04:23:46]: ▸ [35m[[36mSkyFeederUI[0m] [1mRegisterExecutionPolicyException[0m SkyFeederUI.o[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:46.6129100Z [04:23:46]: ▸ [35m[[36mSkyFeederFieldUtility[0m] [1mProcessing[0m Info.plist[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:46.6129870Z [04:23:46]: ▸ [35m[[36mSkyFeederFieldUtility[0m] [1mCopy[0m arm64-apple-ios.swiftdoc -> SkyFeederFieldUtility.swiftdoc[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:46.6132850Z [04:23:46]: ▸ [35m[[36mSkyFeederFieldUtility[0m] [1mCopy[0m arm64-apple-ios.swiftmodule -> SkyFeederFieldUtility.swiftmodule[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:46.6133840Z [04:23:46]: ▸ [35m[[36mSkyFeederFieldUtility[0m] [1mCopy[0m arm64-apple-ios.abi.json -> SkyFeederFieldUtility.abi.json[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:46.6134590Z [04:23:46]: ▸ [35m[[36mSkyFeederFieldUtility[0m] [1mLinking[0m SkyFeederFieldUtility[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:46.9705930Z [04:23:46]: ▸ [35m[[36mSkyFeederFieldUtility[0m] [1mExtract App Intents Metadata[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:46.9707700Z [04:23:46]: ▸ [35m[36;1mnote: [0mMetadata extraction skipped. No AppIntents.framework dependency found. (in target 'SkyFeederFieldUtility' from project 'SkyFeederFieldUtility')[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:46.9709890Z [04:23:46]: ▸ [35m[[36mSkyFeederFieldUtility[0m] [1mGenerating[0m SkyFeederFieldUtility.app.dSYM[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:47.2285890Z [04:23:47]: ▸ [35m[1mSigning[0m SkyFeederFieldUtility.app (in target 'SkyFeederFieldUtility' from project 'SkyFeederFieldUtility')[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:47.2966300Z [04:23:47]: ▸ [35m[[36mSkyFeederFieldUtility[0m] [1mRegisterExecutionPolicyException[0m SkyFeederFieldUtility.app[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:47.3014730Z [04:23:47]: ▸ [35m[[36mSkyFeederFieldUtility[0m] [1mValidate[0m SkyFeederFieldUtility.app[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:47.3015690Z [04:23:47]: ▸ [35m[[36mSkyFeederFieldUtility[0m] [1mTouching[0m SkyFeederFieldUtility.app[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:47.3321930Z [04:23:47]: ▸ [35m[36;1mnote: [0mDisabling previews because SWIFT_VERSION is set and SWIFT_OPTIMIZATION_LEVEL=-Owholemodule, expected -Onone (in target 'SkyFeederUI' from project 'SkyFeederUI')[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:47.3324010Z [04:23:47]: ▸ [35m[36;1mnote: [0mDisabling previews because SWIFT_VERSION is set and SWIFT_OPTIMIZATION_LEVEL=-O, expected -Onone (in target 'SkyFeederFieldUtility' from project 'SkyFeederFieldUtility')[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:47.3615560Z [04:23:47]: ▸ [35m[32;1mArchive Succeeded[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:47.4148910Z [04:23:47]: [33mGenerated plist file with the following values:[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:47.4149560Z [04:23:47]: ▸ [35m-----------------------------------------[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:47.4150440Z [04:23:47]: ▸ [35m{[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:47.4150960Z [04:23:47]: ▸ [35m  "provisioningProfiles": {[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:47.4151680Z [04:23:47]: ▸ [35m    "com.skyfeeder.field": "match AppStore com.skyfeeder.field"[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:47.4152420Z [04:23:47]: ▸ [35m  },[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:47.4153010Z [04:23:47]: ▸ [35m  "method": "app-store",[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:47.4153640Z [04:23:47]: ▸ [35m  "signingStyle": "manual",[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:47.4154850Z [04:23:47]: ▸ [35m  "teamID": "***"[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:47.4155450Z [04:23:47]: ▸ [35m}[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:47.4156070Z [04:23:47]: ▸ [35m-----------------------------------------[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:47.4166030Z [04:23:47]: [36m$ /usr/bin/xcrun /Users/runner/work/Codex_Vs_Code/Codex_Vs_Code/vendor/bundle/ruby/3.3.0/gems/fastlane-2.228.0/gym/lib/assets/wrap_xcodebuild/xcbuild-safe.sh -exportArchive -exportOptionsPlist '/var/folders/n_/92y65kqs02vgpz5ry3fdyjf00000gn/T/gym_config20251112-4051-e9k895.plist' -archivePath /Users/runner/Library/Developer/Xcode/Archives/2025-11-12/SkyFeederFieldUtility\ 2025-11-12\ 04.23.21.xcarchive -exportPath '/var/folders/n_/92y65kqs02vgpz5ry3fdyjf00000gn/T/gym_output20251112-4051-tqcams' -showBuildTimingSummary PRODUCT_BUNDLE_IDENTIFIER=com.skyfeeder.field APP_BUNDLE_IDENTIFIER=com.skyfeeder.field DEVELOPMENT_TEAM=*** APP_DEVELOPMENT_TEAM=*** CODE_SIGN_STYLE=Manual APP_CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY='Apple Distribution' PROVISIONING_PROFILE_SPECIFIER='match AppStore com.skyfeeder.field' APP_PROVISIONING_PROFILE_SPECIFIER='match AppStore com.skyfeeder.field' [0m
+ios	UNKNOWN STEP	2025-11-12T04:23:48.9965490Z [04:23:48]: Compressing 1 dSYM(s)
+ios	UNKNOWN STEP	2025-11-12T04:23:48.9968150Z [04:23:48]: [36m$ cd '/Users/runner/Library/Developer/Xcode/Archives/2025-11-12/SkyFeederFieldUtility 2025-11-12 04.23.21.xcarchive/dSYMs' && zip -r '/Users/runner/work/Codex_Vs_Code/Codex_Vs_Code/build/SkyFeederFieldUtility.app.dSYM.zip' *.dSYM[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:49.2329640Z [04:23:49]: ▸ [35m  adding: SkyFeederFieldUtility.app.dSYM/ (stored 0%)[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:49.2330540Z [04:23:49]: ▸ [35m  adding: SkyFeederFieldUtility.app.dSYM/Contents/ (stored 0%)[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:49.2331620Z [04:23:49]: ▸ [35m  adding: SkyFeederFieldUtility.app.dSYM/Contents/Resources/ (stored 0%)[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:49.2363110Z [04:23:49]: ▸ [35m  adding: SkyFeederFieldUtility.app.dSYM/Contents/Resources/Relocations/ (stored 0%)[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:49.2364140Z [04:23:49]: ▸ [35m  adding: SkyFeederFieldUtility.app.dSYM/Contents/Resources/Relocations/aarch64/ (stored 0%)[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:49.2365100Z [04:23:49]: ▸ [35m  adding: SkyFeederFieldUtility.app.dSYM/Contents/Resources/Relocations/aarch64/SkyFeederFieldUtility.yml (deflated 89%)[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:49.2366020Z [04:23:49]: ▸ [35m  adding: SkyFeederFieldUtility.app.dSYM/Contents/Resources/DWARF/ (stored 0%)[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:49.2366780Z [04:23:49]: ▸ [35m  adding: SkyFeederFieldUtility.app.dSYM/Contents/Resources/DWARF/SkyFeederFieldUtility (deflated 71%)[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:49.2367510Z [04:23:49]: ▸ [35m  adding: SkyFeederFieldUtility.app.dSYM/Contents/Info.plist (deflated 52%)[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:49.2367900Z 
+ios	UNKNOWN STEP	2025-11-12T04:23:49.2368180Z [04:23:49]: [32mSuccessfully exported and compressed dSYM file[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:49.2391030Z [04:23:49]: [32mSuccessfully exported and signed the ipa file:[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:49.2391560Z [04:23:49]: /Users/runner/work/Codex_Vs_Code/Codex_Vs_Code/build/SkyFeederFieldUtility.ipa
+ios	UNKNOWN STEP	2025-11-12T04:23:49.3392320Z [04:23:49]: [32m----------------------------------[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:49.3392850Z [04:23:49]: [32m--- Step: upload_to_testflight ---[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:49.3393370Z [04:23:49]: [32m----------------------------------[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:49.3412410Z [04:23:49]: Creating authorization token for App Store Connect API
+ios	UNKNOWN STEP	2025-11-12T04:23:49.7399820Z [04:23:49]: [32mReady to upload new build to TestFlight (App: 6754707840)...[0m
+ios	UNKNOWN STEP	2025-11-12T04:23:49.7507880Z [04:23:49]: Going to upload updated app to App Store Connect
+ios	UNKNOWN STEP	2025-11-12T04:23:49.7508660Z [04:23:49]: [32mThis might take a few minutes. Please don't interrupt the script.[0m
+ios	UNKNOWN STEP	2025-11-12T04:43:25.1592990Z [04:43:25]: [32m--------------------------------------------------------------------[0m
+ios	UNKNOWN STEP	2025-11-12T04:43:25.1618450Z [04:43:25]: [32mSuccessfully uploaded package to App Store Connect. It might take a few minutes until it's visible online.[0m
+ios	UNKNOWN STEP	2025-11-12T04:43:25.1619570Z [04:43:25]: [32m--------------------------------------------------------------------[0m
+ios	UNKNOWN STEP	2025-11-12T04:43:25.1620310Z [04:43:25]: [32mSuccessfully uploaded the new binary to App Store Connect[0m
+ios	UNKNOWN STEP	2025-11-12T04:43:25.1621350Z [04:43:25]: [33m`skip_waiting_for_build_processing` used and no `changelog` supplied - skipping waiting for build processing[0m
+ios	UNKNOWN STEP	2025-11-12T04:43:25.3432440Z 
+ios	UNKNOWN STEP	2025-11-12T04:43:25.3554310Z +------------------------------------------------+
+ios	UNKNOWN STEP	2025-11-12T04:43:25.3560250Z |                [32mfastlane summary[0m                |
+ios	UNKNOWN STEP	2025-11-12T04:43:25.3560730Z +------+---------------------------+-------------+
+ios	UNKNOWN STEP	2025-11-12T04:43:25.3561130Z | Step | Action                    | Time (in s) |
+ios	UNKNOWN STEP	2025-11-12T04:43:25.3561560Z +------+---------------------------+-------------+
+ios	UNKNOWN STEP	2025-11-12T04:43:25.3561960Z | 1    | default_platform          | 0           |
+ios	UNKNOWN STEP	2025-11-12T04:43:25.3562380Z | 2    | setup_ci                  | 0           |
+ios	UNKNOWN STEP	2025-11-12T04:43:25.3562810Z | 3    | app_store_connect_api_key | 0           |
+ios	UNKNOWN STEP	2025-11-12T04:43:25.3563240Z | 4    | match                     | 0           |
+ios	UNKNOWN STEP	2025-11-12T04:43:25.3563640Z | 5    | build_app                 | 31          |
+ios	UNKNOWN STEP	2025-11-12T04:43:25.3619760Z | 6    | upload_to_testflight      | 1175        |
+ios	UNKNOWN STEP	2025-11-12T04:43:25.3620080Z +------+---------------------------+-------------+
+ios	UNKNOWN STEP	2025-11-12T04:43:25.3620290Z 
+ios	UNKNOWN STEP	2025-11-12T04:43:25.3620810Z [04:43:25]: [32mfastlane.tools just saved you 20 minutes! 🎉[0m
+ios	UNKNOWN STEP	2025-11-12T04:43:27.2701270Z Post job cleanup.
+ios	UNKNOWN STEP	2025-11-12T04:43:27.4795120Z Cache hit occurred on the primary key bundler-macOS-e9d160ca110ce7e7fbd7001cc376718740b386fee76335ad0677b2978eac3046, not saving cache.
+ios	UNKNOWN STEP	2025-11-12T04:43:27.5004980Z Post job cleanup.
+ios	UNKNOWN STEP	2025-11-12T04:43:27.6455510Z [command]/opt/homebrew/bin/git version
+ios	UNKNOWN STEP	2025-11-12T04:43:27.6827600Z git version 2.50.1
+ios	UNKNOWN STEP	2025-11-12T04:43:27.6920060Z Copying '/Users/runner/.gitconfig' to '/Users/runner/work/_temp/5d45ee55-be33-4cbe-a7ce-f257c6bd483f/.gitconfig'
+ios	UNKNOWN STEP	2025-11-12T04:43:27.6930120Z Temporarily overriding HOME='/Users/runner/work/_temp/5d45ee55-be33-4cbe-a7ce-f257c6bd483f' before making global git config changes
+ios	UNKNOWN STEP	2025-11-12T04:43:27.6932550Z Adding repository directory to the temporary git global config as a safe directory
+ios	UNKNOWN STEP	2025-11-12T04:43:27.6941200Z [command]/opt/homebrew/bin/git config --global --add safe.directory /Users/runner/work/Codex_Vs_Code/Codex_Vs_Code
+ios	UNKNOWN STEP	2025-11-12T04:43:27.7170180Z [command]/opt/homebrew/bin/git config --local --name-only --get-regexp core\.sshCommand
+ios	UNKNOWN STEP	2025-11-12T04:43:27.7210260Z [command]/opt/homebrew/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+ios	UNKNOWN STEP	2025-11-12T04:43:27.8466750Z [command]/opt/homebrew/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+ios	UNKNOWN STEP	2025-11-12T04:43:27.8467730Z http.https://github.com/.extraheader
+ios	UNKNOWN STEP	2025-11-12T04:43:27.8470200Z [command]/opt/homebrew/bin/git config --local --unset-all http.https://github.com/.extraheader
+ios	UNKNOWN STEP	2025-11-12T04:43:27.8566580Z [command]/opt/homebrew/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+ios	UNKNOWN STEP	2025-11-12T04:43:27.9768170Z Cleaning up orphan processes

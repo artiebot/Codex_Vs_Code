@@ -1,4 +1,3 @@
-#if DEBUG
 import Foundation
 import Combine
 
@@ -183,4 +182,3 @@ public class DevViewModel: ObservableObject {
         try await Task.sleep(nanoseconds: 500_000_000)
     }
 }
-#endif

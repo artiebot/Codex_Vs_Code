@@ -1,4 +1,3 @@
-#if DEBUG
 import SwiftUI
 
 public struct DevView: View {
@@ -296,4 +295,3 @@ struct InfoRow: View {
         }
     }
 }
-#endif
