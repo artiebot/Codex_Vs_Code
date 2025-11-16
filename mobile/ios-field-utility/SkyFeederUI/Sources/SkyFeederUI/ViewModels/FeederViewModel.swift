@@ -28,18 +28,21 @@ public class FeederViewModel: ObservableObject {
         isLoading = true
         errorMessage = nil
 
+        // Always try to load media; telemetry failures should not block the gallery.
         do {
-            async let batteryTask = dataProvider.fetchBatteryStatus()
-            async let retentionTask = dataProvider.fetchRetentionPolicy()
-            async let mediaTask = dataProvider.fetchMediaSnapshot()
-
-            battery = try await batteryTask
-            retentionPolicy = try await retentionTask
-            let snapshot = try await mediaTask
+            let snapshot = try await dataProvider.fetchMediaSnapshot()
             photoItems = snapshot.photos
             videoItems = snapshot.videos
         } catch {
             errorMessage = error.localizedDescription
+        }
+
+        // Fetch battery and retention policy opportunistically; ignore errors.
+        if let batteryStatus = try? await dataProvider.fetchBatteryStatus() {
+            battery = batteryStatus
+        }
+        if let policy = try? await dataProvider.fetchRetentionPolicy() {
+            retentionPolicy = policy
         }
 
         isLoading = false

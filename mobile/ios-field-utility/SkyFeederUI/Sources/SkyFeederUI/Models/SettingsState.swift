@@ -37,7 +37,7 @@ public struct SettingsState: Equatable {
         provider: CaptureProviderSelection = .presigned,
         filesystemRootPath: String = "",
         baseURL: URL? = URL(string: "http://10.0.0.4:8080/gallery"),
-        deviceID: String = "field-kit-1",
+        deviceID: String = "dev1",
         autoSaveToPhotos: Bool = false,
         cacheTTL: TimeInterval = 60 * 60 * 6
     ) {
@@ -73,7 +73,7 @@ extension SettingsState {
         } else {
             baseURL = URL(string: "http://10.0.0.4:8080/gallery")
         }
-        deviceID = userDefaults.string(forKey: Keys.deviceID) ?? "field-kit-1"
+        deviceID = userDefaults.string(forKey: Keys.deviceID) ?? "dev1"
         autoSaveToPhotos = userDefaults.object(forKey: Keys.autoSave) as? Bool ?? false
         let ttl = userDefaults.double(forKey: Keys.cacheTTL)
         cacheTTL = ttl == 0 ? 60 * 60 * 6 : ttl
