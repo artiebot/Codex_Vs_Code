@@ -12,4 +12,11 @@ public struct DeviceSummary: Identifiable, Codable, Equatable {
         self.batteryPercentage = batteryPercentage
         self.lastContact = lastContact
     }
+
+    private enum CodingKeys: String, CodingKey {
+        case id = "deviceId"
+        case isOnline
+        case batteryPercentage = "batteryPercent"
+        case lastContact
+    }
 }

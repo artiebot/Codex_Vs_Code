@@ -21,10 +21,25 @@ public class DevViewModel: ObservableObject {
 
     private let settingsStore: SettingsStore
     private let settingsProvider: SettingsProvider
+    private let devicesProvider: DevicesProvider
+    private let connectivityProvider: ConnectivityProvider
+    private let telemetryProvider: TelemetryProvider
+    private let logsSummaryProvider: LogsSummaryProvider
 
-    public init(settingsStore: SettingsStore, settingsProvider: SettingsProvider = SettingsProvider()) {
+    public init(
+        settingsStore: SettingsStore,
+        settingsProvider: SettingsProvider = SettingsProvider(),
+        devicesProvider: DevicesProvider = DevicesProvider(),
+        connectivityProvider: ConnectivityProvider = ConnectivityProvider(),
+        telemetryProvider: TelemetryProvider = TelemetryProvider(),
+        logsSummaryProvider: LogsSummaryProvider = LogsSummaryProvider()
+    ) {
         self.settingsStore = settingsStore
         self.settingsProvider = settingsProvider
+        self.devicesProvider = devicesProvider
+        self.connectivityProvider = connectivityProvider
+        self.telemetryProvider = telemetryProvider
+        self.logsSummaryProvider = logsSummaryProvider
     }
 
     public func onAppear() {
@@ -38,14 +53,52 @@ public class DevViewModel: ObservableObject {
         errorMessage = nil
 
         do {
-            devices = try await fetchDevices()
+            guard let baseURL = settingsStore.state.apiBaseURL else {
+                throw SettingsProviderError.invalidResponse
+            }
+
+            async let devicesTask: [DeviceSummary] = devicesProvider.fetchDevices(baseURL: baseURL)
+            async let connectivityTask: ConnectivityDiagnostics = connectivityProvider.fetchConnectivity(
+                baseURL: baseURL,
+                deviceId: settingsStore.state.deviceID
+            )
+            async let telemetryTask: TelemetryResponse = telemetryProvider.fetchTelemetry(
+                baseURL: baseURL,
+                deviceId: settingsStore.state.deviceID
+            )
+            async let settingsTask: DeviceSettings = settingsProvider.fetchSettings(
+                baseURL: baseURL,
+                deviceId: settingsStore.state.deviceID
+            )
+            async let logsTask: [LogEntry] = logsSummaryProvider.fetchSummary(
+                baseURL: baseURL,
+                deviceId: settingsStore.state.deviceID,
+                limit: 50
+            )
+
+            let devicesResult = try await devicesTask
+            let connectivityResult = try await connectivityTask
+            let telemetryResult = try await telemetryTask
+            let settingsResult = try await settingsTask
+            let logsResult = try await logsTask
+
+            devices = devicesResult
             filterDevices()
-            connectivity = try await fetchConnectivity()
-            telemetry = try await fetchTelemetry()
-            retentionPolicy = try await fetchRetentionPolicy()
-            logs = try await fetchLogs()
-            captureCooldownSeconds = try? await fetchCaptureCooldown()
-            ambMiniStatus = await resolveAmbMiniStatus()
+            connectivity = connectivityResult
+            telemetry = TelemetrySnapshot(
+                packVoltage: telemetryResult.packVoltage,
+                solarWatts: telemetryResult.solarWatts,
+                loadWatts: telemetryResult.loadWatts,
+                internalTempC: telemetryResult.internalTempC,
+                signalStrengthDbm: telemetryResult.signalStrengthDbm
+            )
+            retentionPolicy = RetentionPolicy(
+                photoRetentionDays: settingsResult.photoRetentionDays,
+                videoRetentionDays: settingsResult.videoRetentionDays
+            )
+            logs = logsResult
+            captureCooldownSeconds = settingsResult.cooldownSeconds
+            ambMiniStatus = mapModeToAmbMiniStatus(telemetryResult.mode)
         } catch {
             errorMessage = error.localizedDescription
         }
@@ -116,79 +169,21 @@ public class DevViewModel: ObservableObject {
         logs.insert(entry, at: 0)
     }
 
-    // MARK: - API Methods (mocked)
+    // MARK: - API Methods
 
-    private func fetchDevices() async throws -> [DeviceSummary] {
-        // For now, Dev tools target the single configured device.
-        let id = settingsStore.state.deviceID
-        return [
-            DeviceSummary(
-                id: id,
-                isOnline: true,
-                batteryPercentage: 78,
-                lastContact: Date()
-            )
-        ]
-    }
-
-    private func fetchConnectivity() async throws -> ConnectivityDiagnostics {
-        try await Task.sleep(nanoseconds: 300_000_000)
-        return ConnectivityDiagnostics(
-            statusText: "Healthy",
-            recentFailures: 0,
-            averageRoundtripMs: 320,
-            lastSync: Date().addingTimeInterval(-120)
-        )
-    }
-
-    private func fetchTelemetry() async throws -> TelemetrySnapshot {
-        // TODO: Replace with real telemetry endpoint when available.
-        try await Task.sleep(nanoseconds: 300_000_000)
-        return TelemetrySnapshot(
-            packVoltage: 3.92,
-            solarWatts: 3.6,
-            loadWatts: 1.2,
-            internalTempC: 24.5,
-            signalStrengthDbm: -63
-        )
-    }
-
-    private func fetchCaptureCooldown() async throws -> Int {
-        guard let base = settingsStore.state.apiBaseURL else {
-            throw SettingsProviderError.invalidResponse
+    private func mapModeToAmbMiniStatus(_ mode: String) -> String {
+        switch mode.lowercased() {
+        case "sleeping":
+            return "Sleeping"
+        case "capture":
+            return "Capturing"
+        case "idle":
+            return "Idle"
+        case "offline":
+            return "Offline"
+        default:
+            return "Unknown (\(mode))"
         }
-        let settings = try await settingsProvider.fetchSettings(
-            baseURL: base,
-            deviceId: settingsStore.state.deviceID
-        )
-        return settings.cooldownSeconds
-    }
-
-    private func resolveAmbMiniStatus() async -> String {
-        // TODO: Replace with real device mode when backend exposes it.
-        // For now, derive a coarse status from connectivity/telemetry presence.
-        if connectivity == nil {
-            return "Unknown"
-        }
-        if telemetry == nil {
-            return "Sleeping (no telemetry sample)"
-        }
-        return "Active (captures/telemetry available)"
-    }
-
-    private func fetchRetentionPolicy() async throws -> RetentionPolicy {
-        try await Task.sleep(nanoseconds: 300_000_000)
-        return RetentionPolicy(photoRetentionDays: 7, videoRetentionDays: 3)
-    }
-
-    private func fetchLogs() async throws -> [LogEntry] {
-        try await Task.sleep(nanoseconds: 300_000_000)
-        let now = Date()
-        return [
-            LogEntry(timestamp: now.addingTimeInterval(-60), message: "Received response 200"),
-            LogEntry(timestamp: now.addingTimeInterval(-180), message: "Request sent"),
-            LogEntry(timestamp: now.addingTimeInterval(-240), message: "Received response 200")
-        ]
     }
 
     private func performCleanup() async throws {

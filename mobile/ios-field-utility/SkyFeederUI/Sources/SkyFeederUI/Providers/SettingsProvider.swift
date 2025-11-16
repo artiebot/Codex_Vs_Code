@@ -19,12 +19,16 @@ public struct DeviceSettings: Codable, Equatable {
     public let cooldownSeconds: Int
     public let cameraEnabled: Bool
     public let updatedAt: Date?
+    public let photoRetentionDays: Int
+    public let videoRetentionDays: Int
 
     public static let defaults = DeviceSettings(
         weightThreshold: 50,
         cooldownSeconds: 300,
         cameraEnabled: true,
-        updatedAt: nil
+        updatedAt: nil,
+        photoRetentionDays: 7,
+        videoRetentionDays: 3
     )
 }
 

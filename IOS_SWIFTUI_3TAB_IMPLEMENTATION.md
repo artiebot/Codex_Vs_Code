@@ -788,4 +788,13 @@ The SwiftUI 3-tab implementation provides a solid foundation for the SkyFeeder i
 - Kept Dev tools targeting the single configured device (settingsStore.state.deviceID) for now, with telemetry still mocked pending backend endpoint design.
 - Noted a TODO for hardware: image resolution/quality appears limited by the camera/docker stack; will be revisited when iterating on the unit firmware and container configuration.
 - Dev tools now fetch capture cooldown seconds from the backend via SettingsProvider (api/settings), and surface it in the Power & Telemetry card instead of the customer Options tab.
-- Dev Power & Telemetry card now shows an 'AMB MINI STATUS' line derived from connectivity/telemetry presence; this is a placeholder until the backend exposes an explicit device mode (sleeping vs capture).
+- Dev Power & Telemetry card now shows an 'AMB MINI STATUS' line derived from connectivity/telemetry presence; this is a placeholder until the backend exposes an explicit device mode (sleeping vs capture).## Telemetry wiring status (Build 6)
+
+- **Feeder tab**:
+  - Gallery and delete are fully wired to the existing capture stack (manifest + presigned URLs) and `DELETE /api/media/{id}`.
+  - Battery card calls `TelemetryProvider.fetchTelemetry` (`GET /api/telemetry`) via `LiveFeederDataProvider` to populate battery percentage and solar charging, but requires the backend to expose this endpoint in production.
+- **Options tab**:
+  - Capture settings, cooldown, and retention days are backed by `SettingsProvider` (`GET/POST /api/settings`), with retention shown as read-only.
+- **Dev tab**:
+  - Devices, connectivity, telemetry, retention, and logs cards are now backed by typed providers (`DevicesProvider`, `ConnectivityProvider`, `TelemetryProvider`, `SettingsProvider`, `LogsSummaryProvider`) that expect `/api/devices`, `/api/connectivity`, `/api/telemetry`, `/api/settings`, `/api/logs/summary` to be implemented.
+  - AMB MINI STATUS is derived from the `mode` field returned by `/api/telemetry` (sleeping, capture, idle, offline).

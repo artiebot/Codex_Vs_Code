@@ -6,7 +6,7 @@ struct LiveFeederDataProvider: FeederDataProviding {
     private let photoRetentionDays: Int
     private let videoRetentionDays: Int
     private let urlSession: URLSession
-    private let healthProvider: HealthProvider
+    private let telemetryProvider: TelemetryProvider
     private let settingsStore: SettingsStore
 
     init(
@@ -14,13 +14,13 @@ struct LiveFeederDataProvider: FeederDataProviding {
         photoRetentionDays: Int = 7,
         videoRetentionDays: Int = 3,
         urlSession: URLSession = .shared,
-        healthProvider: HealthProvider = HealthProvider()
+        telemetryProvider: TelemetryProvider = TelemetryProvider()
     ) {
         self.settingsStore = settingsStore
         self.photoRetentionDays = photoRetentionDays
         self.videoRetentionDays = videoRetentionDays
         self.urlSession = urlSession
-        self.healthProvider = healthProvider
+        self.telemetryProvider = telemetryProvider
     }
 
     func fetchBatteryStatus() async throws -> BatteryStatus {
@@ -28,16 +28,14 @@ struct LiveFeederDataProvider: FeederDataProviding {
             throw FeederDataProviderError.missingEndpoint
         }
 
-        let snapshot = try await healthProvider.fetchSnapshot(
+        let telemetry = try await telemetryProvider.fetchTelemetry(
             baseURL: base,
             deviceId: settingsStore.state.deviceID
         )
 
-        // Approximate battery percentage from weight/uptime metrics is not defined;
-        // for now, treat a reachable health endpoint as "online" and use a placeholder percentage.
         return BatteryStatus(
-            percentage: 76,
-            isChargingViaSolar: true,
+            percentage: telemetry.batteryPercent,
+            isChargingViaSolar: telemetry.isChargingViaSolar,
             isOnline: true
         )
     }

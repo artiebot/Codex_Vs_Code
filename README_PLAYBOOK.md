@@ -59,26 +59,54 @@ The following validation items were skipped during simulation/software-only test
 
 ---
 
-### A1.3.6 - iOS SwiftUI 3-Tab App Validation (Pending Manual Testing)
-**What was validated:** SwiftUI-based 3-tab app (Feeder, Options, Dev) matching mockup designs compiles successfully and uploads to TestFlight (Build 4).
-**What was NOT validated:**
+### A1.3.6 - iOS SwiftUI 3-Tab App Validation (Build 6) (Pending Manual Testing)
+**What was validated (CI / code-level):**
+- [x] SwiftUI-based 3-tab app (Feeder, Options, Dev) matching mockup designs compiles successfully and uploads to TestFlight (Build 6).
+- [x] Feeder tab gallery is fully wired to the existing capture stack (manifest + presigned URLs) via `GalleryViewModel`/`PresignedCaptureProvider` and `LiveFeederDataProvider.fetchMediaSnapshot`.
+- [x] Feeder delete button issues real `DELETE /api/media/{id}` requests via `LiveFeederDataProvider.delete`, with cache eviction in `DiskCache` so removed captures disappear across the app.
+- [x] Dashboard/health and storage flows remain wired to `/api/health`, `/api/cleanup/*`, `/api/logs` via existing providers.
+- [x] Dev tab now has real HTTP wiring for device settings (cooldown + retention) and logs summary via `/api/settings` and `/api/logs/summary` contracts.
+- [x] Tab bar appearance stabilized via `AppTheme.apply()` (`UITabBarAppearance` + `.accentColor`) so it no longer flips to light/transparent on scroll.
+
+**What was NOT validated (still requires hardware + backend endpoints to be live):**
 - [ ] TestFlight installation on physical devices
 - [ ] UI/UX matches mockup images (production.png, options.png, developer.png)
-- [ ] Battery card displays and updates correctly
+- [ ] Battery card displays and updates correctly against **real** `/api/telemetry` responses (battery %, solar charging)
 - [ ] Photos/Videos carousels scroll smoothly with real data
 - [ ] Share sheet integration works end-to-end
-- [ ] Delete functionality with confirmation dialogs
-- [ ] Video player opens and plays videos
-- [ ] Options settings persist across app launches
+- [ ] Delete functionality with confirmation dialogs against a live backend
+- [ ] Video player opens and plays videos from real presigned URLs
+- [ ] Options settings persist across app launches on device
 - [ ] Capture type radio buttons switch correctly
 - [ ] Quiet hours toggles update settings
-- [ ] Dev tab device search filters correctly
-- [ ] Dev tab action buttons trigger appropriate responses
+- [ ] Dev tab device search filters correctly for multiple devices
+- [ ] Dev tab action buttons trigger appropriate responses (force telemetry, snapshot, reboot, factory reset) once wired to real endpoints
 - [ ] Dark mode support (if implemented)
 - [ ] iPad layout adaptation
 - [ ] VoiceOver accessibility
 - [ ] Performance on older devices (iPhone SE)
 - [ ] Memory usage during extended carousel scrolling
+
+**iOS Wiring Status (Build 6):**
+- **Properly wired to backend/device (HTTP):**
+  - Gallery data source: `GalleryViewModel` + `FilesystemCaptureProvider` / `PresignedCaptureProvider` for photos/videos.
+  - Feeder delete: `LiveFeederDataProvider.delete` → `DELETE /api/media/{id}` → `DiskCache` eviction.
+  - Battery "online/offline" and health cards: `DashboardViewModel` → `HealthProvider.fetchSnapshot` (`GET /api/health`).
+  - Device settings: `SettingsProvider.fetchSettings` / `updateSettings` (`GET/POST /api/settings`), including cooldown + retention days.
+  - Storage cleanup: `StorageManagementViewModel` → `POST /api/cleanup/photos|videos`.
+  - Logs export: `LogsProvider.fetchLogs` (`GET /api/logs` → file export).
+  - Dev cooldown/retention in Power & Telemetry card: populated from `DeviceSettings` (cooldownSeconds, photoRetentionDays, videoRetentionDays).
+- **New contracts defined but require backend implementation before production:**
+  - `GET /api/devices` → [`DeviceSummary`]: Dev “Devices” card (online state, battery %, last contact) for one or more units.
+  - `GET /api/telemetry?deviceId=...` → `TelemetryResponse`: Feeder battery card (battery %, solar charging), Dev Power & Telemetry card (packVoltage, solar/load watts, internalTempC, signalStrengthDbm), AMB MINI mode (`sleeping|capture|idle|offline`).
+  - `GET /api/connectivity?deviceId=...` → connectivity status for Dev card (`status`, `recentFailures`, `averageRoundtripMs`, `lastSync`).
+  - `GET /api/logs/summary?deviceId=...&limit=50` → `[LogEntry]` for Dev Logs card.
+
+**Pre-production checklist for app + unit:**
+- [ ] Implement `/api/devices`, `/api/telemetry`, `/api/connectivity`, `/api/logs/summary` on the local backend (or cloud gateway) with the JSON shapes described in `IOS_SWIFTUI_3TAB_IMPLEMENTATION.md`.
+- [ ] Verify Feeder battery % and "Charging via solar" match real hardware behavior under different conditions (idle, charging, low battery).
+- [ ] Confirm Dev AMB MINI status (`mode`) transitions reflect real firmware states (sleeping, capture, idle, offline).
+- [ ] Run end-to-end manual tests for Feeder/Options/Dev flows on physical devices and capture artifacts under `REPORTS/A1.3.6/`.
 - [ ] Backend API integration (all mocks need replacing)
 
 **Required for:** Production readiness, user acceptance testing

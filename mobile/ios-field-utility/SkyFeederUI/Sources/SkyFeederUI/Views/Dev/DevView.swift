@@ -17,7 +17,8 @@ public struct DevView: View {
                         telemetry: viewModel.telemetry,
                         retentionPolicy: viewModel.retentionPolicy,
                         onRunCleanup: { viewModel.runCleanupNow() },
-                        captureCooldownSeconds: viewModel.captureCooldownSeconds
+                        captureCooldownSeconds: viewModel.captureCooldownSeconds,
+                        ambMiniStatus: viewModel.ambMiniStatus
                     )
                     ActionsCard(viewModel: viewModel)
                     LogsCard(logs: viewModel.logs)
@@ -157,7 +158,7 @@ struct PowerTelemetryCard: View {
     let retentionPolicy: RetentionPolicy?
     let onRunCleanup: () -> Void
     let captureCooldownSeconds: Int?
-    @EnvironmentObject var viewModel: DevViewModel
+    let ambMiniStatus: String
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -180,7 +181,7 @@ struct PowerTelemetryCard: View {
                 if let cooldown = captureCooldownSeconds {
                     InfoRow(label: "CAPTURE_COOLDOWN_SECONDS", value: "\(cooldown)")
                 }
-                InfoRow(label: "AMB MINI STATUS", value: viewModel.ambMiniStatus)
+                InfoRow(label: "AMB MINI STATUS", value: ambMiniStatus)
 
                 Button(action: onRunCleanup) {
                     Text("Run cleanup now")
