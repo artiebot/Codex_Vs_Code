@@ -1,14 +1,14 @@
 # SkyFeeder Execution Playbook (Local-First Option A)
 
-_Last updated: 2025-11-15_
+_Last updated: 2025-11-16_
 
 ---
 
 ## 0. Snapshot
 
 - Device architecture: ESP32 <-> AMB82 Mini over UART (PE1/PE2) with GPIO16 wake pulse (~80-100 ms). Mini deep-sleeps when idle; wake-to-ready is about 10 s. No SD card, no MQTT on-device.
-- Control plane: Local `ws-relay` (JWT rooms on port 8081). ESP32 reconnects with exponential backoff and queues outbound telemetry.
-- Media path: `presign-api` issues PUT targets that proxy to MinIO. Uploads buffer in RAM with retry queue (1 min + 5 min + 15 min, max 3 attempts).
+- Control plane: Local HTTP/WS stack. ESP32 exposes provisioning and OTA endpoints; `presign-api` and `ws-relay` provide `/api/*` and WebSocket rooms on port 8081. MQTT is not required at runtime (legacy stubs only).
+- Media path: `presign-api` issues PUT targets that proxy to MinIO. Uploads buffer in RAM with retry queue (1 min + 5 min + 15 min, max 3 attempts), and gallery endpoints serve indices and media via MinIO.
 - Storage: MinIO buckets `photos/<deviceId>/...` (30-day retention + day indices) and `clips/<deviceId>/...` (1-day retention). Day index JSON files live inside `photos/<deviceId>/indices/`.
 - OTA: ESP32/Mini fetch firmware from `OTA_BASE` (`http://<LAN-IP>:9180/fw/...`), verify sha256/signature, and roll back on failed boots.
 - Auth: Local stack trusts any deviceId (dev-only). Real JWT validation begins at Cloud gate CF-1.
@@ -144,14 +144,33 @@ The following validation items were skipped during simulation/software-only test
 - [ ] Triple power-cycle triggers captive portal automatically
 - [ ] LED transitions: amber (portal) → blue (Wi-Fi connecting) → green (online)
 - [ ] Captive portal accessible via SkyFeeder-Setup AP
-- [ ] Wi-Fi + MQTT credentials save and persist across reboots
+- [ ] Wi-Fi credentials + device ID save and persist across reboots
 - [ ] LED returns to AUTO mode after ~2 minutes of stable connectivity
 - [ ] Power-cycle counter clears after stability period
 - [ ] Provisioning demo video recorded
 
+Additional Wi-Fi robustness checks:
+- [ ] Transient Wi-Fi failures stay in background retry (no portal), but ~3 failed attempts within ~30 minutes re-enter provisioning automatically
+
 **Required for:** Operator training, field deployment UX validation
 **Artifacts expected:** `REPORTS/B1/provisioning_demo.mp4` (video of full provisioning flow with LED transitions)
 **Status:** Firmware implementation complete; manual hardware testing and video recording needed
+
+---
+
+### Backend API Validation (Telemetry & Connectivity)
+
+**What was NOT validated (still required):**
+- [ ] `/api/devices` returns a JSON list of devices with `deviceId`, `status`, `batteryPercent` (null for now), and basic storage counts.
+- [ ] `/api/telemetry?deviceId=dev1` returns a JSON object with `deviceId`, `timestamp`, `batteryPercent`, `ambMiniMode`, and `storage.photos` counts (battery/pack values may be null until firmware wiring is complete).
+- [ ] `/api/connectivity?deviceId=dev1` returns `status` (`online|degraded|offline`), `averageRoundtripMs`, `recentFailures`, and `lastSync`.
+- [ ] `/api/logs/summary?deviceId=dev1&limit=50` returns recent log lines in `entries[]`, suitable for the Dev Logs card.
+
+**Suggested manual validation steps:**
+1. Start local stack: `cd ops/local && docker compose up -d`.
+2. Confirm health: `curl http://localhost:8080/api/health?deviceId=dev1`.
+3. Call each API endpoint above and verify HTTP 200 + JSON shape matches `IOS_SWIFTUI_3TAB_IMPLEMENTATION.md`.
+4. Open the iOS app (or dashboard) and confirm Dev tab cards populate from these endpoints without errors.
 
 ---
 
@@ -670,8 +689,10 @@ Exit: ✅ Fault injection and retry logic validated via simulation; hardware soa
 ### B1 - Provisioning polish
 
 - Implement AP + captive portal when no Wi-Fi; triple power-cycle re-enters AP.
-- LED states: `PROVISIONING`, `CONNECTING_WIFI`, `ONLINE` without blocking main loop.
+- LED states: `PROVISIONING`, `CONNECTING_WIFI`, `ONLINE` driven by a non-blocking Wi-Fi state machine (no long blocking loops in `loop()`).
+- Wi-Fi retries: background reconnects with failure counters stored in NVS; only when **~3 connection attempts fail within the configured window (~30 min)** does the firmware escalate back into provisioning mode instead of flapping.
 - Produce operator quick guide and emergency `DEMO_DEFAULTS` instructions (see `docs/PROVISIONING.md`).
+- Add watchdog + maintenance reboot safety net (default ~6h) with reset reasons logged in NVS and surfaced via telemetry/debug so soak tests don’t require manual power-cycling.
 - Validate snapshot guard fix on hardware and record provisioning/demo video (see Pending Hardware Validations).
   Artifacts: `/REPORTS/B1/provisioning_demo.mp4`, `docs/PROVISIONING.md`
 

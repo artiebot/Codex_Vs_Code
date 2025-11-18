@@ -128,11 +128,16 @@ constexpr unsigned long kMiniWakePulseIntervalMs = 2000;
 constexpr unsigned long kMiniBootTimeoutMs = 8000;
 constexpr unsigned long kMiniReadyTimeoutMs = 8000;
 constexpr uint8_t kMiniWakeMaxRetries = 3;
+constexpr unsigned long kMiniErrorWindowMs = 60UL * 60UL * 1000UL;  // 1 hour
+constexpr uint8_t kMiniErrorThreshold = 5;
 
 MiniArmState gArmState = MiniArmState::Idle;
 bool gMiniBootSeen = false;
 bool gMiniReadySeen = false;
+bool gMiniDegraded = false;
+
 bool miniLikelyPresent() {
+  if (gMiniDegraded) return false;
   if (gMiniLastStatusMs != 0) return true;
   if (gMiniActive) return true;
   if (gMiniReadySeen) return true;
@@ -154,6 +159,9 @@ unsigned long gVisitEndMs = 0;
 const char* reasonArmedReady = "armed_ready";
 const char* reasonLateReady = "late_ready";
 const char* reasonNoCapture = "no_capture_ready";
+
+unsigned long gMiniErrorWindowStartMs = 0;
+uint8_t gMiniErrorCount = 0;
 
 void markMiniActivity() { gMiniLastActivityMs = millis(); }
 
@@ -188,6 +196,40 @@ void publishVisitEvent(const char* type, float delta = 0.0f, unsigned long durat
   SF::mqtt.raw().publish(SF::Topics::eventVisit(), buf, false);
   Serial.print("[visit] ");
   Serial.println(buf);
+}
+
+void recordMiniSuccess() {
+  gMiniErrorWindowStartMs = 0;
+  gMiniErrorCount = 0;
+  if (gMiniDegraded) {
+    gMiniDegraded = false;
+    publishSysState("mini_recovered");
+  }
+}
+
+void recordMiniError(const char* code) {
+  unsigned long now = millis();
+  bool windowExpired = false;
+  if (gMiniErrorWindowStartMs == 0 || now < gMiniErrorWindowStartMs) {
+    windowExpired = true;
+  } else if ((now - gMiniErrorWindowStartMs) > kMiniErrorWindowMs) {
+    windowExpired = true;
+  }
+
+  if (windowExpired) {
+    gMiniErrorWindowStartMs = now;
+    gMiniErrorCount = 1;
+  } else if (gMiniErrorCount < 255) {
+    ++gMiniErrorCount;
+  }
+
+  SF::Log::warn("mini", "error code=%s count=%u", code ? code : "unknown", gMiniErrorCount);
+
+  if (!gMiniDegraded && gMiniErrorCount >= kMiniErrorThreshold) {
+    bool powerCycled = SF::Mini_powerCycle();
+    gMiniDegraded = true;
+    publishSysState(powerCycled ? "mini_degraded_power_cycle" : "mini_degraded");
+  }
 }
 
 void onMiniStatus(const char* state, const char* ip, const char* rtsp, bool settled) {
@@ -379,27 +421,32 @@ bool ensureMiniReady(const char*& codeOut) {
   if (!miniLikelyPresent()) {
     codeOut = "NO_MINI";
     Serial.println("[cmd/cam] Mini unavailable before wake");
+    recordMiniError(codeOut);
     return false;
   }
   markMiniActivity();
   if (!SF::Mini_wakePulse()) {
     codeOut = "WAKE_PIN";
     SF::Log::warn("cmd/cam", "wake pulse skipped (pin < 0)");
+    recordMiniError(codeOut);
     return false;
   }
 
   if (!waitForMiniState("active", kMiniWakeTimeoutMs)) {
     codeOut = "WAKE_TIMEOUT";
     Serial.println("[cmd/cam] Mini wake timeout");
+    recordMiniError(codeOut);
     return false;
   }
 
   if (!waitForMiniSettled(kMiniSettleTimeoutMs)) {
     codeOut = "SETTLE_TIMEOUT";
     Serial.println("[cmd/cam] Mini settle timeout");
+    recordMiniError(codeOut);
     return false;
   }
 
+  recordMiniSuccess();
   return true;
 }
 
@@ -407,6 +454,7 @@ bool runSnapshotSequence(const char*& codeOut) {
   if (!miniLikelyPresent()) {
     codeOut = "NO_MINI";
     Serial.println("[cmd/cam] Mini not detected; aborting snapshot");
+     recordMiniError(codeOut);
     return false;
   }
   Serial.println("[cmd/cam] Snapshot sequence start");
@@ -419,6 +467,7 @@ bool runSnapshotSequence(const char*& codeOut) {
     gSnapshotPending = false;
     codeOut = "UART_WRITE";
     Serial.println("[cmd/cam] Snapshot UART write failed");
+    recordMiniError(codeOut);
     return false;
   }
 
@@ -427,6 +476,7 @@ bool runSnapshotSequence(const char*& codeOut) {
     gSnapshotPending = false;
     codeOut = "SNAP_TIMEOUT";
     Serial.println("[cmd/cam] Snapshot result timeout");
+    recordMiniError(codeOut);
     return false;
   }
 
@@ -434,6 +484,7 @@ bool runSnapshotSequence(const char*& codeOut) {
   if (!result.ok) {
     codeOut = "SNAP_FAIL";
     Serial.println("[cmd/cam] Snapshot reported failure");
+    recordMiniError(codeOut);
     return false;
   }
 
@@ -447,6 +498,7 @@ bool runEventCapture(uint8_t snapshotCount, uint16_t videoSeconds, const char* t
   if (!miniLikelyPresent()) {
     codeOut = "NO_MINI";
     Serial.println("[event] Mini not detected; aborting capture");
+    recordMiniError(codeOut);
     return false;
   }
   Serial.println("[event] Capture sequence start");
@@ -458,6 +510,7 @@ bool runEventCapture(uint8_t snapshotCount, uint16_t videoSeconds, const char* t
   if (!SF::Mini_requestEventCapture(snapshotCount, videoSeconds, trigger)) {
     codeOut = "UART_WRITE";
     Serial.println("[event] capture_event UART write failed");
+    recordMiniError(codeOut);
     return false;
   }
   markMiniActivity();

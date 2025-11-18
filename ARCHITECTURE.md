@@ -203,18 +203,25 @@ MINIO_SECRET_KEY=minioadmin
 
 **Purpose:** Device controller and communication hub
 
+**Control Plane (canonical):**
+- Local-only HTTP/WS control plane; **no MQTT is required at runtime**. MQTT helpers remain as legacy stubs to avoid large refactors but do not establish network connections.
+
 **Responsibilities:**
 - Photo upload management with retry queue (1min, 5min, 15min)
-- WebSocket client with exponential backoff reconnect
-- UART control of AMB82-Mini camera
-- OTA update client with rollback support
-- Telemetry broadcasting
+- UART control of AMB82-Mini camera (wake pulses, capture sequencing, deep-sleep)
+- OTA update client with rollback support and boot health tracking
+- Telemetry generation (currently published via legacy MQTT payload builder; transport is being migrated to HTTP/WS)
+- Wi-Fi provisioning + non-blocking connection state machine with NVS-backed failure counters
+- Task watchdog + periodic maintenance reboot for self-recovery
 
 **Key Files:**
-- `skyfeeder/config.h`: Configuration constants
-- `skyfeeder/upload_manager.cpp`: Retry queue logic
-- `skyfeeder/websocket_client.cpp`: WebSocket handling
-- `skyfeeder/command_handler.cpp`: MQTT/command processing
+- `skyfeeder/config.h`: Configuration constants (Wi-Fi, watchdog, maintenance reboot)
+- `skyfeeder/skyfeeder.ino`: Main entrypoint, watchdog + maintenance reboot policy
+- `skyfeeder/provisioning.cpp`: Captive portal, Wi-Fi config, failure counters, triple power-cycle handling
+- `skyfeeder/mqtt_client.cpp`: Wi-Fi connection state machine (legacy MQTT transport stub)
+- `skyfeeder/telemetry_service.cpp`: Telemetry payload construction (currently uses MQTT client stub)
+- `skyfeeder/command_handler.cpp`: Command routing + AMB82 sequencing and recovery (with degraded-mode handling)
+- `skyfeeder/mini_link.cpp`: UART framing, wake pulses, power control for AMB82-Mini
 
 **Upload Retry Pattern:**
 ```

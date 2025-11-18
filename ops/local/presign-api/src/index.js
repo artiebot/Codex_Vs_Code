@@ -1018,6 +1018,23 @@ const collectLogsForServices = async (services, tailLines) => {
   return sections.join("\n\n");
 };
 
+const listRecentLogs = async (deviceId, limit) => {
+  // For now this is a thin wrapper around docker-compose logs, not per-device.
+  const services = defaultLogServices;
+  const linesPerService = clampLimit(limit, 50, 500);
+  const body = await collectLogsForServices(services, linesPerService);
+  const entries = body
+    .split("\n")
+    .slice(-linesPerService)
+    .map((line, idx) => ({
+      id: `${deviceId}-${idx}`,
+      ts: new Date().toISOString(),
+      service: "stack",
+      line,
+    }));
+  return { deviceId, entries };
+};
+
 const loadDayIndex = async (indexKey, baseDoc) => {
   const result = {
     doc: { ...baseDoc },
@@ -1285,6 +1302,121 @@ app.get("/api/health", async (req, res) => {
   }
 });
 
+// --- Devices / Telemetry / Connectivity / Logs summary endpoints ---
+
+const parseDeviceFilter = (value) => {
+  const raw = String(value || "").trim();
+  if (!raw) return null;
+  return raw.split(",").map((id) => sanitizeDeviceId(id)).filter(Boolean);
+};
+
+const buildDeviceSummaryRecord = (deviceId, healthSnapshot, wsHealth) => {
+  const power = healthSnapshot?.storage?.photos || {};
+  const batteryPercent = null; // Placeholder until firmware exposes battery stats via telemetry.
+  const status =
+    wsHealth?.status === "healthy"
+      ? "online"
+      : wsHealth?.status === "degraded"
+      ? "degraded"
+      : "offline";
+  return {
+    deviceId,
+    status,
+    batteryPercent,
+    lastSeen: healthSnapshot?.metrics?.visits?.lastEventTs || null,
+    photosCount: power.count || 0,
+  };
+};
+
+app.get("/api/devices", async (req, res) => {
+  // For now this is a thin wrapper around /api/health + ws-relay metrics.
+  const filter = parseDeviceFilter(req.query.deviceId);
+  const deviceIds = filter && filter.length ? filter : [defaultDeviceId];
+  try {
+    const [wsHealth, ...healthSnapshots] = await Promise.all([
+      checkWsRelayHealth(),
+      ...deviceIds.map((id) =>
+        fetch(`${normalizedPublicBase}/api/health?deviceId=${encodeURIComponent(id)}`)
+          .then((r) => (r.ok ? r.json() : null))
+          .catch(() => null)
+      ),
+    ]);
+
+    const devices = deviceIds.map((deviceId, idx) =>
+      buildDeviceSummaryRecord(deviceId, healthSnapshots[idx], wsHealth)
+    );
+
+    res.json({ devices });
+  } catch (err) {
+    console.error("[api:devices] failed", err);
+    res.status(500).json({ error: "devices_unavailable" });
+  }
+});
+
+app.get("/api/telemetry", async (req, res) => {
+  const deviceId = sanitizeDeviceId(req.query.deviceId || defaultDeviceId);
+  try {
+    const healthResponse = await fetch(
+      `${normalizedPublicBase}/api/health?deviceId=${encodeURIComponent(deviceId)}`
+    );
+    if (!healthResponse.ok) {
+      return res.status(502).json({ error: "health_unavailable" });
+    }
+    const health = await healthResponse.json();
+    const power = health.storage?.photos || {};
+    const services = health.services || {};
+
+    const telemetry = {
+      deviceId,
+      timestamp: health.timestamp || isoNoMillis(),
+      packVoltage: null,
+      solarWatts: null,
+      loadWatts: null,
+      internalTempC: null,
+      signalStrengthDbm: null,
+      batteryPercent: null,
+      ambMiniMode: services.wsRelay?.status === "healthy" ? "idle" : "offline",
+      storage: {
+        photos: {
+          count: power.count || 0,
+          totalBytes: power.totalBytes || 0,
+        },
+      },
+    };
+
+    res.json(telemetry);
+  } catch (err) {
+    console.error("[api:telemetry] failed", err);
+    res.status(500).json({ error: "telemetry_unavailable" });
+  }
+});
+
+app.get("/api/connectivity", async (req, res) => {
+  const deviceId = sanitizeDeviceId(req.query.deviceId || defaultDeviceId);
+  const started = Date.now();
+  try {
+    const wsHealth = await checkWsRelayHealth();
+    const status =
+      wsHealth?.status === "healthy"
+        ? "online"
+        : wsHealth?.status === "degraded"
+        ? "degraded"
+        : "offline";
+
+    res.json({
+      deviceId,
+      status,
+      averageRoundtripMs: wsHealth.latencyMs ?? null,
+      recentFailures: wsHealth.errorCount ?? 0,
+      lastSync: isoNoMillis(),
+      latencyMs: Date.now() - started,
+    });
+  } catch (err) {
+    console.error("[api:connectivity] failed", err);
+    res.status(500).json({ error: "connectivity_unavailable" });
+  }
+});
+
 const requireDeviceIdQuery = (value) => {
   const trimmed = String(value || "").trim();
   return trimmed.length > 0;
@@ -1540,6 +1672,22 @@ app.get("/api/logs", async (req, res) => {
   } catch (err) {
     console.error("[api:logs] failed", err);
     res.status(500).json({ error: "logs_unavailable" });
+  }
+});
+
+app.get("/api/logs/summary", async (req, res) => {
+  const deviceId = sanitizeDeviceId(req.query.deviceId || defaultDeviceId);
+  const limit = clampLimit(req.query.limit, 50, 500);
+  try {
+    const snapshot = await listRecentLogs(deviceId, limit);
+    res.json({
+      deviceId,
+      limit,
+      entries: snapshot.entries,
+    });
+  } catch (err) {
+    console.error("[api:logs:summary] failed", err);
+    res.status(500).json({ error: "logs_summary_unavailable" });
   }
 });
 

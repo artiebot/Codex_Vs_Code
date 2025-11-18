@@ -19,8 +19,15 @@ public:
   bool isReady() const { return ready_; }
   const ProvisionedConfig& config() const { return cfg_; }
   const char* deviceId() const;
-  void onMqttConnected(PubSubClient& client);
+  // Legacy MQTT hook - kept as no-op for compatibility.
+  void onMqttConnected(PubSubClient& /*client*/) {}
   bool deriveAndSave(const ProvisionedConfig& incoming);
+  // Wi-Fi connection lifecycle notifications used by the non-blocking
+  // Wi-Fi state machine. These allow provisioning to track failure windows
+  // and decide when to escalate back into setup AP mode.
+  void notifyWifiAttempt();
+  void notifyWifiConnected();
+  void notifyWifiConnectTimeout();
 private:
   void load();
   void save(const ProvisionedConfig& incoming);
@@ -38,6 +45,8 @@ private:
   void clearPowerCycleCounter();
   void loadPowerCycleState();
   void savePowerCycleState();
+  void loadWifiFailureState();
+  void saveWifiFailureState();
   bool setup_mode_=false;
   bool ready_=false;
   bool discovery_published_=false;
@@ -54,6 +63,10 @@ private:
   bool power_cycle_cleared_ = false;
   unsigned long stable_connected_since_ms_ = 0;
   bool applied_stable_auto_ = false;
+  bool wifi_failure_state_loaded_ = false;
+  bool wifi_connected_ = false;
+  uint8_t wifi_fail_count_ = 0;
+  unsigned long wifi_fail_window_start_ms_ = 0;
 };
 extern Provisioning provisioning;
 } // namespace SF

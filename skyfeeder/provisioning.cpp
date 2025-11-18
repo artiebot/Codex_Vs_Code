@@ -4,7 +4,6 @@
 #define ARDUINOJSON_DEPRECATED(msg)
 #endif
 #include <ArduinoJson.h>
-#include <PubSubClient.h>
 #include <WiFi.h>
 #include <DNSServer.h>
 #include <WebServer.h>
@@ -14,14 +13,17 @@
 #include "led_ux.h"
 #include "storage_nvs.h"
 #include "logging.h"
-#include "topics.h"
-#include "command_handler.h"
 
 namespace {
 constexpr uint32_t kMagic = 0x53465014;
 constexpr uint32_t kPowerCycleMagic = 0x53504331;  // "SPC1"
 const unsigned long HOLD_MS = PROVISION_HOLD_MS;
 constexpr unsigned long kStableConnectedMs = 120000;
+// Wi-Fi failure tracking configuration. Failures are counted within the
+// configured time window; once WIFI_MAX_FAILS_BEFORE_PROVISIONING is reached
+// the device escalates back into provisioning mode.
+constexpr uint8_t kWifiFailureLimit = WIFI_MAX_FAILS_BEFORE_PROVISIONING;
+constexpr unsigned long kWifiFailureWindowMs = WIFI_FAIL_WINDOW_MS;
 DNSServer dnsServer;
 WebServer portalServer(80);
 bool portalActive = false;
@@ -49,10 +51,6 @@ void sendPortalPage(bool saved=false) {
   if(saved) html += "<p>Configuration saved! Device will reboot...</p>";
   html += "<label>Wi-Fi SSID<input name='ssid' value='" + htmlEscape(cfg.wifi_ssid) + "' required></label>";
   html += "<label>Wi-Fi Password<input name='wifi_pass' value='" + htmlEscape(cfg.wifi_pass) + "'></label>";
-  html += "<label>MQTT Host<input name='mqtt_host' value='" + htmlEscape(cfg.mqtt_host) + "' required></label>";
-  html += "<label>MQTT Port<input type='number' name='mqtt_port' value='"; html += cfg.mqtt_port; html += "' required></label>";
-  html += "<label>MQTT User<input name='mqtt_user' value='" + htmlEscape(cfg.mqtt_user) + "'></label>";
-  html += "<label>MQTT Password<input name='mqtt_pass' value='" + htmlEscape(cfg.mqtt_pass) + "'></label>";
   html += "<label>Device ID<input name='device_id' value='" + htmlEscape(cfg.device_id) + "' required></label>";
   html += "<button type='submit'>Save &amp; Reboot</button></form></body></html>";
   portalServer.send(200,"text/html",html);
@@ -67,10 +65,11 @@ void handleSubmit(){
   auto copyField=[&](const char* key,char* dest,size_t len,const char* fallback){ String v=portalServer.hasArg(key)?portalServer.arg(key):String(); if(v.length()==0 && fallback) v=fallback; copySafe(dest,len,v.c_str()); };
   copyField("ssid", incoming.wifi_ssid, sizeof(incoming.wifi_ssid), WIFI_DEFAULT_SSID);
   copyField("wifi_pass", incoming.wifi_pass, sizeof(incoming.wifi_pass), WIFI_DEFAULT_PASS);
-  copyField("mqtt_host", incoming.mqtt_host, sizeof(incoming.mqtt_host), MQTT_DEFAULT_HOST);
-  String portStr=portalServer.hasArg("mqtt_port")?portalServer.arg("mqtt_port"):String(); incoming.mqtt_port = portStr.length()? (uint16_t)portStr.toInt() : MQTT_DEFAULT_PORT;
-  copyField("mqtt_user", incoming.mqtt_user, sizeof(incoming.mqtt_user), MQTT_DEFAULT_USER);
-  copyField("mqtt_pass", incoming.mqtt_pass, sizeof(incoming.mqtt_pass), MQTT_DEFAULT_PASS);
+  // MQTT fields are legacy; keep using defaults internally but do not collect from the portal.
+  copySafe(incoming.mqtt_host, sizeof(incoming.mqtt_host), MQTT_DEFAULT_HOST);
+  incoming.mqtt_port = MQTT_DEFAULT_PORT;
+  copySafe(incoming.mqtt_user, sizeof(incoming.mqtt_user), MQTT_DEFAULT_USER);
+  copySafe(incoming.mqtt_pass, sizeof(incoming.mqtt_pass), MQTT_DEFAULT_PASS);
   copyField("device_id", incoming.device_id, sizeof(incoming.device_id), DEVICE_ID_DEFAULT);
   if(!prov.deriveAndSave(incoming)){ portalServer.send(400,"text/plain","Invalid configuration (ssid, host, device required)"); return; }
   sendPortalPage(true);
@@ -141,7 +140,11 @@ const char* Provisioning::deviceId() const { return cfg_.device_id[0] ? cfg_.dev
 
 bool Provisioning::deriveAndSave(const ProvisionedConfig& incoming){ if(!cfgValid(incoming)) return false; save(incoming); return true; }
 
-bool Provisioning::cfgValid(const ProvisionedConfig& incoming) const { return incoming.wifi_ssid[0] && incoming.mqtt_host[0] && incoming.device_id[0]; }
+bool Provisioning::cfgValid(const ProvisionedConfig& incoming) const {
+  // Wi-Fi-only configuration is considered valid when SSID and device_id are present.
+  // MQTT fields are legacy and no longer required for normal operation.
+  return incoming.wifi_ssid[0] && incoming.device_id[0];
+}
 
 void Provisioning::begin(){
   SF::Log::init();
@@ -150,6 +153,7 @@ void Provisioning::begin(){
   Storage::begin();
   uint8_t bootCycles = recordBootCycle();
   load();
+  loadWifiFailureState();
   bool tripleTriggered = bootCycles >= 3;
   if (tripleTriggered) {
     SF::Log::warn("prov", "power-cycle setup triggered count=%u", bootCycles);
@@ -190,6 +194,12 @@ void Provisioning::save(const ProvisionedConfig& incoming){
   stable_connected_since_ms_ = 0;
   applied_stable_auto_ = false;
   SF::ledUx.setMode(LedUx::Mode::CONNECTING_WIFI);
+  // Reset Wi-Fi failure tracking when a fresh configuration is saved.
+  wifi_connected_ = false;
+  wifi_fail_count_ = 0;
+  wifi_fail_window_start_ms_ = 0;
+  wifi_failure_state_loaded_ = true;
+  saveWifiFailureState();
 }
 
 bool Provisioning::buttonRequestedSetup(){ if(digitalRead(PROVISION_BUTTON_PIN)==LOW){ unsigned long start=millis(); while(digitalRead(PROVISION_BUTTON_PIN)==LOW){ if(millis()-start >= HOLD_MS) return true; delay(10); } } return false; }
@@ -210,6 +220,12 @@ void Provisioning::enterProvisioningMode(){
   stable_connected_since_ms_ = 0;
   power_cycle_cleared_ = false;
   applied_stable_auto_ = false;
+  // Reset Wi-Fi failure tracking when explicitly entering provisioning.
+  wifi_connected_ = false;
+  wifi_fail_count_ = 0;
+  wifi_fail_window_start_ms_ = 0;
+  wifi_failure_state_loaded_ = true;
+  saveWifiFailureState();
 }
 
 void Provisioning::runtimeButtonCheck(){ int level=digitalRead(PROVISION_BUTTON_PIN); unsigned long now=millis(); if(level==LOW){ if(!runtime_press_active_){ runtime_press_active_=true; runtime_press_start_=now; } else if((now-runtime_press_start_)>=HOLD_MS && !setup_mode_){ enterProvisioningMode(); } } else { runtime_press_active_=false; runtime_press_start_=0; } }
@@ -239,6 +255,74 @@ void Provisioning::monitorStability() {
   }
 }
 
+void Provisioning::loadWifiFailureState() {
+  if (wifi_failure_state_loaded_) return;
+  int32_t count = 0;
+  int32_t windowMs = 0;
+  if (SF::Storage::getInt32("prov", "wifi_fail_count", count) && count > 0) {
+    if (count > 255) count = 255;
+    wifi_fail_count_ = static_cast<uint8_t>(count);
+  } else {
+    wifi_fail_count_ = 0;
+  }
+  if (SF::Storage::getInt32("prov", "wifi_fail_window_ms", windowMs) && windowMs > 0) {
+    wifi_fail_window_start_ms_ = static_cast<unsigned long>(windowMs);
+  } else {
+    wifi_fail_window_start_ms_ = 0;
+  }
+  wifi_failure_state_loaded_ = true;
+}
+
+void Provisioning::saveWifiFailureState() {
+  if (!wifi_failure_state_loaded_) return;
+  SF::Storage::setInt32("prov", "wifi_fail_count", static_cast<int32_t>(wifi_fail_count_));
+  SF::Storage::setInt32("prov", "wifi_fail_window_ms", static_cast<int32_t>(wifi_fail_window_start_ms_));
+}
+
+void Provisioning::notifyWifiAttempt() {
+  if (!ready_ || setup_mode_) return;
+  loadWifiFailureState();
+  wifi_connected_ = false;
+}
+
+void Provisioning::notifyWifiConnected() {
+  if (!ready_ || setup_mode_) return;
+  loadWifiFailureState();
+  if (!wifi_connected_) {
+    wifi_connected_ = true;
+    wifi_fail_count_ = 0;
+    wifi_fail_window_start_ms_ = 0;
+    saveWifiFailureState();
+    // Once Wi-Fi is stable, clear the boot power-cycle counter so a future
+    // triple power-cycle can intentionally re-enter provisioning.
+    clearPowerCycleCounter();
+  }
+}
+
+void Provisioning::notifyWifiConnectTimeout() {
+  if (!ready_ || setup_mode_) return;
+  loadWifiFailureState();
+  wifi_connected_ = false;
+  unsigned long now = millis();
+  bool windowExpired = false;
+  if (wifi_fail_window_start_ms_ == 0 || now < wifi_fail_window_start_ms_) {
+    windowExpired = true;
+  } else if ((now - wifi_fail_window_start_ms_) > kWifiFailureWindowMs) {
+    windowExpired = true;
+  }
+  if (wifi_fail_count_ == 0 || windowExpired) {
+    wifi_fail_count_ = 1;
+    wifi_fail_window_start_ms_ = now;
+  } else if (wifi_fail_count_ < 255) {
+    ++wifi_fail_count_;
+  }
+  saveWifiFailureState();
+  if (wifi_fail_count_ >= kWifiFailureLimit) {
+    SF::Log::warn("wifi", "failure threshold exceeded (fails=%u), entering provisioning", wifi_fail_count_);
+    enterProvisioningMode();
+  }
+}
+
 void Provisioning::loop(){
   if(setup_mode_){
     handleHttp();
@@ -249,66 +333,18 @@ void Provisioning::loop(){
   monitorStability();
 }
 
-void Provisioning::ensureMdns(){ if(!ready_||mdns_ready_) return; if(!MDNS.begin(deviceId())) return; MDNS.addService("skyfeeder","tcp",80); MDNS.addServiceTxt("skyfeeder","tcp","step","sf_step15D_ota_safe_staging"); mdns_ready_=true; }
-
-void Provisioning::publishDiscovery(PubSubClient& client){
-  Serial.println("DEBUG: publishDiscovery called");
-  if(discovery_published_||!ready_) {
-    Serial.print("DEBUG: Discovery skipped - published:");
-    Serial.print(discovery_published_);
-    Serial.print(" ready:");
-    Serial.println(ready_);
-    return;
-  }
-  Serial.println("DEBUG: Publishing discovery...");
-  StaticJsonDocument<640> doc;
-  doc["device_id"]=deviceId();
-  doc["fw_version"]=FW_VERSION;
-  doc["step"]="sf_step15D_ota_safe_staging";
-  doc["camera_state"]=SF_miniState();
-  doc["camera_settled"]=SF_miniSettled();
-  doc["services"][0]="weight";
-  doc["services"][1]="motion";
-  doc["services"][2]="visit";
-  doc["services"][3]="led";
-  doc["services"][4]="camera";
-  doc["services"][5]="logs";
-  doc["services"][6]="ota";
-  doc["services"][7]="health";
-  auto topics=doc["topics"].to<JsonObject>();
-  topics["status"]=Topics::status();
-  topics["ack"]=Topics::ack();
-  topics["telemetry"]=Topics::telemetry();
-  topics["cmd"] = Topics::cmdAny();
-  topics["cmd_logs"] = Topics::cmdLogs();
-  topics["cmd_ota"] = Topics::cmdOta();
-  topics["event_visit"]=Topics::eventVisit();
-  topics["event_snapshot"]=Topics::eventCameraSnapshot();
-  topics["event_log"] = Topics::eventLog();
-  topics["event_ota"] = Topics::eventOta();
-  char payload[640];
-  size_t n=serializeJson(doc,payload,sizeof(payload));
-  (void)n;
-  Serial.print("DEBUG: Publishing discovery to topic: ");
-  Serial.println(Topics::discovery());
-  Serial.print("DEBUG: Discovery payload: ");
-  Serial.println(payload);
-  bool published = client.publish(Topics::discovery(), payload, true);
-  Serial.print("DEBUG: Discovery publish result: ");
-  Serial.println(published ? "SUCCESS" : "FAILED");
-  if (published) {
-    discovery_published_=true;
-  } else {
-    Serial.println("ERROR: Discovery publish failed - will retry on next connection");
-  }
-  SF::Log::info("prov", "discovery published with log topics");
+void Provisioning::ensureMdns(){
+  if(!ready_||mdns_ready_) return;
+  if(!MDNS.begin(deviceId())) return;
+  MDNS.addService("skyfeeder","tcp",80);
+  MDNS.addServiceTxt("skyfeeder","tcp","step","sf_step15D_ota_safe_staging");
+  mdns_ready_=true;
 }
 
-void Provisioning::onMqttConnected(PubSubClient& client){
-  publishDiscovery(client);
-  SF::ledUx.setMode(LedUx::Mode::ONLINE);
-  stable_connected_since_ms_ = millis();
-  applied_stable_auto_ = false;
+// MQTT discovery is now legacy and intentionally disabled; HTTP/WS clients
+// should use mDNS + HTTP APIs for discovery instead.
+void Provisioning::publishDiscovery(PubSubClient&){
+  SF::Log::info("prov", "MQTT discovery is disabled in HTTP/WS-only mode");
 }
 
 } // namespace SF

@@ -1,8 +1,9 @@
 #include "config.h"
 #include "logging.h"
 #include <WiFi.h>
-#include "mqtt_client.h"
-#include "telemetry_service.h"
+#include <esp_task_wdt.h>
+#include <esp_system.h>
+#include "mqtt_client.h"  // Now acts as Wi-Fi manager; MQTT is disabled.
 #include "command_handler.h"
 #include "power_manager.h"
 #include "weight_service.h"
@@ -18,7 +19,14 @@
 #include "ota_manager.h"
 #include "boot_health.h"
 
-static bool s_mqttStarted = false;
+namespace {
+// Maintenance reboot interval derived from config; 0 disables the feature.
+constexpr unsigned long kMaintenanceIntervalMs =
+    (MAINTENANCE_REBOOT_INTERVAL_SEC > 0)
+        ? (MAINTENANCE_REBOOT_INTERVAL_SEC * 1000UL)
+        : 0UL;
+unsigned long gBootMillis = 0;
+}  // namespace
 
 void setup() {
   Serial.begin(115200);
@@ -44,6 +52,15 @@ void setup() {
   Serial.println("Initializing Boot Health...");
   SF::BootHealth::begin();
   Serial.println("Boot Health initialized!");
+
+#if WATCHDOG_TIMEOUT_SEC > 0
+  Serial.println("Configuring task watchdog...");
+  esp_task_wdt_init(WATCHDOG_TIMEOUT_SEC, true);
+  esp_task_wdt_add(nullptr);
+  Serial.println("Task watchdog configured!");
+#else
+  Serial.println("Task watchdog disabled via config.");
+#endif
 
   Serial.println("Initializing LED services...");
   SF::led.begin(LED_PIN);
@@ -88,26 +105,24 @@ void setup() {
   Serial.println("Provisioning initialized!");
 
   if (SF::provisioning.isReady()) {
-    Serial.println("Provisioning ready - starting MQTT...");
-    SF::mqtt.begin();
-    Serial.println("MQTT initialized!");
-
-    Serial.println("Starting telemetry...");
-    SF::telemetry.begin(2000);
-    Serial.println("Telemetry started!");
-
-    s_mqttStarted = true;
-    Serial.println("MQTT services started!");
+    Serial.println("Provisioning ready - ensuring Wi-Fi (HTTP/WS mode)...");
+    SF::mqtt.begin();  // Wi-Fi only; MQTT itself is disabled.
   } else {
-    Serial.println("Provisioning not ready - skipping MQTT");
+    Serial.println("Provisioning not ready - waiting for setup AP");
   }
 
+  gBootMillis = millis();
   Serial.println("=== SETUP COMPLETE ===");
 }
 
 void loop() {
   static unsigned long lastDebug = 0;
   static bool debugPrinted = false;
+  static unsigned long lastMaintenanceCheck = 0;
+
+#if WATCHDOG_TIMEOUT_SEC > 0
+  esp_task_wdt_reset();
+#endif
 
   SF::provisioning.loop();
   SF::power.loop();
@@ -125,31 +140,35 @@ void loop() {
       Serial.println("DEBUG: Provisioning not ready, waiting...");
       debugPrinted = true;
     }
-    s_mqttStarted = false;
     delay(20);
     return;
-  }
-
-  if (!s_mqttStarted) {
-    Serial.println("DEBUG: Starting MQTT services in loop...");
-    SF::mqtt.begin();
-    SF::telemetry.begin(2000);
-    s_mqttStarted = true;
-    Serial.println("DEBUG: MQTT services started in loop!");
   }
 
   // Debug output every 10 seconds
   if (millis() - lastDebug > 10000) {
     lastDebug = millis();
-    Serial.println("DEBUG: Loop running, MQTT active");
+    Serial.println("DEBUG: Loop running");
     Serial.print("WiFi connected: ");
     Serial.println(WiFi.status() == WL_CONNECTED ? "YES" : "NO");
-    Serial.print("MQTT connected: ");
-    Serial.println(SF::mqtt.raw().connected() ? "YES" : "NO");
   }
 
-  SF::mqtt.loop();
-  SF::telemetry.loop();
+  // Periodic maintenance reboot as a safety net. This is intentionally
+  // conservative: it only considers uptime and avoids triggering during
+  // provisioning or while OTA health is pending.
+  if (kMaintenanceIntervalMs > 0 && SF::provisioning.isReady() && !SF::BootHealth::awaitingHealth()) {
+    unsigned long now = millis();
+    if (now - lastMaintenanceCheck > 60000UL) {  // check roughly once a minute
+      lastMaintenanceCheck = now;
+      if (now - gBootMillis >= kMaintenanceIntervalMs) {
+        Serial.println("Maintenance reboot interval reached; rebooting...");
+        SF::Log::warn("boot", "maintenance_reboot interval=%lus", static_cast<unsigned long>(MAINTENANCE_REBOOT_INTERVAL_SEC));
+        delay(100);
+        esp_restart();
+      }
+    }
+  }
+
+  SF::mqtt.loop();  // Maintains Wi-Fi only; MQTT is a no-op.
   delay(10);
 }
 

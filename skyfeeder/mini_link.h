@@ -23,6 +23,7 @@ bool Mini_stageWifi(const char* ssid, const char* psk, const char* token);
 bool Mini_commitWifi(const char* token = nullptr);
 bool Mini_abortWifi(const char* token = nullptr);
 bool Mini_wakePulse(uint16_t ms = 80);
+bool Mini_powerCycle(uint16_t offMs = 500, uint16_t onDelayMs = 0);
 
 void Mini_setStatusCallback(MiniStatusCallback cb);
 void Mini_setSnapshotCallback(MiniSnapshotCallback cb);

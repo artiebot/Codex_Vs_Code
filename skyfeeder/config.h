@@ -11,6 +11,27 @@
 #define MQTT_DEFAULT_PASS  "dev1pass"
 #define DEVICE_ID_DEFAULT  "dev1"
 
+// --- Wi-Fi retry / provisioning behaviour ---
+// Maximum failed connection attempts within the window before the device
+// automatically escalates back into provisioning (setup AP) mode.
+#define WIFI_MAX_FAILS_BEFORE_PROVISIONING 3
+// Time window for counting failures (milliseconds). Default: 30 minutes.
+#define WIFI_FAIL_WINDOW_MS (30UL * 60UL * 1000UL)
+// Timeout for a single Wi-Fi connect attempt (milliseconds).
+#define WIFI_CONNECT_TIMEOUT_MS 15000UL
+// Background retry interval when offline but provisioned (milliseconds).
+// The device will keep retrying Wi-Fi in the background without dropping
+// immediately into provisioning mode.
+#define WIFI_OFFLINE_RETRY_MS (5UL * 60UL * 1000UL)
+
+// --- Watchdog / maintenance reboot ---
+// Task watchdog timeout in seconds. Set to 0 to disable the watchdog for
+// debugging, but production builds should keep this enabled.
+#define WATCHDOG_TIMEOUT_SEC 30
+// Periodic maintenance reboot interval in seconds. Set to 0 to disable
+// maintenance reboots (useful during long-running debugging sessions).
+#define MAINTENANCE_REBOOT_INTERVAL_SEC (6UL * 60UL * 60UL)
+
 // --- Lighting & UX ---
 #define LED_PIN 2
 #define NEOPIXEL_PIN   5

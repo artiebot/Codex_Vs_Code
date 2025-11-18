@@ -254,6 +254,24 @@ bool Mini_wakePulse(uint16_t ms) {
   return true;
 }
 
+bool Mini_powerCycle(uint16_t offMs, uint16_t onDelayMs) {
+  if (Pins::MiniPowerEnable < 0) {
+    Serial.println("[mini] power cycle skipped (pin < 0)");
+    return false;
+  }
+  pinMode(Pins::MiniPowerEnable, OUTPUT);
+  Serial.print("[mini] power cycle offMs=");
+  Serial.print(offMs);
+  Serial.println(" ms");
+  digitalWrite(Pins::MiniPowerEnable, LOW);
+  delay(offMs);
+  digitalWrite(Pins::MiniPowerEnable, HIGH);
+  if (onDelayMs > 0) {
+    delay(onDelayMs);
+  }
+  return true;
+}
+
 void Mini_setStatusCallback(MiniStatusCallback cb) { statusCb = cb; }
 void Mini_setSnapshotCallback(MiniSnapshotCallback cb) { snapshotCb = cb; }
 void Mini_setEventCallback(MiniEventCallback cb) { eventCb = cb; }
