@@ -114,6 +114,15 @@ void Provisioning::savePowerCycleState() {
 
 uint8_t Provisioning::recordBootCycle() {
   loadPowerCycleState();
+  const esp_reset_reason_t reason = esp_reset_reason();
+  if (reason == ESP_RST_BROWNOUT) {
+    power_cycle_state_.count = 0;
+    power_cycle_state_.armed = false;
+    savePowerCycleState();
+    SF::Log::warn("prov", "brownout reset detected - triple-boot counter held");
+    Serial.println("[prov] brownout reset - ignoring triple-boot counter");
+    return 0;
+  }
   if (!power_cycle_state_.armed) {
     power_cycle_state_.count = 1;
     power_cycle_state_.armed = true;

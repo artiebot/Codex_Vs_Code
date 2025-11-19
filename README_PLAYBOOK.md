@@ -174,6 +174,46 @@ Additional Wi-Fi robustness checks:
 
 ---
 
+### New Tasks from Antigravity Deep-Dive (2025-11-18)
+
+- [BLOCKER – Prototype reliability] **Triple-boot provisioning safety under brownouts**  
+  - Current behavior: every reboot increments the provisioning boot counter; if count ≥ 3 before 120 s of stable Wi-Fi, device enters AP/provisioning mode and drops existing Wi-Fi config.  
+  - Risk: on a solar-powered device, brownouts can cause three quick reboots and unintentionally trigger AP mode, effectively “killing” the feeder until a human re-provisions it.  
+  - A2 target behavior:
+    - Only increment the provisioning boot counter when the previous reset was a “normal” reset, not a brownout.
+    - Use `esp_reset_reason()` to detect brownouts and exclude them from the triple-boot counter.
+    - Optionally: only increment the counter if the previous boot was < X seconds ago (e.g., 5–10 s), otherwise reset counter to 1.
+
+- [HIGH – A2 hardening] **OTA authenticity & BootHealth timing**  
+  - Keep SHA-256 integrity check for accidental corruption.
+  - For A2 field deployments, add image signing (e.g., ESP secure boot or custom signature) so that a LAN attacker cannot push a malicious image just by controlling the OTA command and hash.
+  - Move `BootHealth.markHealthy()` from early `setup()` to a point where the device has been stable for N seconds and has successfully connected to the backend at least once, to avoid “boot → mark healthy → crash loop” scenarios.
+
+- [HIGH – A2 hardening] **Per-device identity and auth model**  
+  - Replace the current shared `JWT_SECRET` + self-asserted `deviceId` with a per-device API key stored in NVS.  
+  - Server should maintain a `deviceId → api_key` mapping.  
+  - Flow:
+    - ESP32 authenticates with `{deviceId, apiKey}` to obtain a short-lived session token (JWT or similar).
+    - ESP32 uses this token for WebSocket connections and `/v1/presign/put` requests.
+    - AMB82-Mini receives presigned URLs from ESP32 over UART; it never needs to know secrets itself.  
+  - Keep mutual TLS as a possible longer-term / production evolution, but not required for A2.
+
+- [MEDIUM – A2 robustness] **Time & timestamp guardrails**  
+  - Current behavior: when NTP is unavailable, `unixNow()` can produce timestamps near epoch (1970), which leak into object keys and gallery sorting.  
+  - A2 requirements:
+    - Define “valid time” (e.g., year ≥ 2025).  
+    - If time is invalid:
+      - Either queue captures locally until time is valid, or
+      - Use a separate “time-unknown” prefix that doesn’t pollute normal galleries.
+    - Once NTP succeeds, ESP32 should push a `SET_TIME` command to AMB82-Mini so both are aligned.
+
+- [MEDIUM – UX / app] **iOS offline behavior and cached-first gallery**  
+  - Do not swap to `EmptyCaptureProvider` when offline; instead keep the presigned provider and serve the last cached manifest from disk when network calls fail.  
+  - Show a clear “Offline – Showing cached data” banner in the gallery UI.  
+  - On pull-to-refresh failures, keep currently displayed captures rather than clearing the list.
+
+---
+
 ## Reference: MQTT status
 - **Audit summary:** `docs/MQTT_DE_SCOPE_AUDIT.md` confirms the active stack is HTTP/S3/WebSocket only; remaining MQTT references live in archived tooling/docs.
 - **Action:** Label legacy MQTT helpers when convenient; no validation changes required.
