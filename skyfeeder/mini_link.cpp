@@ -217,14 +217,17 @@ bool Mini_requestSnapshot() {
   return queueOp("snapshot");
 }
 
-bool Mini_requestEventCapture(uint8_t snapshotCount, uint16_t videoSeconds, const char* trigger) {
+bool Mini_requestEventCapture(uint8_t snapshotCount, uint16_t videoSeconds, const char* trigger, float weightG) {
   if (!miniSerial) return false;
-  StaticJsonDocument<128> doc;
+  StaticJsonDocument<160> doc;
   doc["op"] = "capture_event";
   doc["snapshots"] = snapshotCount;
   doc["video_sec"] = videoSeconds;
   if (trigger && trigger[0]) {
     doc["trigger"] = trigger;
+  }
+  if (weightG > 0.0f) {
+    doc["weight_g"] = weightG;
   }
   return writeLine(doc);
 }

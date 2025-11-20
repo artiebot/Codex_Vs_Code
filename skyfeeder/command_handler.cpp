@@ -3,6 +3,7 @@
 #endif
 #include <ArduinoJson.h>
 #include <cstring>
+#include <esp_task_wdt.h>
 
 #include "topics.h"
 #include "mqtt_client.h"
@@ -374,6 +375,9 @@ struct MiniCallbackRegistrar {
 
 void pumpMiniWhileWaiting() {
   SF::Mini_loop();
+  #if WATCHDOG_TIMEOUT_SEC > 0
+    esp_task_wdt_reset();  // Prevent watchdog timeout during long AMB82 wake waits
+  #endif
   delay(10);
 }
 
@@ -494,7 +498,7 @@ bool runSnapshotSequence(const char*& codeOut) {
   return true;
 }
 
-bool runEventCapture(uint8_t snapshotCount, uint16_t videoSeconds, const char* trigger, const char*& codeOut) {
+bool runEventCapture(uint8_t snapshotCount, uint16_t videoSeconds, const char* trigger, float weightG, const char*& codeOut) {
   if (!miniLikelyPresent()) {
     codeOut = "NO_MINI";
     Serial.println("[event] Mini not detected; aborting capture");
@@ -507,7 +511,7 @@ bool runEventCapture(uint8_t snapshotCount, uint16_t videoSeconds, const char* t
       return false;
     }
   }
-  if (!SF::Mini_requestEventCapture(snapshotCount, videoSeconds, trigger)) {
+  if (!SF::Mini_requestEventCapture(snapshotCount, videoSeconds, trigger, weightG)) {
     codeOut = "UART_WRITE";
     Serial.println("[event] capture_event UART write failed");
     recordMiniError(codeOut);
@@ -736,7 +740,7 @@ void SF_onMqttMessage(char* topic, byte* payload, unsigned int len) {
   }
 }
 
-bool SF_captureEvent(uint8_t snapshotCount, uint16_t videoSeconds, const char* trigger) {
+bool SF_captureEvent(uint8_t snapshotCount, uint16_t videoSeconds, const char* trigger, float weightG) {
   const unsigned long now = millis();
   if (gSnapshotPending) {
     Serial.println("[event] capture blocked (snapshot pending)");
@@ -754,11 +758,11 @@ bool SF_captureEvent(uint8_t snapshotCount, uint16_t videoSeconds, const char* t
     gEventCapturePending = false;
   }
   const char* code = "OK";
-  if (!runEventCapture(snapshotCount, videoSeconds, trigger, code)) {
+  if (!runEventCapture(snapshotCount, videoSeconds, trigger, weightG, code)) {
     SF::Log::warn("event", "capture_event failed (%s)", code ? code : "err");
     return false;
   }
-  SF::Log::info("event", "capture_event queued (snap=%u video=%u)", snapshotCount, videoSeconds);
+  SF::Log::info("event", "capture_event queued (snap=%u video=%u weight=%.1fg)", snapshotCount, videoSeconds, weightG);
   return true;
 }
 

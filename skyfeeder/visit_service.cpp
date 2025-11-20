@@ -14,7 +14,7 @@ namespace {
 const float THRESH_G = VISIT_WEIGHT_THRESHOLD_G;
 const unsigned long WINDOW_MS = VISIT_MOTION_WINDOW_MS;
 const unsigned long IDLE_MS = VISIT_IDLE_TIMEOUT_MS;
-const float SMALL_EVENT_MAX_DELTA_G = PIR_EVENT_MAX_WEIGHT_DELTA_G;
+const float SMALL_EVENT_MIN_WEIGHT_G = PIR_EVENT_MIN_WEIGHT_G;
 const unsigned long SMALL_EVENT_EVAL_DELAY_MS = PIR_EVENT_EVAL_DELAY_MS;
 const unsigned long SMALL_EVENT_COOLDOWN_MS = PIR_EVENT_COOLDOWN_MS;
 const uint8_t SMALL_EVENT_SNAPSHOT_COUNT = PIR_EVENT_SNAPSHOT_COUNT;
@@ -68,19 +68,21 @@ void VisitService::evaluateSmallMotion(unsigned long now, float currentWeight){
   if(now<small_event_eval_ms_) return;
   small_event_candidate_=false;
   float delta=fabsf(currentWeight-small_event_baseline_);
-  if(delta>=SMALL_EVENT_MAX_DELTA_G){
+  if(delta<SMALL_EVENT_MIN_WEIGHT_G){
     Serial.print("[visit] PIR ignored, weight delta=");
-    Serial.println(delta);
+    Serial.print(delta);
+    Serial.println("g (too light)");
     return;
   }
   if(now-last_small_event_ms_<SMALL_EVENT_COOLDOWN_MS){
     Serial.println("[visit] PIR capture suppressed (cooldown)");
     return;
   }
-  Serial.print("[visit] PIR capture delta=");
-  Serial.println(delta);
+  Serial.print("[visit] PIR capture triggered, weight delta=");
+  Serial.print(delta);
+  Serial.println("g");
   const char* trigger = "pir";
-  if(SF_captureEvent(SMALL_EVENT_SNAPSHOT_COUNT, SMALL_EVENT_VIDEO_SECONDS, trigger)){
+  if(SF_captureEvent(SMALL_EVENT_SNAPSHOT_COUNT, SMALL_EVENT_VIDEO_SECONDS, trigger, delta)){
     last_small_event_ms_=now;
   } else {
     Serial.println("[visit] PIR capture failed to schedule");

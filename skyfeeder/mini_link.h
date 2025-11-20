@@ -18,7 +18,7 @@ bool Mini_sendSleep();
 bool Mini_sendSleepDeep();
 bool Mini_requestStatus();
 bool Mini_requestSnapshot();
-bool Mini_requestEventCapture(uint8_t snapshotCount, uint16_t videoSeconds, const char* trigger = nullptr);
+bool Mini_requestEventCapture(uint8_t snapshotCount, uint16_t videoSeconds, const char* trigger = nullptr, float weightG = 0.0f);
 bool Mini_stageWifi(const char* ssid, const char* psk, const char* token);
 bool Mini_commitWifi(const char* token = nullptr);
 bool Mini_abortWifi(const char* token = nullptr);

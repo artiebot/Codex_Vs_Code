@@ -89,7 +89,7 @@
 #define VISIT_EXIT_DURATION_MS         500
 #define VISIT_MAX_DURATION_MS          30000
 
-#define PIR_EVENT_MAX_WEIGHT_DELTA_G   250.0f
+#define PIR_EVENT_MIN_WEIGHT_G         80.0f
 #define PIR_EVENT_EVAL_DELAY_MS        500
 #define PIR_EVENT_COOLDOWN_MS          10000
 #define PIR_EVENT_SNAPSHOT_COUNT       10

@@ -8,7 +8,7 @@ void SF_commandHandlerLoop();
 const char* SF_miniState();
 bool SF_miniSettled();
 
-bool SF_captureEvent(uint8_t snapshotCount, uint16_t videoSeconds, const char* trigger = nullptr);
+bool SF_captureEvent(uint8_t snapshotCount, uint16_t videoSeconds, const char* trigger = nullptr, float weightG = 0.0f);
 void SF_armForMotion();
 void SF_visitStart(float delta);
 void SF_visitEnd(unsigned long durationMs, float peakDelta);
