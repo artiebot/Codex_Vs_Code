@@ -63,7 +63,7 @@ struct LiveFeederDataProvider: FeederDataProviding {
             let expiresAt = capture.capturedAt.addingTimeInterval(Double(expiryDays) * 24 * 60 * 60)
 
             return FeederMediaItem(
-                id: capture.id.uuidString,
+                id: capture.title,
                 type: type,
                 thumbnailURL: thumbnailURL,
                 mediaURL: assetURL,
@@ -83,12 +83,24 @@ struct LiveFeederDataProvider: FeederDataProviding {
             throw FeederDataProviderError.missingEndpoint
         }
 
-        var request = URLRequest(
-            url: baseURL
-                .appendingPathComponent("api", isDirectory: false)
-                .appendingPathComponent("media", isDirectory: false)
-                .appendingPathComponent(mediaItem.id, isDirectory: false)
-        )
+        let url = baseURL
+            .appendingPathComponent("api", isDirectory: false)
+            .appendingPathComponent("media", isDirectory: false)
+            .appendingPathComponent(mediaItem.id, isDirectory: false)
+
+        guard var components = URLComponents(url: url, resolvingAgainstBaseURL: true) else {
+            throw FeederDataProviderError.requestFailed("Invalid URL components")
+        }
+        
+        components.queryItems = [
+            URLQueryItem(name: "deviceId", value: settingsStore.state.deviceID)
+        ]
+        
+        guard let finalURL = components.url else {
+            throw FeederDataProviderError.requestFailed("Failed to construct URL")
+        }
+
+        var request = URLRequest(url: finalURL)
         request.httpMethod = "DELETE"
 
         let (_, response) = try await urlSession.data(for: request)

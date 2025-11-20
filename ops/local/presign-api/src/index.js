@@ -585,9 +585,8 @@ const checkWsRelayHealth = async () => {
   let healthUrl;
   try {
     const parsed = new URL(base);
-    parsed.pathname = `${
-      parsed.pathname.replace(/\/+$/, "") || ""
-    }/healthz`.replace(/\/{2,}/g, "/");
+    parsed.pathname = `${parsed.pathname.replace(/\/+$/, "") || ""
+      }/healthz`.replace(/\/{2,}/g, "/");
     healthUrl = parsed.toString();
   } catch (_err) {
     return { status: "unknown", endpoint: base, error: "invalid_url" };
@@ -1317,8 +1316,8 @@ const buildDeviceSummaryRecord = (deviceId, healthSnapshot, wsHealth) => {
     wsHealth?.status === "healthy"
       ? "online"
       : wsHealth?.status === "degraded"
-      ? "degraded"
-      : "offline";
+        ? "degraded"
+        : "offline";
   return {
     deviceId,
     status,
@@ -1400,8 +1399,8 @@ app.get("/api/connectivity", async (req, res) => {
       wsHealth?.status === "healthy"
         ? "online"
         : wsHealth?.status === "degraded"
-        ? "degraded"
-        : "offline";
+          ? "degraded"
+          : "offline";
 
     res.json({
       deviceId,
@@ -1609,6 +1608,76 @@ app.get("/api/videos", async (req, res) => {
     res.status(500).json({ error: "videos_list_failed" });
   }
 });
+
+const removeEventFromDayIndex = async (deviceId, filename) => {
+  const timestampMatch = filename.match(/^(\d{4}-\d{2}-\d{2})/);
+  if (!timestampMatch) return;
+  const dateStr = timestampMatch[1];
+  const indexKey = `${deviceId}/indices/day-${dateStr}.json`;
+
+  const baseDoc = { deviceId, date: dateStr, generatedTs: Date.now(), events: [] };
+
+  let attempts = 0;
+  while (attempts < maxIndexRetries) {
+    attempts += 1;
+    const meta = await loadDayIndex(indexKey, baseDoc);
+    if (meta.isNew && !meta.doc.events.length) {
+      return;
+    }
+
+    const originalLen = meta.doc.events.length;
+    meta.doc.events = meta.doc.events.filter(e => e.key !== filename);
+
+    if (meta.doc.events.length === originalLen) {
+      return;
+    }
+
+    meta.doc.updatedTs = Date.now();
+
+    try {
+      await persistDayIndex(indexKey, meta.doc, meta);
+      return;
+    } catch (err) {
+      if (err.$metadata?.httpStatusCode === 412 || err.name === "PreconditionFailed") {
+        continue;
+      }
+      throw err;
+    }
+  }
+};
+
+app.delete("/api/media/:filename", async (req, res) => {
+  const { filename } = req.params;
+  const deviceIdRaw = req.query.deviceId;
+
+  if (!requireDeviceIdQuery(deviceIdRaw)) {
+    return res.status(400).json({ error: "device_id_required" });
+  }
+  const deviceId = sanitizeDeviceId(deviceIdRaw);
+
+  const isVideo = filename.toLowerCase().endsWith(".mp4") || filename.toLowerCase().endsWith(".mov");
+  const bucket = isVideo ? bucketForKind("clips") : bucketForKind("photos");
+
+  try {
+    const key = buildGalleryObjectKey(deviceId, filename);
+
+    await galleryS3.send(new DeleteObjectsCommand({
+      Bucket: bucket,
+      Delete: { Objects: [{ Key: key }], Quiet: true }
+    }));
+
+    await removeEventFromDayIndex(deviceId, filename);
+
+    res.json({ success: true, deviceId, filename, deleted: true });
+  } catch (err) {
+    console.error("[api:media:delete] failed", err);
+    res.status(500).json({ error: "delete_failed" });
+  }
+});
+
+
+
+
 
 app.post("/api/cleanup/photos", async (req, res) => {
   const deviceIdRaw = extractDeviceId(req);
