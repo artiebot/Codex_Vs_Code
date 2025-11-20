@@ -171,7 +171,7 @@ void Provisioning::begin(){
     enterProvisioningMode();
   } else {
     ready_=true;
-    Topics::init(deviceId());
+    // Topics::init(deviceId()); // MQTT removed - no longer needed
     SF::Log::info("boot", "provisioning ready");
     ensureMdns();
     SF::ledUx.setMode(LedUx::Mode::CONNECTING_WIFI);
@@ -193,7 +193,7 @@ void Provisioning::save(const ProvisionedConfig& incoming){
   stored.cfg=incoming;
   cfg_=incoming;
   Storage::setBytes("prov","cfg", &stored, sizeof(stored));
-  Topics::init(deviceId());
+  // Topics::init(deviceId()); // MQTT removed - no longer needed
   discovery_published_=false;
   ready_=true;
   setup_mode_=false;
@@ -222,7 +222,7 @@ void Provisioning::handleHttp(){ if(!portalActive) return; dnsServer.processNext
 void Provisioning::enterProvisioningMode(){
   setup_mode_=true;
   ready_=false;
-  Topics::init(deviceId());
+  // Topics::init(deviceId()); // MQTT removed - no longer needed
   SF::Log::warn("prov", "entering setup AP mode");
   startSetupAp();
   runtime_press_active_=true;

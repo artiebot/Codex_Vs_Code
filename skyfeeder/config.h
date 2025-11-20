@@ -36,7 +36,7 @@
 #define LED_PIN 2
 #define NEOPIXEL_PIN   5
 #define NEOPIXEL_COUNT 64
-#define LED_OVERRIDE_MS         15000
+#define LED_OVERRIDE_MS         3000
 #define LED_IDLE_BRIGHTNESS     96
 #define LED_WARN_BRIGHTNESS     64
 #define LED_CRIT_BRIGHTNESS     96

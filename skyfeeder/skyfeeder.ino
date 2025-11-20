@@ -55,7 +55,12 @@ void setup() {
 
 #if WATCHDOG_TIMEOUT_SEC > 0
   Serial.println("Configuring task watchdog...");
-  esp_task_wdt_init(WATCHDOG_TIMEOUT_SEC, true);
+  esp_task_wdt_config_t wdt_config = {
+    .timeout_ms = WATCHDOG_TIMEOUT_SEC * 1000,
+    .idle_core_mask = 0,
+    .trigger_panic = true
+  };
+  esp_task_wdt_init(&wdt_config);
   esp_task_wdt_add(nullptr);
   Serial.println("Task watchdog configured!");
 #else
