@@ -42,20 +42,78 @@ A Claude Code session performed serial monitoring and identified/fixed issues in
 - [ ] Check if there are other queue-related constants that need adjustment
 - [ ] Verify `kUploadMaxAttempts` is reasonable (currently 3)
 
-### Task 2: Implement Video Recording
-- [ ] Review AMB82 camera capabilities (RTSP stream available at rtsp://10.0.0.197:554/live)
-- [ ] Implement video recording in `handleCaptureEvent()`:
-  ```cpp
-  // After snapshots loop, before emitEventPhase("done"...):
-  if (videoSec > 0) {
-    emitEventPhase("video_start", trigger, 0, snapshotCount, videoSec, true);
-    // TODO: Record video for videoSec seconds
-    // TODO: Call queueClipUpload(videoData, videoLen, trigger);
-    emitEventPhase("video_end", trigger, 0, snapshotCount, videoSec, true);
-  }
-  ```
-- [ ] Consider using MP4 encoding or raw H.264 stream capture
-- [ ] Ensure video includes weight metadata if possible
+### Task 2: Implement New Capture Behavior (MAJOR CHANGE)
+
+**New Requirements (2025-11-21):**
+1. **Photos**: Take up to 10 photos, one every 15 seconds, until bird leaves
+2. **Video**: Start recording 5 seconds after first photo, record 5-second video
+3. **Bird departure detection**: PIR goes negative AND weight drops > 50% of bird's weight
+
+**New Capture Flow:**
+```
+T+0s:   PIR triggers, weight >= 80g detected (e.g., 150g bird)
+T+0s:   Take Photo #1
+T+5s:   Start 5-second video recording
+T+10s:  Video ends
+T+15s:  Take Photo #2 (if bird still present)
+T+30s:  Take Photo #3 (if bird still present)
+...
+T+135s: Take Photo #10 (max) OR stop early if bird leaves
+```
+
+**Bird Departure Criteria:**
+- PIR sensor goes LOW (no motion)
+- AND weight drops > 50% of captured bird weight
+- Example: Bird was 150g, now weight < 75g → bird left
+
+**Implementation Requirements:**
+
+#### ESP32 Changes (skyfeeder/):
+- [ ] Modify `visit_service.cpp` to track bird presence state
+- [ ] Add `birdWeight` variable to store initial bird weight when capture starts
+- [ ] Add departure detection: `PIR_LOW && currentWeight < (birdWeight * 0.5)`
+- [ ] Send new commands to AMB82:
+  - `capture_start` - Begin capture session (take first photo, start video after 5s)
+  - `capture_photo` - Take next photo (sent every 15s while bird present)
+  - `capture_stop` - End capture session (bird departed)
+
+#### AMB82 Changes (amb-mini/):
+- [ ] Add handler for `capture_start`:
+  - Take first photo immediately
+  - Set timer for video start at T+5s
+  - Emit phase messages
+- [ ] Add handler for `capture_photo`:
+  - Take single photo
+  - Queue for upload
+- [ ] Add handler for `capture_stop`:
+  - Finalize any pending uploads
+  - Emit "done" phase
+- [ ] Implement actual video recording:
+  - Start recording at T+5s after capture_start
+  - Record for 5 seconds
+  - Call `queueClipUpload()`
+
+#### Protocol Changes:
+```json
+// ESP32 → AMB82: Start capture
+{"op":"capture_start","trigger":"pir","weight_g":150.0}
+
+// ESP32 → AMB82: Take photo (every 15s)
+{"op":"capture_photo","trigger":"pir","index":2}
+
+// ESP32 → AMB82: End capture
+{"op":"capture_stop","trigger":"pir","total_photos":5,"duration_ms":67000}
+```
+
+**Alternative Simpler Approach:**
+If the above is too complex, implement a simpler version:
+- Keep existing single capture_event command
+- Modify AMB82 to:
+  1. Take Photo #1 immediately
+  2. Wait 5 seconds
+  3. Record 5-second video
+  4. Take remaining photos at 15-second intervals
+  5. ESP32 can send a "stop" command if bird leaves early
 
 ### Task 3: Implement Telemetry Push
 - [ ] Add telemetry HTTP POST to ESP32 (skyfeeder/):
