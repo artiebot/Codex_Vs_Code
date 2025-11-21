@@ -23,6 +23,7 @@ jobs:
       MATCH_GIT_URL: ${{ secrets.MATCH_GIT_URL }}
       MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
       MATCH_GIT_BASIC_AUTHORIZATION: ${{ secrets.MATCH_GIT_BASIC_AUTHORIZATION }}
+      KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
       IOS_SCHEME: SkyFeederFieldUtility
     steps:
       - name: Checkout
@@ -53,6 +54,17 @@ jobs:
         run: |
           echo "URL: $MATCH_GIT_URL"
           echo "Auth header length: ${#MATCH_GIT_BASIC_AUTHORIZATION}"
+
+      - name: Prepare CI keychain
+        env:
+          KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
+        run: |
+          set -eo pipefail
+          security create-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
+          security set-keychain-settings -lut 21600 build.keychain
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
+          security list-keychains -s build.keychain login.keychain
+          security default-keychain -s build.keychain
 
       - name: Pull signing (match)
         working-directory: mobile/ios-field-utility
