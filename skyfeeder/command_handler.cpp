@@ -498,38 +498,6 @@ bool runSnapshotSequence(const char*& codeOut) {
   return true;
 }
 
-bool runEventCapture(uint8_t snapshotCount, uint16_t videoSeconds, const char* trigger, float weightG, const char*& codeOut) {
-  if (!miniLikelyPresent()) {
-    codeOut = "NO_MINI";
-    Serial.println("[event] Mini not detected; aborting capture");
-    recordMiniError(codeOut);
-    return false;
-  }
-  Serial.println("[event] Capture sequence start");
-  if (!gMiniSettled) {
-    if (!ensureMiniReady(codeOut)) {
-      return false;
-    }
-  }
-  if (!SF::Mini_requestEventCapture(snapshotCount, videoSeconds, trigger, weightG)) {
-    codeOut = "UART_WRITE";
-    Serial.println("[event] capture_event UART write failed");
-    recordMiniError(codeOut);
-    return false;
-  }
-  markMiniActivity();
-  gEventCapturePending = true;
-  gEventCaptureStartMs = millis();
-  gCaptureQueued = true;
-  gVisitMetadataOnly = false;
-  gCaptureReason = (trigger && trigger[0]) ? trigger : reasonArmedReady;
-  gArmState = MiniArmState::VisitCapturing;
-  publishVisitEvent("capture", 0.0f, 0, gCaptureReason);
-  Serial.println("[event] capture_event command sent");
-  codeOut = "OK";
-  return true;
-}
-
 void handleLed(byte* payload, unsigned int len) {
   StaticJsonDocument<256> doc;
   auto err = deserializeJson(doc, payload, len);
@@ -740,29 +708,63 @@ void SF_onMqttMessage(char* topic, byte* payload, unsigned int len) {
   }
 }
 
-bool SF_captureEvent(uint8_t snapshotCount, uint16_t videoSeconds, const char* trigger, float weightG) {
-  const unsigned long now = millis();
-  if (gSnapshotPending) {
-    Serial.println("[event] capture blocked (snapshot pending)");
+bool SF_captureStart(const char* trigger, float weightG) {
+  if (!miniLikelyPresent()) {
+    Serial.println("[event] capture_start aborted (mini unavailable)");
+    recordMiniError("NO_MINI");
     return false;
   }
-  if (gSleepInFlight) {
-    Serial.println("[event] capture blocked (sleep in progress)");
-    return false;
-  }
-  if (gEventCapturePending) {
-    if (now - gEventCaptureStartMs < kMiniEventTimeoutMs) {
-      Serial.println("[event] capture blocked (event pending)");
+  Serial.println("[event] capture_start");
+  const char* code = "OK";
+  if (!gMiniSettled) {
+    if (!ensureMiniReady(code)) {
       return false;
     }
-    gEventCapturePending = false;
   }
-  const char* code = "OK";
-  if (!runEventCapture(snapshotCount, videoSeconds, trigger, weightG, code)) {
-    SF::Log::warn("event", "capture_event failed (%s)", code ? code : "err");
+  if (!SF::Mini_requestCaptureStart(trigger, weightG)) {
+    SF::Log::warn("event", "capture_start UART write failed");
+    recordMiniError("UART_WRITE");
     return false;
   }
-  SF::Log::info("event", "capture_event queued (snap=%u video=%u weight=%.1fg)", snapshotCount, videoSeconds, weightG);
+  markMiniActivity();
+  gEventCapturePending = true;
+  gEventCaptureStartMs = millis();
+  gCaptureQueued = true;
+  gVisitMetadataOnly = false;
+  gVisitMediaCaptured = false;
+  gCaptureReason = (trigger && trigger[0]) ? trigger : reasonArmedReady;
+  gArmState = MiniArmState::VisitCapturing;
+  publishVisitEvent("capture", weightG, 0, gCaptureReason);
+  return true;
+}
+
+bool SF_capturePhoto(uint8_t index) {
+  if (!miniLikelyPresent()) {
+    Serial.println("[event] capture_photo skipped (mini unavailable)");
+    recordMiniError("NO_MINI");
+    return false;
+  }
+  if (!SF::Mini_requestCapturePhoto(index)) {
+    SF::Log::warn("event", "capture_photo UART write failed (idx=%u)", static_cast<unsigned>(index));
+    recordMiniError("UART_WRITE");
+    return false;
+  }
+  markMiniActivity();
+  return true;
+}
+
+bool SF_captureStop(uint8_t total_photos) {
+  if (!miniLikelyPresent()) {
+    Serial.println("[event] capture_stop skipped (mini unavailable)");
+    recordMiniError("NO_MINI");
+    return false;
+  }
+  if (!SF::Mini_requestCaptureStop(total_photos)) {
+    SF::Log::warn("event", "capture_stop UART write failed (photos=%u)", static_cast<unsigned>(total_photos));
+    recordMiniError("UART_WRITE");
+    return false;
+  }
+  markMiniActivity();
   return true;
 }
 

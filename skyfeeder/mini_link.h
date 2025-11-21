@@ -18,7 +18,9 @@ bool Mini_sendSleep();
 bool Mini_sendSleepDeep();
 bool Mini_requestStatus();
 bool Mini_requestSnapshot();
-bool Mini_requestEventCapture(uint8_t snapshotCount, uint16_t videoSeconds, const char* trigger = nullptr, float weightG = 0.0f);
+bool Mini_requestCaptureStart(const char* trigger = nullptr, float weightG = 0.0f);
+bool Mini_requestCapturePhoto(uint8_t index);
+bool Mini_requestCaptureStop(uint8_t totalPhotos);
 bool Mini_stageWifi(const char* ssid, const char* psk, const char* token);
 bool Mini_commitWifi(const char* token = nullptr);
 bool Mini_abortWifi(const char* token = nullptr);
@@ -34,5 +36,4 @@ void Mini_setLifecycleCallback(MiniLifecycleCallback cb);
 void Mini_logTo(Stream& out);
 
 }  // namespace SF
-
 

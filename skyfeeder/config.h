@@ -11,6 +11,13 @@
 #define MQTT_DEFAULT_PASS  "dev1pass"
 #define DEVICE_ID_DEFAULT  "dev1"
 
+#ifndef API_BASE_URL
+#define API_BASE_URL  "http://10.0.0.4:8080"
+#endif
+#ifndef TELEMETRY_PUSH_INTERVAL_MS
+#define TELEMETRY_PUSH_INTERVAL_MS (30UL * 1000UL)
+#endif
+
 // --- Wi-Fi retry / provisioning behaviour ---
 // Maximum failed connection attempts within the window before the device
 // automatically escalates back into provisioning (setup AP) mode.

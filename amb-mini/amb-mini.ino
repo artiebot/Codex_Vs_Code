@@ -123,6 +123,23 @@ uint32_t snapCount = 0;
 constexpr uint8_t kEventSnapshotDefault = 10;
 constexpr uint16_t kEventVideoSecondsDefault = 5;
 
+constexpr uint8_t kMaxSessionPhotos = 10;
+constexpr unsigned long kVideoDurationMs = 5000UL;
+constexpr unsigned long kVideoDelayMs = 5000UL;
+constexpr unsigned long kVideoFrameIntervalMs = 100UL;
+constexpr size_t kMaxVideoFrames = 80;
+struct FrameChunk {
+  uint8_t* data = nullptr;
+  size_t len = 0;
+};
+volatile bool gCaptureSessionActive = false;
+unsigned long gCaptureStartMs = 0;
+unsigned long gVideoScheduleMs = 0;
+bool gVideoRecorded = false;
+uint8_t gPhotoCount = 0;
+char gCaptureTrigger[16] = "cmd";
+float gCaptureWeightG = 0.0f;
+
 #if MINI_MQTT
 // Message processing buffer
 byte msgBuffer[256];
@@ -150,6 +167,7 @@ struct UploadSlot {
   size_t length = 0;
   char kind[8]{};
   char trigger[16]{};
+  float weightG = 0.0f;
 };
 
 UploadSlot uploadQueue[kUploadQueueSlots];
@@ -181,6 +199,11 @@ void stopRtsp();
 void ensureCamera();
 void stopCamera();
 bool captureStill();
+bool captureFrameToBuffer(uint8_t*& out, size_t& len);
+bool recordVideoClip(uint32_t durationMs, uint8_t*& clipData, size_t& clipLen);
+bool buildMjpegClip(const FrameChunk* frames, size_t frameCount, uint8_t*& outBuf, size_t& outLen);
+void freeFrameChunks(FrameChunk* frames, size_t frameCount);
+void serviceCaptureSession();
 String ipToString(const IPAddress& ip);
 void sendStatusSerial();
 void sendSerialError(const char* msg);
@@ -194,12 +217,14 @@ void clearWifiStage();
 bool handleStageWifi(const JsonDocument& doc);
 bool handleCommitWifi(const JsonDocument& doc);
 bool handleAbortWifi(const JsonDocument& doc);
-void handleCaptureEvent(const JsonDocument& doc);
+void handleCaptureStart(const JsonDocument& doc);
+void handleCapturePhoto(const JsonDocument& doc);
+void handleCaptureStop(const JsonDocument& doc);
 void processSerialLine(const char* line);
 void handleSerialInput();
 void enterDeepSleep();
 static void initUploadQueue();
-bool queueThumbnailUpload(const uint8_t* data, size_t len, const char* trigger);
+bool queueThumbnailUpload(const uint8_t* data, size_t len, const char* trigger, float weightG = 0.0f);
 void serviceUploadQueue();
 
 #if MINI_MQTT
@@ -363,7 +388,7 @@ void sendStatusSerial() {
   Serial.println();
 }
 
-static bool enqueueUploadInternal(const uint8_t* data, size_t len, const char* kind, bool isClip, const char* trigger);
+static bool enqueueUploadInternal(const uint8_t* data, size_t len, const char* kind, bool isClip, const char* trigger, float weightG = 0.0f);
 static void emitUploadTelemetry(const UploadSlot& slot, const char* status, uint8_t attempt, unsigned long elapsedMs, unsigned long etaMs);
 
 // Request a presigned URL for uploading data
@@ -450,7 +475,7 @@ static bool readHttpResponse(WiFiClient& client, HttpResponse& out, unsigned lon
   return true;
 }
 
-static bool requestPresignedUrl(const char* kind, char* urlOut, size_t maxLen, char* authOut, size_t authMaxLen) {
+static bool requestPresignedUrl(const char* kind, char* urlOut, size_t maxLen, char* authOut, size_t authMaxLen, float weightG = 0.0f) {
   if (!kind || !kind[0] || !urlOut || maxLen == 0) {
     Serial.println("[http] Invalid args: requestPresignedUrl");
     return false;
@@ -466,10 +491,13 @@ static bool requestPresignedUrl(const char* kind, char* urlOut, size_t maxLen, c
     return false;
   }
 
-  StaticJsonDocument<128> reqDoc;
+  StaticJsonDocument<160> reqDoc;
   reqDoc["deviceId"] = DEVICE_ID;
   reqDoc["kind"] = kind;
   reqDoc["contentType"] = "image/jpeg";
+  if (weightG > 0.0f) {
+    reqDoc["weightG"] = static_cast<int>(weightG + 0.5f);  // Round to nearest gram
+  }
 
   String body;
   serializeJson(reqDoc, body);
@@ -771,7 +799,7 @@ static bool performUploadAttempt(const UploadSlot& slot, unsigned long& elapsedM
 
   char signedUrl[512];
   char authHeader[256];
-  if (!requestPresignedUrl(slot.kind, signedUrl, sizeof(signedUrl), authHeader, sizeof(authHeader))) {
+  if (!requestPresignedUrl(slot.kind, signedUrl, sizeof(signedUrl), authHeader, sizeof(authHeader), slot.weightG)) {
     Serial.println("[upload] ERROR: Failed to get presigned URL");
     elapsedMs = millis() - start;
     return false;
@@ -788,7 +816,7 @@ static bool performUploadAttempt(const UploadSlot& slot, unsigned long& elapsedM
   return true;
 }
 
-static bool enqueueUploadInternal(const uint8_t* data, size_t len, const char* kind, bool isClip, const char* trigger) {
+static bool enqueueUploadInternal(const uint8_t* data, size_t len, const char* kind, bool isClip, const char* trigger, float weightG) {
   if (!data || len == 0) {
     Serial.println("[upload] enqueue skipped (no data)");
     return false;
@@ -860,6 +888,7 @@ static bool enqueueUploadInternal(const uint8_t* data, size_t len, const char* k
   slot.createdMs = millis();
   slot.lastAttemptMs = 0;
   slot.nextAttemptMs = slot.createdMs;
+  slot.weightG = weightG;
   std::strncpy(slot.kind, kind ? kind : "", sizeof(slot.kind) - 1);
   slot.kind[sizeof(slot.kind) - 1] = '\0';
   std::strncpy(slot.trigger, trigger ? trigger : "", sizeof(slot.trigger) - 1);
@@ -874,12 +903,12 @@ static bool enqueueUploadInternal(const uint8_t* data, size_t len, const char* k
   return true;
 }
 
-bool queueThumbnailUpload(const uint8_t* data, size_t len, const char* trigger) {
-  return enqueueUploadInternal(data, len, "thumb", false, trigger);
+bool queueThumbnailUpload(const uint8_t* data, size_t len, const char* trigger, float weightG) {
+  return enqueueUploadInternal(data, len, "thumb", false, trigger, weightG);
 }
 
 bool queueClipUpload(const uint8_t* data, size_t len, const char* trigger) {
-  return enqueueUploadInternal(data, len, "clip", true, trigger);
+  return enqueueUploadInternal(data, len, "clip", true, trigger, 0.0f);
 }
 
 void serviceUploadQueue() {
@@ -1161,50 +1190,92 @@ bool handleAbortWifi(const JsonDocument& doc) {
   return true;
 }
 
-void handleCaptureEvent(const JsonDocument& doc) {
-  uint8_t snapshotCount = doc["snapshots"] | kEventSnapshotDefault;
-  if (snapshotCount == 0) snapshotCount = kEventSnapshotDefault;
-  uint16_t videoSec = doc["video_sec"] | kEventVideoSecondsDefault;
+void handleCaptureStart(const JsonDocument& doc) {
   const char* trigger = doc["trigger"] | "cmd";
-
+  float weight = doc["weight_g"] | 0.0f;
   ensureCamera();
 
-  emitEventPhase("start", trigger, 0, snapshotCount, videoSec, true);
+  gCaptureSessionActive = true;
+  gCaptureStartMs = millis();
+  gVideoScheduleMs = gCaptureStartMs + kVideoDelayMs;
+  gVideoRecorded = false;
+  gPhotoCount = 1;
+  gCaptureWeightG = weight;
+  strncpy(gCaptureTrigger, trigger ? trigger : "cmd", sizeof(gCaptureTrigger) - 1);
+  gCaptureTrigger[sizeof(gCaptureTrigger) - 1] = '\0';
 
-  bool overallOk = true;
-  for (uint8_t i = 0; i < snapshotCount; ++i) {
-    bool ok = captureStill();
-    size_t capturedBytes = 0;
-    if (ok) {
-      snapCount++;
-      if (lockFrameBuffer(pdMS_TO_TICKS(100))) {
-        capturedBytes = lastFrameLen;
-        if (lastFrame && std::strcmp(trigger ? trigger : "", "http") != 0) {
-          queueThumbnailUpload(lastFrame, lastFrameLen, trigger);
-        }
-        unlockFrameBuffer();
-      } else {
-        Serial.println("[snap] WARN: frame lock timeout when queuing upload");
+  emitEventPhase("start", gCaptureTrigger, 0, kMaxSessionPhotos, kEventVideoSecondsDefault, true);
+
+  bool ok = captureStill();
+  size_t capturedBytes = 0;
+  if (ok) {
+    snapCount++;
+    if (lockFrameBuffer(pdMS_TO_TICKS(100))) {
+      capturedBytes = lastFrameLen;
+      if (lastFrame) {
+        queueThumbnailUpload(lastFrame, lastFrameLen, gCaptureTrigger, gCaptureWeightG);
       }
+      unlockFrameBuffer();
     } else {
-      overallOk = false;
+      Serial.println("[snap] WARN: frame lock timeout when queuing upload");
     }
-    emitSnapshotSerial(ok, capturedBytes, trigger);
-    emitEventPhase("snapshot", trigger, i + 1, snapshotCount, 0, ok);
-    vTaskDelay(pdMS_TO_TICKS(200));
   }
+  emitSnapshotSerial(ok, capturedBytes, gCaptureTrigger);
+  emitEventPhase("snapshot", gCaptureTrigger, 1, kMaxSessionPhotos, 0, ok);
+  Serial.printf("[capture] session start trigger=%s weight=%.1fg\n", gCaptureTrigger, weight);
+}
 
-  if (videoSec > 0) {
-    emitEventPhase("video_start", trigger, 0, snapshotCount, videoSec, true);
-    unsigned long videoEnd = millis() + static_cast<unsigned long>(videoSec) * 1000UL;
-    while (millis() < videoEnd) {
-      pumpMqtt();
-      vTaskDelay(pdMS_TO_TICKS(50));
+void handleCapturePhoto(const JsonDocument& doc) {
+  uint8_t index = doc["index"] | (gPhotoCount + 1);
+  if (!gCaptureSessionActive) {
+    Serial.println("[capture] photo command ignored (no active session)");
+    return;
+  }
+  bool ok = captureStill();
+  size_t capturedBytes = 0;
+  if (ok) {
+    snapCount++;
+    if (lockFrameBuffer(pdMS_TO_TICKS(100))) {
+      capturedBytes = lastFrameLen;
+      if (lastFrame) {
+        queueThumbnailUpload(lastFrame, lastFrameLen, gCaptureTrigger, gCaptureWeightG);
+      }
+      unlockFrameBuffer();
     }
-    emitEventPhase("video_end", trigger, 0, snapshotCount, videoSec, true);
+    gPhotoCount = index;
+  } else {
+    Serial.println("[capture] photo capture failed");
   }
+  emitSnapshotSerial(ok, capturedBytes, gCaptureTrigger);
+  emitEventPhase("snapshot", gCaptureTrigger, index, kMaxSessionPhotos, 0, ok);
+}
 
-  emitEventPhase("done", trigger, 0, snapshotCount, videoSec, overallOk);
+void handleCaptureStop(const JsonDocument& doc) {
+  uint8_t totalPhotos = doc["total_photos"] | gPhotoCount;
+  if (!gCaptureSessionActive) {
+    Serial.println("[capture] stop command with no active session");
+  }
+  serviceCaptureSession();
+  if (!gVideoRecorded) {
+    Serial.println("[capture] forcing video capture before stop");
+    uint8_t* clipData = nullptr;
+    size_t clipLen = 0;
+    emitEventPhase("video_start", gCaptureTrigger, 0, kMaxSessionPhotos, kEventVideoSecondsDefault, true);
+    bool ok = recordVideoClip(kVideoDurationMs, clipData, clipLen);
+    if (ok && clipData && clipLen > 0) {
+      ok = queueClipUpload(clipData, clipLen, gCaptureTrigger);
+    }
+    if (clipData) {
+      free(clipData);
+    }
+    emitEventPhase("video_end", gCaptureTrigger, 0, kMaxSessionPhotos, kEventVideoSecondsDefault, ok);
+    gVideoRecorded = true;
+  }
+  emitEventPhase("done", gCaptureTrigger, 0, totalPhotos, kEventVideoSecondsDefault, true);
+  gCaptureSessionActive = false;
+  gVideoRecorded = false;
+  gPhotoCount = 0;
+  Serial.printf("[capture] session complete photos=%u\n", totalPhotos);
 }
 
 void processSerialLine(const char* line) {
@@ -1247,8 +1318,16 @@ void processSerialLine(const char* line) {
     emitSnapshotSerial(ok, capturedBytes, "cmd");
     return;
   }
-  if (strcmp(op, "capture_event") == 0) {
-    handleCaptureEvent(doc);
+  if (strcmp(op, "capture_start") == 0) {
+    handleCaptureStart(doc);
+    return;
+  }
+  if (strcmp(op, "capture_photo") == 0) {
+    handleCapturePhoto(doc);
+    return;
+  }
+  if (strcmp(op, "capture_stop") == 0) {
+    handleCaptureStop(doc);
     return;
   }
   if (strcmp(op, "stage_wifi") == 0) {
@@ -1387,6 +1466,249 @@ bool captureStill() {
   Serial.print(len);
   Serial.println(" bytes");
   return true;
+}
+
+bool captureFrameToBuffer(uint8_t*& out, size_t& len) {
+  out = nullptr;
+  len = 0;
+  ensureCamera();
+  if (!camActive) return false;
+  if (!miniSettled) {
+    unsigned long now = millis();
+    if (now < settleUntilMs) {
+      vTaskDelay(pdMS_TO_TICKS(settleUntilMs - now));
+    }
+  }
+  uint32_t addr = 0;
+  uint32_t rawLen = 0;
+  for (int attempt = 0; attempt < 40; ++attempt) {
+    Camera.getImage(CAM_CHANNEL, &addr, &rawLen);
+    if (addr != 0 && rawLen != 0) break;
+    vTaskDelay(pdMS_TO_TICKS(25));
+  }
+  if (addr == 0 || rawLen == 0) {
+    Serial.println("[video] frame not ready");
+    return false;
+  }
+  uint8_t* buffer = static_cast<uint8_t*>(malloc(rawLen));
+  if (!buffer) {
+    Serial.println("[video] malloc failed");
+    return false;
+  }
+  memcpy(buffer, reinterpret_cast<void*>(addr), rawLen);
+  out = buffer;
+  len = rawLen;
+  return true;
+}
+
+void freeFrameChunks(FrameChunk* frames, size_t frameCount) {
+  if (!frames) return;
+  for (size_t i = 0; i < frameCount; ++i) {
+    if (frames[i].data) {
+      free(frames[i].data);
+      frames[i].data = nullptr;
+      frames[i].len = 0;
+    }
+  }
+}
+
+bool buildMjpegClip(const FrameChunk* frames, size_t frameCount, uint8_t*& outBuf, size_t& outLen) {
+  outBuf = nullptr;
+  outLen = 0;
+  if (!frames || frameCount == 0) {
+    return false;
+  }
+  uint32_t width = camCfg.width();
+  uint32_t height = camCfg.height();
+  if (width == 0) width = 640;
+  if (height == 0) height = 480;
+  uint32_t fps = (kVideoFrameIntervalMs > 0) ? static_cast<uint32_t>(1000UL / kVideoFrameIntervalMs) : 10;
+  if (fps == 0) fps = 10;
+  const uint32_t microPerFrame = static_cast<uint32_t>(1000000UL / fps);
+  size_t maxFrameLen = 0;
+  size_t moviPayload = 0;
+  for (size_t i = 0; i < frameCount; ++i) {
+    if (frames[i].len > maxFrameLen) {
+      maxFrameLen = frames[i].len;
+    }
+    size_t chunk = 8 + frames[i].len;
+    if (frames[i].len & 1) {
+      ++chunk;
+    }
+    moviPayload += chunk;
+  }
+  const size_t hdrlTotal = 200;
+  const size_t moviTotal = 12 + moviPayload;
+  const size_t idx1Total = 8 + frameCount * 16;
+  const size_t totalSize = 12 + hdrlTotal + moviTotal + idx1Total;
+  uint8_t* buffer = static_cast<uint8_t*>(malloc(totalSize));
+  if (!buffer) {
+    Serial.println("[video] clip malloc failed");
+    return false;
+  }
+  uint8_t* ptr = buffer;
+  auto writeFourCC = [&](const char* cc) {
+    memcpy(ptr, cc, 4);
+    ptr += 4;
+  };
+  auto writeU32 = [&](uint32_t value) {
+    *ptr++ = static_cast<uint8_t>(value & 0xFF);
+    *ptr++ = static_cast<uint8_t>((value >> 8) & 0xFF);
+    *ptr++ = static_cast<uint8_t>((value >> 16) & 0xFF);
+    *ptr++ = static_cast<uint8_t>((value >> 24) & 0xFF);
+  };
+  auto writeU16 = [&](uint16_t value) {
+    *ptr++ = static_cast<uint8_t>(value & 0xFF);
+    *ptr++ = static_cast<uint8_t>((value >> 8) & 0xFF);
+  };
+
+  const size_t hdrlPayload = hdrlTotal - 8;
+  const size_t strlTotal = 124;
+  const size_t strlPayload = strlTotal - 8;
+  const uint32_t suggestedBufferSize = static_cast<uint32_t>(maxFrameLen > 0 ? maxFrameLen : 64 * 1024);
+  const uint32_t maxBytesPerSec = suggestedBufferSize * fps;
+
+  writeFourCC("RIFF");
+  writeU32(static_cast<uint32_t>(totalSize - 8));
+  writeFourCC("AVI ");
+
+  writeFourCC("LIST");
+  writeU32(static_cast<uint32_t>(hdrlPayload));
+  writeFourCC("hdrl");
+
+  writeFourCC("avih");
+  writeU32(56);
+  writeU32(microPerFrame);
+  writeU32(maxBytesPerSec);
+  writeU32(0);  // padding granularity
+  writeU32(0x10);  // flags (has index)
+  writeU32(static_cast<uint32_t>(frameCount));
+  writeU32(0);  // initial frames
+  writeU32(1);  // streams
+  writeU32(suggestedBufferSize);
+  writeU32(width);
+  writeU32(height);
+  writeU32(0);
+  writeU32(0);
+  writeU32(0);
+  writeU32(0);
+
+  writeFourCC("LIST");
+  writeU32(static_cast<uint32_t>(strlPayload));
+  writeFourCC("strl");
+
+  writeFourCC("strh");
+  writeU32(56);
+  writeFourCC("vids");
+  writeFourCC("MJPG");
+  writeU32(0);  // flags
+  writeU16(0);  // priority
+  writeU16(0);  // language
+  writeU32(0);  // initial frames
+  writeU32(1);  // scale
+  writeU32(fps);  // rate
+  writeU32(0);  // start
+  writeU32(static_cast<uint32_t>(frameCount));
+  writeU32(suggestedBufferSize);
+  writeU32(0xFFFFFFFF);
+  writeU32(0);  // sample size
+  writeU16(0);
+  writeU16(0);
+  writeU16(static_cast<uint16_t>(width));
+  writeU16(static_cast<uint16_t>(height));
+
+  writeFourCC("strf");
+  writeU32(40);
+  writeU32(40);
+  writeU32(width);
+  writeU32(height);
+  writeU16(1);   // planes
+  writeU16(24);  // bit count
+  writeFourCC("MJPG");
+  writeU32(suggestedBufferSize);
+  writeU32(0);  // xpels
+  writeU32(0);  // ypels
+  writeU32(0);  // clr used
+  writeU32(0);  // clr important
+
+  writeFourCC("LIST");
+  writeU32(static_cast<uint32_t>(moviTotal - 8));
+  writeFourCC("movi");
+
+  uint32_t offsets[kMaxVideoFrames] = {0};
+  uint32_t moviOffset = 0;
+  for (size_t i = 0; i < frameCount; ++i) {
+    writeFourCC("00dc");
+    writeU32(static_cast<uint32_t>(frames[i].len));
+    memcpy(ptr, frames[i].data, frames[i].len);
+    ptr += frames[i].len;
+    if (frames[i].len & 1) {
+      *ptr++ = 0;
+    }
+    offsets[i] = moviOffset;
+    size_t chunkSize = 8 + frames[i].len + (frames[i].len & 1 ? 1 : 0);
+    moviOffset += static_cast<uint32_t>(chunkSize);
+  }
+
+  writeFourCC("idx1");
+  writeU32(static_cast<uint32_t>(frameCount * 16));
+  for (size_t i = 0; i < frameCount; ++i) {
+    writeFourCC("00dc");
+    writeU32(0x10);
+    writeU32(offsets[i]);
+    writeU32(static_cast<uint32_t>(frames[i].len));
+  }
+
+  outBuf = buffer;
+  outLen = totalSize;
+  return true;
+}
+
+bool recordVideoClip(uint32_t durationMs, uint8_t*& clipData, size_t& clipLen) {
+  clipData = nullptr;
+  clipLen = 0;
+  FrameChunk frames[kMaxVideoFrames];
+  size_t frameCount = 0;
+  unsigned long endMs = millis() + durationMs;
+  while (millis() < endMs && frameCount < kMaxVideoFrames) {
+    uint8_t* frame = nullptr;
+    size_t len = 0;
+    if (captureFrameToBuffer(frame, len)) {
+      frames[frameCount].data = frame;
+      frames[frameCount].len = len;
+      ++frameCount;
+    }
+    vTaskDelay(pdMS_TO_TICKS(kVideoFrameIntervalMs));
+  }
+  bool ok = false;
+  if (frameCount > 0) {
+    ok = buildMjpegClip(frames, frameCount, clipData, clipLen);
+  } else {
+    Serial.println("[video] no frames captured");
+  }
+  freeFrameChunks(frames, frameCount);
+  return ok;
+}
+
+void serviceCaptureSession() {
+  if (!gCaptureSessionActive || gVideoRecorded) {
+    return;
+  }
+  if (millis() < gVideoScheduleMs) {
+    return;
+  }
+  uint8_t* clipData = nullptr;
+  size_t clipLen = 0;
+  emitEventPhase("video_start", gCaptureTrigger, 0, kMaxSessionPhotos, kEventVideoSecondsDefault, true);
+  bool ok = recordVideoClip(kVideoDurationMs, clipData, clipLen);
+  if (ok && clipData && clipLen > 0) {
+    ok = queueClipUpload(clipData, clipLen, gCaptureTrigger);
+  }
+  if (clipData) {
+    free(clipData);
+  }
+  emitEventPhase("video_end", gCaptureTrigger, 0, kMaxSessionPhotos, kEventVideoSecondsDefault, ok);
+  gVideoRecorded = true;
 }
 
 void enterDeepSleep() {
@@ -2043,6 +2365,7 @@ void loop() {
     }
   }
 
+  serviceCaptureSession();
   serviceUploadQueue();
   delay(1);
 }

@@ -114,6 +114,7 @@ const galleryBucket = GALLERY_BUCKET.trim();
 const galleryPrefix = GALLERY_PREFIX.replace(/^\/+|\/+$/g, "");
 const galleryCache = new Map();
 const CACHE_MS = 60000;
+const deviceTelemetry = new Map();
 const execFileAsync = promisify(execFile);
 const defaultDeviceId = (DEFAULT_DEVICE_ID || "dev1").trim() || "dev1";
 const logSnapshotRoots = (LOG_SNAPSHOT_PATHS || "")
@@ -218,13 +219,14 @@ const publicBaseForKind = (kind = "photos") =>
     ? S3_CLIPS_BASE.replace(/\/$/, "")
     : S3_PHOTOS_BASE.replace(/\/$/, "");
 
-const buildObjectKey = (deviceId, objectKey, _kind = "photos", contentType) => {
+const buildObjectKey = (deviceId, objectKey, _kind = "photos", contentType, weightG = 0) => {
   if (objectKey && !objectKey.includes("..")) {
     return objectKey;
   }
   const ts = new Date().toISOString().replace(/[:.]/g, "-");
   const ext = contentTypeToExtension(contentType);
-  return `${deviceId}/${ts}-${nanoid(6)}.${ext}`;
+  const weightSuffix = weightG > 0 ? `_${weightG}g` : "";
+  return `${deviceId}/${ts}-${nanoid(6)}${weightSuffix}.${ext}`;
 };
 
 const streamToBuffer = async (stream) => {
@@ -718,7 +720,6 @@ const listRecentAssets = async ({ bucket, deviceId, limit = 20 }) => {
         Boolean(entry.filename) &&
         entry.relative &&
         !entry.relative.includes("/indices/") &&
-        !entry.relative.includes("/") &&
         !entry.filename.endsWith(".json")
     );
 
@@ -1354,6 +1355,10 @@ app.get("/api/devices", async (req, res) => {
 
 app.get("/api/telemetry", async (req, res) => {
   const deviceId = sanitizeDeviceId(req.query.deviceId || defaultDeviceId);
+  const cached = deviceTelemetry.get(deviceId);
+  if (cached) {
+    return res.json(cached);
+  }
   try {
     const healthResponse = await fetch(
       `${normalizedPublicBase}/api/health?deviceId=${encodeURIComponent(deviceId)}`
@@ -1388,6 +1393,30 @@ app.get("/api/telemetry", async (req, res) => {
     console.error("[api:telemetry] failed", err);
     res.status(500).json({ error: "telemetry_unavailable" });
   }
+});
+
+app.post("/api/telemetry/push", (req, res) => {
+  const deviceId = sanitizeDeviceId(
+    req.query.deviceId || req.body?.deviceId || defaultDeviceId
+  );
+  if (!deviceId) {
+    return res.status(400).json({ error: "device_id_required" });
+  }
+  const payload = req.body && typeof req.body === "object" ? req.body : {};
+  const nowIso = new Date().toISOString();
+  const snapshot = {
+    deviceId,
+    timestamp:
+      typeof payload.ts_ms === "number"
+        ? new Date(payload.ts_ms).toISOString()
+        : nowIso,
+    updatedAt: nowIso,
+    ...payload,
+  };
+  snapshot.deviceId = deviceId;
+  snapshot.updatedAt = nowIso;
+  deviceTelemetry.set(deviceId, snapshot);
+  res.json({ ok: true });
 });
 
 app.get("/api/connectivity", async (req, res) => {
@@ -1529,18 +1558,27 @@ app.post("/api/settings", async (req, res) => {
   }
 });
 
+// Parse weight from filename like "2025-11-21T12-30-00-abc123_89g.jpg"
+const parseWeightFromFilename = (filename) => {
+  if (!filename) return 0;
+  const match = filename.match(/_(\d+)g\.[a-z]+$/i);
+  return match ? parseInt(match[1], 10) : 0;
+};
+
 const buildPhotoRecord = (item, deviceId) => {
   const filename = item.filename;
   const timestamp = captureTimestampFromFilename(filename, item.lastModified);
   const url = `${normalizedPublicBase}/gallery/${deviceId}/photo/${encodeURIComponent(
     filename
   )}`;
+  const weightGrams = parseWeightFromFilename(filename);
   return {
     filename,
     url,
     timestamp,
     sizeBytes: item.sizeBytes,
     type: "photo",
+    weightGrams,
   };
 };
 
@@ -1761,13 +1799,13 @@ app.get("/api/logs/summary", async (req, res) => {
 });
 
 app.post("/v1/presign/put", async (req, res) => {
-  const { deviceId, objectKey, contentType, kind = "uploads" } = req.body || {};
+  const { deviceId, objectKey, contentType, kind = "uploads", weightG = 0 } = req.body || {};
   if (!deviceId) {
     return res.status(400).json({ error: "deviceId is required" });
   }
 
   const resolvedKind = kind === "clips" ? "clips" : "photos";
-  const key = buildObjectKey(deviceId, objectKey, resolvedKind, contentType);
+  const key = buildObjectKey(deviceId, objectKey, resolvedKind, contentType, weightG);
   const uploadToken = signUploadToken({
     deviceId,
     key,

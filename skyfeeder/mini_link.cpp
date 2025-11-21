@@ -217,18 +217,32 @@ bool Mini_requestSnapshot() {
   return queueOp("snapshot");
 }
 
-bool Mini_requestEventCapture(uint8_t snapshotCount, uint16_t videoSeconds, const char* trigger, float weightG) {
+bool Mini_requestCaptureStart(const char* trigger, float weightG) {
   if (!miniSerial) return false;
   StaticJsonDocument<160> doc;
-  doc["op"] = "capture_event";
-  doc["snapshots"] = snapshotCount;
-  doc["video_sec"] = videoSeconds;
+  doc["op"] = "capture_start";
   if (trigger && trigger[0]) {
     doc["trigger"] = trigger;
   }
   if (weightG > 0.0f) {
     doc["weight_g"] = weightG;
   }
+  return writeLine(doc);
+}
+
+bool Mini_requestCapturePhoto(uint8_t index) {
+  if (!miniSerial) return false;
+  StaticJsonDocument<96> doc;
+  doc["op"] = "capture_photo";
+  doc["index"] = index;
+  return writeLine(doc);
+}
+
+bool Mini_requestCaptureStop(uint8_t totalPhotos) {
+  if (!miniSerial) return false;
+  StaticJsonDocument<96> doc;
+  doc["op"] = "capture_stop";
+  doc["total_photos"] = totalPhotos;
   return writeLine(doc);
 }
 

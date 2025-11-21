@@ -18,6 +18,7 @@
 #include "ota_service.h"
 #include "ota_manager.h"
 #include "boot_health.h"
+#include "telemetry_service.h"
 
 namespace {
 // Maintenance reboot interval derived from config; 0 disables the feature.
@@ -109,6 +110,10 @@ void setup() {
   SF::provisioning.begin();
   Serial.println("Provisioning initialized!");
 
+  Serial.println("Initializing telemetry service...");
+  SF::telemetry.begin(TELEMETRY_PUSH_INTERVAL_MS);
+  Serial.println("Telemetry service initialized!");
+
   if (SF::provisioning.isReady()) {
     Serial.println("Provisioning ready - ensuring Wi-Fi (HTTP/WS mode)...");
     SF::mqtt.begin();  // Wi-Fi only; MQTT itself is disabled.
@@ -139,6 +144,7 @@ void loop() {
   SF_commandHandlerLoop();
   SF::ledUx.loop();
   SF::ws2812.update();
+  SF::telemetry.loop();
 
   if (!SF::provisioning.isReady()) {
     if (!debugPrinted) {
@@ -176,6 +182,3 @@ void loop() {
   SF::mqtt.loop();  // Maintains Wi-Fi only; MQTT is a no-op.
   delay(10);
 }
-
-
-

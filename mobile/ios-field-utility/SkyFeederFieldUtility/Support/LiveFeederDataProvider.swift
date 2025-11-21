@@ -67,7 +67,7 @@ struct LiveFeederDataProvider: FeederDataProviding {
                 type: type,
                 thumbnailURL: thumbnailURL,
                 mediaURL: assetURL,
-                weightGrams: 0,
+                weightGrams: capture.weightGrams,
                 capturedAt: capture.capturedAt,
                 expiresAt: expiresAt
             )

@@ -15,6 +15,7 @@ final class PresignedCaptureProvider: CaptureProvider {
         let thumbnailURL: URL
         let assetURL: URL
         let contentType: String
+        let weightGrams: Double?
     }
 
     private let endpoint: URL
@@ -87,7 +88,8 @@ final class PresignedCaptureProvider: CaptureProvider {
                 fileSizeBytes: item.fileSizeBytes,
                 thumbnail: CaptureResource(location: .remote(item.thumbnailURL), contentType: item.contentType),
                 asset: CaptureResource(location: .remote(item.assetURL), contentType: item.contentType),
-                source: .presigned
+                source: .presigned,
+                weightGrams: item.weightGrams ?? 0
             )
         }
     }

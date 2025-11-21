@@ -16,6 +16,7 @@ struct Capture: Identifiable, Hashable, Codable {
     let source: Source
     var annotations: [String]
     var isFavorite: Bool
+    let weightGrams: Double
 
     init(
         id: UUID = UUID(),
@@ -27,7 +28,8 @@ struct Capture: Identifiable, Hashable, Codable {
         asset: CaptureResource,
         source: Source,
         annotations: [String] = [],
-        isFavorite: Bool = false
+        isFavorite: Bool = false,
+        weightGrams: Double = 0
     ) {
         self.id = id
         self.title = title
@@ -39,6 +41,7 @@ struct Capture: Identifiable, Hashable, Codable {
         self.source = source
         self.annotations = annotations
         self.isFavorite = isFavorite
+        self.weightGrams = weightGrams
     }
 }
 
