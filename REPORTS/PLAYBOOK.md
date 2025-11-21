@@ -22,3 +22,10 @@
 - 2025-10-28T21:26:05Z — Enabled WS_STRICT_VALIDATION, used a throwaway WebSocket client to send a 256 KB payload, and logged the 1008 policy close plus metrics in REPORTS/A1.3.
 - 2025-10-28T21:30:20Z — Skipped INDEX_SAFE_APPEND concurrency validation because MinIO/S3 is unavailable; documented the limitation in REPORTS/A1.4/index_race_test.json.
 - 2025-10-29T02:15:00Z — Removed placeholder PNG artifacts (dashboard screenshots, dependency graph) per binary-free handoff request and updated validation notes to reflect the outstanding screenshot capture.
+- 2025-11-21T03:50:00Z — [CLAUDE CODE SESSION] Serial monitoring session (10 min) on ESP32/AMB82 system to validate PIR weight filtering and capture events.
+- 2025-11-21T03:55:00Z — Validated weight filtering logic working correctly: 26 PIR triggers ignored (delta < 80g), 2 triggers captured (88.92g, 444.67g).
+- 2025-11-21T03:56:00Z — Confirmed weight metadata now sent to AMB82 in capture_event JSON (`weight_g` field).
+- 2025-11-21T03:57:00Z — Identified critical bug: AMB82 upload queue size (kUploadQueueSlots=4) too small for 10 snapshots per event.
+- 2025-11-21T03:58:00Z — Fixed AMB82 upload queue: changed kUploadQueueSlots from 4 to 12 in amb-mini.ino line 134.
+- 2025-11-21T03:59:00Z — Identified missing feature: Video recording in handleCaptureEvent() only emits phases but does not actually record or upload video.
+- 2025-11-21T04:00:00Z — Identified missing feature: ESP32 telemetry push to backend (Power & Telemetry section in iOS Dev page shows null values).

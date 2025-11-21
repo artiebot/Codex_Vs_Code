@@ -131,7 +131,7 @@ volatile bool msgReceived = false;
 volatile bool processingMessage = false;
 #endif
 
-constexpr size_t kUploadQueueSlots = 4;
+constexpr size_t kUploadQueueSlots = 12;  // Must be >= snapshot count (10) + buffer
 constexpr uint8_t kUploadMaxAttempts = 3;
 constexpr unsigned long kUploadBackoffAttempt2Ms = 60000UL;    // 1 minute
 constexpr unsigned long kUploadBackoffAttempt3Ms = 300000UL;   // 5 minutes
