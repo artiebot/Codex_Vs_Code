@@ -35,6 +35,7 @@ jobs:
 #            bundler-${{ runner.os }}-
 
       - name: Install Ruby gems
+        working-directory: mobile/ios-field-utility
         run: |
           bundle config path vendor/bundle
           bundle install --jobs 4
