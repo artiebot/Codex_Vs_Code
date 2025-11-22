@@ -78,6 +78,7 @@ jobs:
           security default-keychain -s build.keychain
 
       - name: Build & Upload to TestFlight
+        working-directory: mobile/ios-field-utility
         env:
           KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
           ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
