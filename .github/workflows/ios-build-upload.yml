@@ -26,44 +26,43 @@ jobs:
           xcodegen generate
           xcodebuild -resolvePackageDependencies -project SkyFeederFieldUtility.xcodeproj
 
-      - name: Cache Bundler
-        uses: actions/cache@v4
-        with:
-          path: vendor/bundle
-          key: bundler-${{ runner.os }}-${{ hashFiles('Gemfile') }}
-          restore-keys: |
-            bundler-${{ runner.os }}-
+#      - name: Cache Bundler
+#        uses: actions/cache@v4
+#        with:
+#          path: vendor/bundle
+#          key: bundler-${{ runner.os }}-${{ hashFiles('Gemfile') }}
+#          restore-keys: |
+#            bundler-${{ runner.os }}-
 
       - name: Install Ruby gems
         run: |
           bundle config path vendor/bundle
           bundle install --jobs 4
 
-      - name: Cache CocoaPods and DerivedData
-        if: ${{ hashFiles('mobile/ios-field-utility/Podfile') != '' || hashFiles('mobile/ios-field-utility/Podfile.lock') != '' }}
-        uses: actions/cache@v4
-        with:
-          path: |
-            mobile/ios-field-utility/Pods
-            ~/Library/Caches/CocoaPods
-            ~/Library/Developer/Xcode/DerivedData
-          key: pods-${{ runner.os }}-${{ hashFiles('mobile/ios-field-utility/Podfile.lock') }}
-          restore-keys: |
-            pods-${{ runner.os }}-
+#      - name: Cache CocoaPods and DerivedData
+#        if: ${{ hashFiles('mobile/ios-field-utility/Podfile') != '' || hashFiles('mobile/ios-field-utility/Podfile.lock') != '' }}
+#        uses: actions/cache@v4
+#        with:
+#          path: |
+#            mobile/ios-field-utility/Pods
+#            ~/Library/Caches/CocoaPods
+#            ~/Library/Developer/Xcode/DerivedData
+#          key: pods-${{ runner.os }}-${{ hashFiles('mobile/ios-field-utility/Podfile.lock') }}
+#          restore-keys: |
+#            pods-${{ runner.os }}-
 
       - name: Install CocoaPods
-        if: ${{ hashFiles('mobile/ios-field-utility/Podfile') != '' }}
         working-directory: mobile/ios-field-utility
         run: bundle exec pod install --repo-update --clean-install
 
-      - name: Cache SwiftPM DerivedData
-        if: ${{ hashFiles('**/Package.resolved') != '' }}
-        uses: actions/cache@v4
-        with:
-          path: ~/Library/Developer/Xcode/DerivedData
-          key: spm-${{ runner.os }}-${{ hashFiles('**/Package.resolved') }}
-          restore-keys: |
-            spm-${{ runner.os }}-
+#      - name: Cache SwiftPM DerivedData
+#        if: ${{ hashFiles('**/Package.resolved') != '' }}
+#        uses: actions/cache@v4
+#        with:
+#          path: ~/Library/Developer/Xcode/DerivedData
+#          key: spm-${{ runner.os }}-${{ hashFiles('**/Package.resolved') }}
+#          restore-keys: |
+#            spm-${{ runner.os }}-
 
       - name: Prepare CI keychain
         env:
