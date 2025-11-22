@@ -53,6 +53,7 @@ jobs:
 #            pods-${{ runner.os }}-
 
       - name: Install CocoaPods
+        if: ${{ hashFiles('mobile/ios-field-utility/Podfile') != '' }}
         working-directory: mobile/ios-field-utility
         run: bundle exec pod install --repo-update --clean-install
 
