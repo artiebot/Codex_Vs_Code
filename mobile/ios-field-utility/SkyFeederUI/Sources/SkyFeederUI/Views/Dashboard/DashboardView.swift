@@ -1,193 +1,125 @@
 import SwiftUI
+import AVKit
 
 public struct DashboardView: View {
-    @EnvironmentObject private var router: ApplicationRouter
     @StateObject private var viewModel: DashboardViewModel
-    @StateObject private var liveStreamViewModel: LiveStreamViewModel
-    @StateObject private var photosViewModel: MediaCarouselViewModel
-    @StateObject private var videosViewModel: MediaCarouselViewModel
-    @StateObject private var eventLogViewModel: EventLogViewModel
-
-    private let columns = [
-        GridItem(.flexible(minimum: 160), spacing: 16),
-        GridItem(.flexible(minimum: 160), spacing: 16)
-    ]
-
-    public init(
-        viewModel: DashboardViewModel,
-        liveStreamViewModel: LiveStreamViewModel,
-        photosViewModel: MediaCarouselViewModel,
-        videosViewModel: MediaCarouselViewModel,
-        eventLogViewModel: EventLogViewModel
-    ) {
+    @State private var showingDevicePicker = false
+    @State private var selectedVideo: BirdVisit?
+    @State private var selectedVisit: BirdVisit?
+    
+    public init(viewModel: DashboardViewModel) {
         _viewModel = StateObject(wrappedValue: viewModel)
-        _liveStreamViewModel = StateObject(wrappedValue: liveStreamViewModel)
-        _photosViewModel = StateObject(wrappedValue: photosViewModel)
-        _videosViewModel = StateObject(wrappedValue: videosViewModel)
-        _eventLogViewModel = StateObject(wrappedValue: eventLogViewModel)
     }
-
+    
     public var body: some View {
-        ScrollView {
-            LazyVGrid(columns: columns, spacing: 16) {
-                WeightMonitorCardView(state: viewModel.weightCard)
-                VisitStatusCardView(
-                    state: viewModel.visitCard,
-                    triggerAction: {
-                        Task { await viewModel.triggerManualVisit() }
-                    },
-                    snapshotAction: {
-                        Task { await viewModel.takeSnapshot() }
-                    }
-                )
-
-                LiveCameraCardView(viewModel: liveStreamViewModel)
-
-                MediaCarouselView(
-                    title: "Recent Photos",
-                    icon: "photo.on.rectangle",
-                    viewModel: photosViewModel
-                )
-
-                MediaCarouselView(
-                    title: "Recent Videos",
-                    icon: "film.stack",
-                    viewModel: videosViewModel
-                )
-
-                EventLogView(viewModel: eventLogViewModel)
-
-                // System Health Card
-                if let snapshot = viewModel.healthSnapshot {
-                    SystemHealthCardView(
-                        services: snapshot.services.mapValues { serviceStatus in
-                            SystemHealthCardView.ServiceStatus(
-                                name: "",
-                                status: serviceStatus.status,
-                                latencyMs: serviceStatus.latencyMs
+        NavigationView {
+            ZStack {
+                DesignSystem.background.ignoresSafeArea()
+                
+                if viewModel.isLoading {
+                    ProgressView()
+                        .tint(DesignSystem.primaryTeal)
+                } else {
+                    ScrollView {
+                        VStack(spacing: 24) {
+                            // 1. Top Status Bar
+                            topStatusBar
+                            
+                            // 2. Video Gallery Card
+                            VideoGalleryCard(
+                                item: viewModel.selectedGalleryItem,
+                                onPlay: {
+                                    if let item = viewModel.selectedGalleryItem, let url = item.videoUrl {
+                                        selectedVideo = item
+                                    }
+                                },
+                                onNext: viewModel.selectNextGalleryItem,
+                                onPrevious: viewModel.selectPreviousGalleryItem,
+                                onSeeAll: {
+                                    // TODO: Navigate to full gallery
+                                }
                             )
-                        },
-                        uptimeSeconds: snapshot.uptimeSeconds,
-                        latencyMs: snapshot.latencyMs
-                    )
-                }
-
-                // Storage Info Card
-                if let snapshot = viewModel.healthSnapshot, let storage = snapshot.storage {
-                    StorageInfoCardView(
-                        photoCount: storage.photos.count,
-                        videoCount: storage.videos.count,
-                        freeSpaceBytes: storage.freeSpaceBytes,
-                        photoBytes: storage.photos.totalBytes,
-                        videoBytes: storage.videos.totalBytes,
-                        logBytes: storage.logs.sizeBytes
-                    )
-                }
-
-                // Settings and Storage Management buttons
-                VStack(spacing: 12) {
-                    Button {
-                        router.showDeviceSettings()
-                    } label: {
-                        HStack {
-                            Image(systemName: "slider.horizontal.3")
-                            Text("Device Settings")
-                            Spacer()
-                            Image(systemName: "chevron.right")
-                                .font(.caption)
+                            
+                            // 3. Visits Graph
+                            VisitsGraphView(stats: viewModel.weeklyStats)
+                            
+                            // 4. Recent Activity
+                            RecentActivityList(
+                                visits: viewModel.recentVisits,
+                                onSelect: { visit in
+                                    selectedVisit = visit
+                                }
+                            )
                         }
                         .padding()
-                        .frame(maxWidth: .infinity)
-                        .background(Color(.secondarySystemGroupedBackground))
-                        .cornerRadius(12)
                     }
-                    .buttonStyle(.plain)
-
-                    Button {
-                        router.showStorageManagement()
-                    } label: {
-                        HStack {
-                            Image(systemName: "externaldrive")
-                            Text("Storage Management")
-                            Spacer()
-                            Image(systemName: "chevron.right")
-                                .font(.caption)
-                        }
-                        .padding()
-                        .frame(maxWidth: .infinity)
-                        .background(Color(.secondarySystemGroupedBackground))
-                        .cornerRadius(12)
+                    .refreshable {
+                        await viewModel.loadData()
                     }
-                    .buttonStyle(.plain)
-                }
-                .gridCellColumns(2)
-            }
-            .padding()
-        }
-        .navigationTitle("Dashboard")
-        .toolbar {
-            ToolbarItem(placement: .navigationBarTrailing) {
-                Button {
-                    router.showSettings()
-                } label: {
-                    Image(systemName: "gearshape")
                 }
             }
-        }
-        .overlay(alignment: .top) {
-            VStack(spacing: 8) {
-                if viewModel.isOffline {
-                    OfflineBannerView(isOffline: true)
-                        .transition(.move(edge: .top).combined(with: .opacity))
-                        .accessibilityIdentifier("dashboard-offline-banner")
-                        .padding(.horizontal)
-                }
-
-                if let error = viewModel.errorMessage {
-                    Label(error, systemImage: "exclamationmark.triangle")
-                        .font(.footnote)
-                        .padding(8)
-                        .frame(maxWidth: .infinity)
-                        .background(
-                            RoundedRectangle(cornerRadius: 12)
-                                .fill(Color.orange.opacity(0.15))
-                        )
-                        .padding(.horizontal)
-                        .transition(.opacity)
-                }
-
-                if let banner = viewModel.actionBanner {
-                    ToastBanner(message: banner)
-                        .padding(.horizontal)
+            .navigationBarHidden(true)
+            .task {
+                await viewModel.loadData()
+            }
+            .sheet(item: $selectedVideo) { video in
+                if let url = video.videoUrl {
+                    VideoPlayerView(url: url)
                 }
             }
-        }
-        .refreshable {
-            await viewModel.refresh()
-        }
-        .task {
-            await viewModel.refresh()
-            viewModel.startAutoRefresh()
-            liveStreamViewModel.start()
-            await photosViewModel.refresh()
-            await videosViewModel.refresh()
-            eventLogViewModel.start()
-        }
-        .onDisappear {
-            liveStreamViewModel.stop()
-            eventLogViewModel.stop()
+            .sheet(item: $selectedVisit) { visit in
+                // Simple detail view for now
+                if let url = visit.thumbnailUrl {
+                    ZoomableImageView(url: url)
+                }
+            }
         }
     }
-}
-
-struct ToastBanner: View {
-    let message: String
-
-    var body: some View {
-        Text(message)
-            .font(.callout.weight(.medium))
-            .padding(.vertical, 8)
-            .padding(.horizontal, 12)
-            .background(.thinMaterial, in: Capsule())
+    
+    private var topStatusBar: some View {
+        HStack {
+            // Device Selector
+            Button(action: { showingDevicePicker = true }) {
+                HStack(spacing: 4) {
+                    Text(viewModel.currentDevice?.name ?? "Select Device")
+                        .font(DesignSystem.headline())
+                        .foregroundColor(DesignSystem.textPrimary)
+                    Image(systemName: "chevron.down")
+                        .font(.caption)
+                        .foregroundColor(DesignSystem.textSecondary)
+                }
+            }
+            
+            Spacer()
+            
+            // Status Icons
+            if let device = viewModel.currentDevice {
+                HStack(spacing: 12) {
+                    statusItem(
+                        icon: "battery.100", // Dynamic icon based on % would be better
+                        text: "\(device.batteryPercentage)%"
+                    )
+                    statusItem(
+                        icon: "wifi",
+                        text: "\(device.wifiSignalStrength)%" // Using % for simplicity as per design, though it's RSSI
+                    )
+                    statusItem(
+                        icon: "thermometer",
+                        text: "\(Int(device.temperatureCelsius))°C"
+                    )
+                }
+            }
+        }
+        .padding(.bottom, 8)
+    }
+    
+    private func statusItem(icon: String, text: String) -> some View {
+        HStack(spacing: 4) {
+            Image(systemName: icon)
+                .font(.caption)
+            Text(text)
+                .font(.caption)
+        }
+        .foregroundColor(DesignSystem.textSecondary)
     }
 }

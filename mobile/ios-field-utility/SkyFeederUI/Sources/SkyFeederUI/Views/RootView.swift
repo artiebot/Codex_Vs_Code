@@ -1,44 +1,39 @@
 import SwiftUI
 
-public struct SkyFeederRootView: View {
-    @StateObject private var settingsStore: SettingsStore
-    @StateObject private var feederViewModel: FeederViewModel
-    @StateObject private var optionsViewModel: OptionsViewModel
-    @StateObject private var devViewModel: DevViewModel
-
-    public init(
-        settingsStore: SettingsStore,
-        dataProvider: FeederDataProviding = MockFeederDataProvider()
-    ) {
-        _settingsStore = StateObject(wrappedValue: settingsStore)
-        _feederViewModel = StateObject(
-            wrappedValue: FeederViewModel(dataProvider: dataProvider)
-        )
-        _optionsViewModel = StateObject(
-            wrappedValue: OptionsViewModel(settingsStore: settingsStore, dataProvider: dataProvider)
-        )
-        _devViewModel = StateObject(wrappedValue: DevViewModel(settingsStore: settingsStore))
+public struct RootView: View {
+    @StateObject private var dashboardViewModel: DashboardViewModel
+    
+    public init() {
+        let settingsState = SettingsState(userDefaults: .standard)
+        let deviceService = LiveDeviceService(settingsState: settingsState)
+        let visitService = LiveVisitService(settingsState: settingsState)
+        let statsService = LiveStatsService(settingsState: settingsState)
+        
+        _dashboardViewModel = StateObject(wrappedValue: DashboardViewModel(
+            deviceService: deviceService,
+            visitService: visitService,
+            statsService: statsService
+        ))
     }
-
+    
     public var body: some View {
         TabView {
-            FeederView(viewModel: feederViewModel)
+            DashboardView(viewModel: dashboardViewModel)
                 .tabItem {
-                    Label("Feeder", systemImage: "house.fill")
+                    Label("Dashboard", systemImage: "house.fill")
                 }
-
-            OptionsView(viewModel: optionsViewModel)
+            
+            DeveloperView()
                 .tabItem {
-                    Label("Options", systemImage: "slider.horizontal.3")
+                    Label("Developer", systemImage: "hammer.fill")
                 }
-
-            if settingsStore.showDevTools {
-                DevView(viewModel: devViewModel)
-                    .tabItem {
-                        Label("Dev", systemImage: "wrench.fill")
-                    }
-            }
+            
+            SettingsView()
+                .tabItem {
+                    Label("Settings", systemImage: "gearshape.fill")
+                }
         }
-        .accentColor(DesignSystem.primaryTeal)
+        .tint(DesignSystem.primaryTeal)
+        .preferredColorScheme(.dark) // Force dark mode as per design requirement
     }
 }
