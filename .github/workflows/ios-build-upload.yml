@@ -52,10 +52,10 @@ jobs:
 #          restore-keys: |
 #            pods-${{ runner.os }}-
 
-      - name: Install CocoaPods
-        if: ${{ hashFiles('mobile/ios-field-utility/Podfile') != '' }}
-        working-directory: mobile/ios-field-utility
-        run: bundle exec pod install --repo-update --clean-install
+#      - name: Install CocoaPods
+#        if: ${{ hashFiles('mobile/ios-field-utility/Podfile') != '' }}
+#        working-directory: mobile/ios-field-utility
+#        run: bundle exec pod install --repo-update --clean-install
 
 #      - name: Cache SwiftPM DerivedData
 #        if: ${{ hashFiles('**/Package.resolved') != '' }}
