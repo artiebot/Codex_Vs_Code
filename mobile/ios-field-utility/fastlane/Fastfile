@@ -34,17 +34,16 @@ platform :ios do
       api_key: api_key,
       app_identifier: bundle_id
     }
-    match_params[:git_url] = ENV["MATCH_GIT_URL"] if ENV["MATCH_GIT_URL"]
-    match_params[:git_basic_authorization] = ENV["MATCH_GIT_BASIC_AUTHORIZATION"] if ENV["MATCH_GIT_BASIC_AUTHORIZATION"]
     if keychain_name
       match_params[:keychain_name] = keychain_name
       match_params[:keychain_password] = keychain_password
-      if keychain_password.to_s.length.positive?
-        sh("security set-key-partition-list -S apple-tool:,apple: -s -k #{Shellwords.escape(keychain_password)} #{Shellwords.escape(resolved_keychain)}")
-      end
     end
 
     match(match_params)
+
+    if keychain_name && keychain_password.to_s.length.positive?
+      sh("security set-key-partition-list -S apple-tool:,apple: -s -k #{Shellwords.escape(keychain_password)} #{Shellwords.escape(resolved_keychain)}")
+    end
 
     profile_specifier = ENV["APP_PROVISIONING_PROFILE_SPECIFIER"] || ENV["SIGH_#{bundle_id.gsub('.', '_')}_PROFILE_NAME"] || "match AppStore #{bundle_id}"
 
