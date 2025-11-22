@@ -84,7 +84,7 @@ platform :ios do
       ipa: "../build/SkyFeederFieldUtility.ipa",
       skip_submission: true,
       skip_waiting_for_build_processing: false,
-      distribute_external: true
+      distribute_external: false
     )
 
     if build
