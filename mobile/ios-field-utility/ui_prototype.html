@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SkyFeeder App - Prototype</title>
+    <style>
+        :root {
+            --teal: #2DD4BF;
+            --teal-dark: #14B8A6;
+            --bg: #F5F7FA;
+            --card-bg: #FFFFFF;
+            --text-primary: #1F2937;
+            --text-secondary: #6B7280;
+            --battery-green: #10B981;
+            --battery-yellow: #F59E0B;
+            --battery-red: #EF4444;
+            --status-online: #10B981;
+            --status-offline: #EF4444;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background: #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .device-frame {
+            width: 390px;
+            height: 844px;
+            background: var(--bg);
+            border-radius: 47px;
+            overflow: hidden;
+            box-shadow: 0 0 0 12px #1c1c1e, 0 30px 60px rgba(0, 0, 0, 0.6);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        /* Status Bar */
+        .status-bar {
+            height: 47px;
+            background: var(--bg);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 24px;
+            font-size: 15px;
+            font-weight: 600;
+        }
+
+        /* Content Area */
+        .content {
+            flex: 1;
+            overflow-y: auto;
+            background: var(--bg);
+        }
+
+        .tab-content {
+            display: none;
+            height: 100%;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Navigation */
+        .nav-header {
+            padding: 8px 20px 12px;
+            background: var(--bg);
+            border-bottom: 0.5px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .nav-title {
+            font-size: 34px;
+            font-weight: 700;
+            margin: 0;
+        }
+
+        /* Scrollable content */
+        .scroll-content {
+            padding: 16px;
+        }
+
+        /* Battery Card */
+        .battery-card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            margin-bottom: 24px;
+        }
+
+        .battery-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .battery-bar {
+            width: 120px;
+            height: 50px;
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .battery-fill {
+            height: 100%;
+            background: var(--battery-green);
+            width: 85%;
+            transition: width 0.3s;
+        }
+
+        .battery-percentage {
+            font-size: 48px;
+            font-weight: 700;
+            color: var(--battery-green);
+            margin-left: auto;
+        }
+
+        .battery-status {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 15px;
+            color: var(--text-secondary);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+
+        .status-dot.charging {
+            background: var(--teal);
+        }
+
+        .status-dot.online {
+            background: var(--status-online);
+        }
+
+        /* Section */
+        .section {
+            margin-bottom: 24px;
+        }
+
+        .section-header {
+            margin-bottom: 12px;
+        }
+
+        .section-title {
+            font-size: 22px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .section-subtitle {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        /* Horizontal Scroll */
+        .horizontal-scroll {
+            display: flex;
+            gap: 16px;
+            overflow-x: auto;
+            overflow-y: hidden;
+            padding-bottom: 8px;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .horizontal-scroll::-webkit-scrollbar {
+            height: 0;
+        }
+
+        /* Media Card */
+        .media-card {
+            flex-shrink: 0;
+            width: 180px;
+            height: 240px;
+            background: #ccc;
+            border-radius: 12px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .media-card-overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to bottom, transparent 40%, rgba(0, 0, 0, 0.7));
+        }
+
+        .media-card-actions {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .card-action-btn {
+            width: 36px;
+            height: 36px;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            cursor: pointer;
+            border: none;
+        }
+
+        .media-card-info {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 12px;
+            color: white;
+        }
+
+        .media-card-info div {
+            font-size: 11px;
+            opacity: 0.9;
+            margin-bottom: 2px;
+        }
+
+        .play-icon {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 50px;
+            color: white;
+            pointer-events: none;
+        }
+
+        /* Options/Settings Sections */
+        .settings-section {
+            margin-bottom: 24px;
+        }
+
+        .settings-section-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            margin-bottom: 8px;
+            letter-spacing: 0.5px;
+        }
+
+        .settings-card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .settings-row {
+            padding: 16px;
+            border-bottom: 0.5px solid rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .settings-row:last-child {
+            border-bottom: none;
+        }
+
+        .settings-row-label {
+            font-size: 17px;
+            color: var(--text-primary);
+        }
+
+        .settings-row-value {
+            font-size: 17px;
+            color: var(--text-secondary);
+        }
+
+        .slider {
+            width: 100%;
+            margin: 8px 0;
+        }
+
+        .radio-group {
+            padding: 12px 16px;
+        }
+
+        .radio-option {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px 0;
+            cursor: pointer;
+        }
+
+        .radio-circle {
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--teal);
+            border-radius: 50%;
+            position: relative;
+            flex-shrink: 0;
+        }
+
+        .radio-circle.selected::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 12px;
+            height: 12px;
+            background: var(--teal);
+            border-radius: 50%;
+        }
+
+        .toggle {
+            width: 51px;
+            height: 31px;
+            background: var(--teal);
+            border-radius: 16px;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .toggle::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            width: 27px;
+            height: 27px;
+            background: white;
+            border-radius: 50%;
+            transition: transform 0.2s;
+        }
+
+        /* Tab Bar */
+        .tab-bar {
+            height: 83px;
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(20px);
+            border-top: 0.5px solid rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-around;
+            align-items: flex-start;
+            padding-top: 8px;
+        }
+
+        .tab-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            color: #8E8E93;
+            font-size: 10px;
+            cursor: pointer;
+            padding: 4px 16px;
+        }
+
+        .tab-item.active {
+            color: var(--teal);
+        }
+
+        .tab-icon {
+            font-size: 24px;
+        }
+
+        .empty-placeholder {
+            width: 200px;
+            height: 200px;
+            background: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+
+        .empty-placeholder-icon {
+            font-size: 48px;
+            opacity: 0.3;
+        }
+
+        .empty-placeholder-text {
+            font-size: 15px;
+            color: var(--text-secondary);
+            text-align: center;
+            padding: 0 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="device-frame">
+        <!-- Status Bar -->
+        <div class="status-bar">
+            <span>9:41</span>
+            <span>📶 🔋</span>
+        </div>
+
+        <!-- Content -->
+        <div class="content">
+            <!-- Feeder Tab -->
+            <div id="tab-feeder" class="tab-content active">
+                <div class="nav-header">
+                    <h1 class="nav-title">SkyFeeder</h1>
+                </div>
+                <div class="scroll-content">
+                    <!-- Battery Card -->
+                    <div class="battery-card">
+                        <div class="battery-header">
+                            <div class="battery-bar">
+                                <div class="battery-fill"></div>
+                            </div>
+                            <div class="battery-percentage">85%</div>
+                        </div>
+                        <div class="battery-status">
+                            <div class="status-item">
+                                <span class="status-dot charging"></span>
+                                <span>Charging via solar</span>
+                            </div>
+                            <div class="status-item">
+                                <span class="status-dot online"></span>
+                                <span>Feeder is online</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Photos Section -->
+                    <div class="section">
+                        <div class="section-header">
+                            <div class="section-title">Photos</div>
+                            <div class="section-subtitle">Photos are automatically removed after 7 days.</div>
+                        </div>
+                        <div class="horizontal-scroll">
+                            <div class="media-card">
+                                <div
+                                    style="width:100%;height:100%;background:#a8dadc;display:flex;align-items:center;justify-content:center;font-size:60px;">
+                                    🐦</div>
+                                <div class="media-card-overlay"></div>
+                                <div class="media-card-actions">
+                                    <button class="card-action-btn">↗</button>
+                                    <button class="card-action-btn">🗑</button>
+                                </div>
+                                <div class="media-card-info">
+                                    <div>Weight: 42g</div>
+                                    <div>Nov 19, 2024</div>
+                                    <div>Expires on Nov 26, 2024</div>
+                                </div>
+                            </div>
+
+                            <div class="media-card">
+                                <div
+                                    style="width:100%;height:100%;background:#f1faee;display:flex;align-items:center;justify-content:center;font-size:60px;">
+                                    🐿️</div>
+                                <div class="media-card-overlay"></div>
+                                <div class="media-card-actions">
+                                    <button class="card-action-btn">↗</button>
+                                    <button class="card-action-btn">🗑</button>
+                                </div>
+                                <div class="media-card-info">
+                                    <div>Weight: 120g</div>
+                                    <div>Nov 19, 2024</div>
+                                    <div>Expires on Nov 26, 2024</div>
+                                </div>
+                            </div>
+
+                            <div class="media-card">
+                                <div
+                                    style="width:100%;height:100%;background:#e9c46a;display:flex;align-items:center;justify-content:center;font-size:60px;">
+                                    🦜</div>
+                                <div class="media-card-overlay"></div>
+                                <div class="media-card-actions">
+                                    <button class="card-action-btn">↗</button>
+                                    <button class="card-action-btn">🗑</button>
+                                </div>
+                                <div class="media-card-info">
+                                    <div>Weight: 28g</div>
+                                    <div>Nov 18, 2024</div>
+                                    <div>Expires on Nov 25, 2024</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Videos Section -->
+                    <div class="section">
+                        <div class="section-header">
+                            <div class="section-title">Videos</div>
+                            <div class="section-subtitle">Videos are automatically removed after 3 days.</div>
+                        </div>
+                        <div class="horizontal-scroll">
+                            <div class="media-card">
+                                <div
+                                    style="width:100%;height:100%;background:#457b9d;display:flex;align-items:center;justify-content:center;font-size:60px;">
+                                    🦝</div>
+                                <div class="media-card-overlay"></div>
+                                <div class="play-icon">▶</div>
+                                <div class="media-card-actions">
+                                    <button class="card-action-btn">↗</button>
+                                    <button class="card-action-btn">🗑</button>
+                                </div>
+                                <div class="media-card-info">
+                                    <div>Weight: 450g</div>
+                                    <div>Nov 19, 2024</div>
+                                    <div>Expires on Nov 22, 2024</div>
+                                </div>
+                            </div>
+
+                            <div class="empty-placeholder">
+                                <div class="empty-placeholder-icon">📷</div>
+                                <div class="empty-placeholder-text">No videos yet.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Options Tab -->
+            <div id="tab-options" class="tab-content">
+                <div class="nav-header">
+                    <h1 class="nav-title">Options</h1>
+                </div>
+                <div class="scroll-content">
+                    <!-- Capture Settings -->
+                    <div class="settings-section">
+                        <div class="settings-section-title">Capture Settings</div>
+                        <div class="settings-card">
+                            <div class="settings-row">
+                                <span class="settings-row-label">Min trigger weight</span>
+                                <span class="settings-row-value">15 g</span>
+                            </div>
+                            <div class="settings-row" style="flex-direction: column; align-items: stretch;">
+                                <input type="range" class="slider" min="0" max="100" value="15">
+                            </div>
+                            <div style="border-top: 0.5px solid rgba(0,0,0,0.1);"></div>
+                            <div class="settings-row">
+                                <span class="settings-row-label">Capture type</span>
+                                <span class="settings-row-value">Photo + Video</span>
+                            </div>
+                            <div class="radio-group">
+                                <div class="radio-option">
+                                    <div class="radio-circle"></div>
+                                    <span>Photo only</span>
+                                </div>
+                                <div class="radio-option">
+                                    <div class="radio-circle"></div>
+                                    <span>Video only</span>
+                                </div>
+                                <div class="radio-option">
+                                    <div class="radio-circle selected"></div>
+                                    <span>Photo + Video</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Time & Quiet Hours -->
+                    <div class="settings-section">
+                        <div class="settings-section-title">Time & Quiet Hours</div>
+                        <div class="settings-card">
+                            <div class="settings-row">
+                                <span class="settings-row-label">Enable</span>
+                                <div class="toggle"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Notifications -->
+                    <div class="settings-section">
+                        <div class="settings-section-title">Notifications</div>
+                        <div class="settings-card">
+                            <div class="settings-row">
+                                <span class="settings-row-label">Notify on low battery</span>
+                                <div class="toggle"></div>
+                            </div>
+                            <div class="settings-row">
+                                <span class="settings-row-label">Notify when feeder sees a visitor</span>
+                                <div class="toggle"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Advanced -->
+                    <div class="settings-section">
+                        <div class="settings-section-title">Advanced</div>
+                        <div class="settings-card">
+                            <div class="settings-row">
+                                <span class="settings-row-label">Time zone</span>
+                                <span class="settings-row-value">Auto-detect ›</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dev Tab -->
+            <div id="tab-dev" class="tab-content">
+                <div class="nav-header">
+                    <h1 class="nav-title">Dev</h1>
+                </div>
+                <div class="scroll-content">
+                    <div class="settings-section">
+                        <div class="settings-section-title">Developer Tools</div>
+                        <div class="settings-card">
+                            <div class="settings-row">
+                                <span class="settings-row-label">Debug Mode</span>
+                                <div class="toggle"></div>
+                            </div>
+                            <div class="settings-row">
+                                <span class="settings-row-label">API Endpoint</span>
+                                <span class="settings-row-value">10.0.0.4:8080 ›</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab Bar -->
+        <div class="tab-bar">
+            <div class="tab-item active" onclick="switchTab('feeder')">
+                <div class="tab-icon">🏠</div>
+                <span>Feeder</span>
+            </div>
+            <div class="tab-item" onclick="switchTab('options')">
+                <div class="tab-icon">🎚️</div>
+                <span>Options</span>
+            </div>
+            <div class="tab-item" onclick="switchTab('dev')">
+                <div class="tab-icon">🔧</div>
+                <span>Dev</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function switchTab(tabName) {
+            // Update tab items
+            document.querySelectorAll('.tab-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            event.currentTarget.classList.add('active');
+
+            // Update content
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.getElementById('tab-' + tabName).classList.add('active');
+        }
+    </script>
+</body>
+
+</html>

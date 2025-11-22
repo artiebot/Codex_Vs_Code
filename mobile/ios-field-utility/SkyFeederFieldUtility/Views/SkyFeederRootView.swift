@@ -23,7 +23,7 @@ struct SkyFeederRootView: View {
                     Label("Developer", systemImage: "hammer.fill")
                 }
 
-            SettingsView()
+            SkyFeederUI.SettingsView()
                 .tabItem {
                     Label("Settings", systemImage: "gearshape.fill")
                 }
