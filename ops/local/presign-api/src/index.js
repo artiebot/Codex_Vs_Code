@@ -1516,6 +1516,30 @@ app.post("/api/snapshot", async (req, res) => {
   }
 });
 
+app.post("/api/reboot", async (req, res) => {
+  const deviceIdRaw = extractDeviceId(req);
+  if (!requireDeviceIdQuery(deviceIdRaw)) {
+    return res.status(400).json({ error: "device_id_required" });
+  }
+  const deviceId = sanitizeDeviceId(deviceIdRaw);
+  try {
+    const websocket = await emitActionEvent(
+      deviceId,
+      "reboot_requested",
+      "Device reboot requested via dashboard"
+    );
+    res.json({
+      success: true,
+      deviceId,
+      message: "Reboot command sent",
+      websocket,
+    });
+  } catch (err) {
+    console.error("[api:reboot] failed", err);
+    res.status(500).json({ error: "reboot_failed" });
+  }
+});
+
 app.get("/api/settings", async (req, res) => {
   if (!requireDeviceIdQuery(req.query.deviceId)) {
     return res.status(400).json({ error: "device_id_required" });

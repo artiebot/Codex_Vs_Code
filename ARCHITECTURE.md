@@ -131,6 +131,8 @@ clips/
 | `/gallery/:deviceId/indices/latest.json` | GET | Latest gallery manifest |
 | `/gallery/:deviceId/captures_index.json` | GET | Legacy gallery manifest (fallback) |
 | `/gallery/:deviceId/photo/:filename` | GET | Photo proxy (streams from MinIO) |
+| `/api/telemetry` | GET | Latest telemetry snapshot per device |
+| `/api/telemetry/push` | POST | ESP32 telemetry push (pack voltage, watts, RSSI, weight) |
 
 **Environment Variables:**
 ```bash
@@ -154,6 +156,7 @@ MINIO_SECRET_KEY=minioadmin
 - Fault injection for testing
 - Day index auto-generation on upload
 - ISO8601 date formatting (without milliseconds for Swift)
+- In-memory telemetry cache fed by ESP32 HTTP pushes
 
 **Path:** `ops/local/presign-api/`
 
@@ -208,9 +211,10 @@ MINIO_SECRET_KEY=minioadmin
 
 **Responsibilities:**
 - Photo upload management with retry queue (1min, 5min, 15min)
+- Capture session state machine (PIR+weight gating, `capture_start` at T+0s, 5 s clip at T+5s, then photos every 15 s until departure or 10-photo cap)
 - UART control of AMB82-Mini camera (wake pulses, capture sequencing, deep-sleep)
 - OTA update client with rollback support and boot health tracking
-- Telemetry generation (currently published via legacy MQTT payload builder; transport is being migrated to HTTP/WS)
+- Telemetry push via HTTP (`POST /api/telemetry/push`) with pack/solar/load power, weight, and RSSI every 30 s
 - Wi-Fi provisioning + non-blocking connection state machine with NVS-backed failure counters
 - Task watchdog + periodic maintenance reboot for self-recovery
 
@@ -219,7 +223,7 @@ MINIO_SECRET_KEY=minioadmin
 - `skyfeeder/skyfeeder.ino`: Main entrypoint, watchdog + maintenance reboot policy
 - `skyfeeder/provisioning.cpp`: Captive portal, Wi-Fi config, failure counters, triple power-cycle handling
 - `skyfeeder/mqtt_client.cpp`: Wi-Fi connection state machine (legacy MQTT transport stub)
-- `skyfeeder/telemetry_service.cpp`: Telemetry payload construction (currently uses MQTT client stub)
+- `skyfeeder/telemetry_service.cpp`: HTTP telemetry push loop (`/api/telemetry/push`, 30 s cadence)
 - `skyfeeder/command_handler.cpp`: Command routing + AMB82 sequencing and recovery (with degraded-mode handling)
 - `skyfeeder/mini_link.cpp`: UART framing, wake pulses, power control for AMB82-Mini
 
@@ -237,6 +241,8 @@ Attempt 4: +15 minutes (max)
 
 **Responsibilities:**
 - Photo capture (JPEG encoding)
+- Session-aware command handling for `capture_start`, `capture_photo`, and `capture_stop`
+- Video clip recording (5 s MJPEG AVI in PSRAM) + `queueClipUpload` for `clip.mp4`
 - UART communication with ESP32
 - Deep sleep when idle
 - GPIO wake on trigger
@@ -329,16 +335,16 @@ Attempt 4: +15 minutes (max)
 2. ESP32 sends UART wake command to AMB82-Mini
 3. AMB82-Mini wakes from deep sleep (~10s)
 4. AMB82-Mini waits 800ms for camera warm-up
-5. AMB82-Mini captures JPEG photo
-6. AMB82-Mini sends photo data via UART to ESP32
-7. ESP32 requests presigned URL from presign-api
+5. AMB82-Mini captures Photo #1 immediately and streams JPEG bytes to ESP32 for upload
+6. ESP32 schedules a 5-second video clip (AMB82 records MJPEG AVI in PSRAM, then `queueClipUpload`) and requests additional photos every 15 seconds while the bird remains (up to 10 total or 150 s)
+7. For each photo/clip, ESP32 requests a presigned URL from presign-api
 8. presign-api generates S3 presigned URL + Authorization header
-9. ESP32 uploads photo to MinIO using presigned URL
+9. ESP32 uploads media to MinIO using the presigned URL
 10. presign-api updates day index file in MinIO
 11. ESP32 broadcasts upload_status via WebSocket
 12. iOS app receives gallery_ack via WebSocket
 13. iOS app fetches updated manifest from presign-api
-14. iOS app displays new photo in gallery
+14. iOS app displays new photo/video in gallery
 ```
 
 ### Gallery Manifest Flow

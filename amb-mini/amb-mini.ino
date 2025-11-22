@@ -9,7 +9,9 @@
 #include <cstdlib>
 #include "mbedtls/sha256.h"
 #include <cstring>
+#include <cstdio>
 #include "PowerMode.h"
+#include <stdarg.h>
 #include "hal_power_mode.h"
 #include "VideoStream.h"
 #include "StreamIO.h"
@@ -186,6 +188,15 @@ uint16_t rtspPort = 0;
 unsigned long lastCameraStart = 0;
 char serialCmdBuf[160];
 size_t serialCmdLen = 0;
+
+void serialPrintf(const char* fmt, ...) {
+  char buffer[160];
+  va_list args;
+  va_start(args, fmt);
+  vsnprintf(buffer, sizeof(buffer), fmt, args);
+  va_end(args);
+  Serial.print(buffer);
+}
 
 void mqttLoopTask(void* param);
 void initSynchronization();
@@ -1222,7 +1233,7 @@ void handleCaptureStart(const JsonDocument& doc) {
   }
   emitSnapshotSerial(ok, capturedBytes, gCaptureTrigger);
   emitEventPhase("snapshot", gCaptureTrigger, 1, kMaxSessionPhotos, 0, ok);
-  Serial.printf("[capture] session start trigger=%s weight=%.1fg\n", gCaptureTrigger, weight);
+  serialPrintf("[capture] session start trigger=%s weight=%.1fg\n", gCaptureTrigger, weight);
 }
 
 void handleCapturePhoto(const JsonDocument& doc) {
@@ -1275,7 +1286,7 @@ void handleCaptureStop(const JsonDocument& doc) {
   gCaptureSessionActive = false;
   gVideoRecorded = false;
   gPhotoCount = 0;
-  Serial.printf("[capture] session complete photos=%u\n", totalPhotos);
+  serialPrintf("[capture] session complete photos=%u\n", totalPhotos);
 }
 
 void processSerialLine(const char* line) {

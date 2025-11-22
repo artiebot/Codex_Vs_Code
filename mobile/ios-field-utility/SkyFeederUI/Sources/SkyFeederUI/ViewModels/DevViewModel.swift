@@ -25,6 +25,7 @@ public class DevViewModel: ObservableObject {
     private let connectivityProvider: ConnectivityProvider
     private let telemetryProvider: TelemetryProvider
     private let logsSummaryProvider: LogsSummaryProvider
+    private let actionProvider: DashboardActionProvider
 
     public init(
         settingsStore: SettingsStore,
@@ -32,7 +33,8 @@ public class DevViewModel: ObservableObject {
         devicesProvider: DevicesProvider = DevicesProvider(),
         connectivityProvider: ConnectivityProvider = ConnectivityProvider(),
         telemetryProvider: TelemetryProvider = TelemetryProvider(),
-        logsSummaryProvider: LogsSummaryProvider = LogsSummaryProvider()
+        logsSummaryProvider: LogsSummaryProvider = LogsSummaryProvider(),
+        actionProvider: DashboardActionProvider = DashboardActionProvider()
     ) {
         self.settingsStore = settingsStore
         self.settingsProvider = settingsProvider
@@ -40,6 +42,7 @@ public class DevViewModel: ObservableObject {
         self.connectivityProvider = connectivityProvider
         self.telemetryProvider = telemetryProvider
         self.logsSummaryProvider = logsSummaryProvider
+        self.actionProvider = actionProvider
     }
 
     public func onAppear() {
@@ -187,18 +190,36 @@ public class DevViewModel: ObservableObject {
     }
 
     private func performCleanup() async throws {
-        try await Task.sleep(nanoseconds: 1_000_000_000)
+        guard let baseURL = settingsStore.state.apiBaseURL else {
+            throw DashboardActionError.missingAPIBase
+        }
+        let deviceId = settingsStore.state.deviceID
+
+        // Clean up both photos and videos
+        _ = try await actionProvider.perform(action: .cleanupPhotos, baseURL: baseURL, deviceId: deviceId)
+        _ = try await actionProvider.perform(action: .cleanupVideos, baseURL: baseURL, deviceId: deviceId)
     }
 
     private func performForceTelemetry() async throws {
-        try await Task.sleep(nanoseconds: 500_000_000)
+        // Force telemetry is simply a refresh of the current data
+        // The refresh() method already fetches fresh telemetry from the backend
     }
 
     private func performRequestSnapshot() async throws {
-        try await Task.sleep(nanoseconds: 500_000_000)
+        guard let baseURL = settingsStore.state.apiBaseURL else {
+            throw DashboardActionError.missingAPIBase
+        }
+        let deviceId = settingsStore.state.deviceID
+
+        _ = try await actionProvider.perform(action: .snapshot, baseURL: baseURL, deviceId: deviceId)
     }
 
     private func performReboot() async throws {
-        try await Task.sleep(nanoseconds: 500_000_000)
+        guard let baseURL = settingsStore.state.apiBaseURL else {
+            throw DashboardActionError.missingAPIBase
+        }
+        let deviceId = settingsStore.state.deviceID
+
+        _ = try await actionProvider.perform(action: .reboot, baseURL: baseURL, deviceId: deviceId)
     }
 }

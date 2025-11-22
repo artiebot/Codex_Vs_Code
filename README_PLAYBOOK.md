@@ -859,3 +859,75 @@ Limit to read-only audit; no code changes.
 - `IOS_SWIFTUI_3TAB_IMPLEMENTATION.md` - Complete implementation guide with architecture, MQTT audit, backend requirements
 
 Stay aligned with this playbook; update sections as phases advance.
+
+### Firmware Hardening – Capture Flow & Telemetry (2025-11-21)
+
+- **Capture timeline (ESP32 visit service):**
+  - `capture_start` fires immediately on PIR+weight events (Photo #1 at T+0s).
+  - AMB82 records a 5 s clip beginning at T+5 s, then ESP32 requests photos every 15 s while the bird is present (max 10 photos or 150 s).
+  - Departure detection requires PIR low **and** weight dropping below 50% of the initial bird delta before issuing `capture_stop`.
+  - All Wi-Fi/MQTT-era `capture_event` commands are retired; only `capture_start/photo/stop` are used going forward.
+
+- **ESP32 ↔ AMB82 commands:**
+  - `SF_captureStart/Photo/Stop` send `capture_start`, `capture_photo`, `capture_stop` ops over UART with weight metadata.
+  - AMB82 now maintains capture session state, writes MJPEG AVI clips in PSRAM, queues uploads via `queueClipUpload`, and emits `video_start/end` + `done` phases after each session.
+  - Session state is guarded so only one capture runs at a time; forced `capture_stop` still records a clip if the scheduled video has not completed yet.
+
+- **Telemetry push (HTTP/WS control plane):**
+  - `telemetry_service` no longer publishes MQTT payloads. Every 30 s the ESP32 posts `packVoltage`, `solarWatts`, `loadWatts`, `weightG`, and `signalStrengthDbm` to `POST /api/telemetry/push`.
+  - Successful pushes mark `BootHealth` healthy so brownout/fault loops are still captured.
+  - `/api/telemetry` now returns the last pushed snapshot (falls back to `/api/health` if no push has arrived yet).
+
+- **Backend updates:**
+  - Added in-memory `deviceTelemetry` map and `/api/telemetry/push` endpoint (JSON body, optional `deviceId` query parameter).
+  - GET `/api/telemetry` surfaces the cached snapshot (timestamp + data) so the Dev page/debug tab can render live voltage/RSSI/weight without MQTT.
+
+- **Validation checklist:**
+  1. Hardware: flash ESP32 + AMB82 builds, connect to LAN, tail serial logs on both MCUs.
+  2. Trigger PIR visit with >80 g additional weight.
+     - Expect `[visit] capture session started` log, immediate photo upload, and `capture_start` UART JSON.
+     - At T+5 s AMB82 should log `[video]` frames captured and queue `clip.mp4` upload (no `[upload] queue full` warnings).
+     - Subsequent photos every 15 s while weight remains above threshold; when the bird leaves (PIR low + weight drop), ESP32 logs “Bird departed, capture stopped”.
+     - `emitEventPhase` should report `video_start`, `video_end`, and `done` with `total=photosTaken`.
+  3. Telemetry push:
+     - With Wi-Fi connected, run `curl -s http://localhost:8080/api/telemetry | jq` and verify fields (`packVoltage`, `solarWatts`, `weightG`, `signalStrengthDbm`, `updatedAt`) mirror the latest push.
+     - Check ESP32 serial for `[telem] push ok` logs every ~30 s.
+  4. Backend Dev tab / `/api/telemetry` consumers should observe live values without relying on MQTT.
+
+### New Tasks from Antigravity Deep-Dive (2025-11-18)
+
+- [BLOCKER – Prototype reliability] **Triple-boot provisioning safety under brownouts**  
+  - Current behavior: every reboot increments the provisioning boot counter; if count ≥ 3 before 120 s of stable Wi-Fi, device enters AP/provisioning mode and drops existing Wi-Fi config.  
+  - Risk: on a solar-powered device, brownouts can cause three quick reboots and unintentionally trigger AP mode, effectively “killing” the feeder until a human re-provisions it.  
+  - A2 target behavior:
+    - Only increment the provisioning boot counter when the previous reset was a “normal” reset, not a brownout.
+    - Use `esp_reset_reason()` to detect brownouts and exclude them from the triple-boot counter.
+    - Optionally: only increment the counter if the previous boot was < X seconds ago (e.g., 5–10 s), otherwise reset counter to 1.
+
+- [HIGH – A2 hardening] **OTA authenticity & BootHealth timing**  
+  - Keep SHA-256 integrity check for accidental corruption.
+  - For A2 field deployments, add image signing (e.g., ESP secure boot or custom signature) so that a LAN attacker cannot push a malicious image just by controlling the OTA command and hash.
+  - Move `BootHealth.markHealthy()` from early `setup()` to a point where the device has been stable for N seconds and has successfully connected to the backend at least once, to avoid “boot → mark healthy → crash loop” scenarios.
+
+- [HIGH – A2 hardening] **Per-device identity and auth model**  
+  - Replace the current shared `JWT_SECRET` + self-asserted `deviceId` with a per-device API key stored in NVS.  
+  - Server should maintain a `deviceId → api_key` mapping.  
+  - Flow:
+    - ESP32 authenticates with `{deviceId, apiKey}` to obtain a short-lived session token (JWT or similar).
+    - ESP32 uses this token for WebSocket connections and `/v1/presign/put` requests.
+    - AMB82-Mini receives presigned URLs from ESP32 over UART; it never needs to know secrets itself.  
+  - Keep mutual TLS as a possible longer-term / production evolution, but not required for A2.
+
+- [MEDIUM – A2 robustness] **Time & timestamp guardrails**  
+  - Current behavior: when NTP is unavailable, `unixNow()` can produce timestamps near epoch (1970), which leak into object keys and gallery sorting.  
+  - A2 requirements:
+    - Define “valid time” (e.g., year ≥ 2025).  
+    - If time is invalid:
+      - Either queue captures locally until time is valid, or
+      - Use a separate “time-unknown” prefix that doesn’t pollute normal galleries.
+    - Once NTP succeeds, ESP32 should push a `SET_TIME` command to AMB82-Mini so both are aligned.
+
+- [MEDIUM – UX / app] **iOS offline behavior and cached-first gallery**  
+  - Do not swap to `EmptyCaptureProvider` when offline; instead keep the presigned provider and serve the last cached manifest from disk when network calls fail.  
+  - Show a clear “Offline – Showing cached data” banner in the gallery UI.  
+  - On pull-to-refresh failures, keep currently displayed captures rather than clearing the list.

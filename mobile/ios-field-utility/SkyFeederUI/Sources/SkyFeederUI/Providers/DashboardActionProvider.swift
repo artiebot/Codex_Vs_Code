@@ -3,6 +3,9 @@ import Foundation
 public enum DashboardAction: String {
     case manualTrigger = "api/trigger/manual"
     case snapshot = "api/snapshot"
+    case reboot = "api/reboot"
+    case cleanupPhotos = "api/cleanup/photos"
+    case cleanupVideos = "api/cleanup/videos"
 }
 
 public enum DashboardActionError: LocalizedError {
