@@ -45,7 +45,8 @@ public class LiveDeviceService: DeviceServiceProtocol {
                 return DeviceStatus(
                     id: device.id,
                     name: device.name,
-                    batteryPercentage: telemetry.batteryPercent,
+                    // Telemetry battery is now optional; fall back to the device summary value when missing.
+                    batteryPercentage: telemetry.batteryPercent ?? device.batteryPercentage,
                     wifiSignalStrength: telemetry.signalStrengthDbm,
                     temperatureCelsius: telemetry.internalTempC,
                     isOnline: device.isOnline
