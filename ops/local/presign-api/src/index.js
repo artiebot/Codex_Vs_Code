@@ -2180,6 +2180,8 @@ app.put("/fput/:token", async (req, res) => {
 
 console.log(`[gallery:init] bucket=${galleryBucket} prefix=${galleryPrefix}`);
 
-app.listen(PORT, "0.0.0.0", () => {
+const server = app.listen(PORT, "0.0.0.0", () => {
   console.log(`presign api listening on :${PORT}`);
 });
+server.keepAliveTimeout = 60000;
+server.headersTimeout = 65000;

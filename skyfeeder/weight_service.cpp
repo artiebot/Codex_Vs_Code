@@ -56,7 +56,16 @@ void WeightService::loadCalibration(){
   int32_t storedTare=0;
   if(Storage::getInt32(NS, KEY_TARE, storedTare)) tare_offset_=storedTare;
   float storedCal=0.0f;
-  if(Storage::getFloat(NS, KEY_CAL, storedCal) && fabsf(storedCal)>1e-6f) cal_factor_=storedCal;
+  if(Storage::getFloat(NS, KEY_CAL, storedCal) && fabsf(storedCal)>1e-6f) {
+    cal_factor_=storedCal;
+  } else {
+    cal_factor_ = HX711_CAL_DEFAULT;
+  }
+  // Auto-fix: if calibration factor is suspiciously small (old default was ~0.0025), update it
+  if(cal_factor_ < 0.01f) {
+    cal_factor_ = HX711_CAL_DEFAULT;
+    persistCal();
+  }
 }
 void WeightService::persistTare(){ Storage::setInt32(NS, KEY_TARE, (int32_t)tare_offset_); }
 void WeightService::persistCal(){ Storage::setFloat(NS, KEY_CAL, cal_factor_); }

@@ -114,7 +114,7 @@
 // --- Power model ---
 #define SERIES_CELLS 1
 #define R_SYSTEM_OHMS 0.02f
-#define HX711_CAL_DEFAULT 0.002536f  // grams per count baseline
+#define HX711_CAL_DEFAULT 0.02536f  // grams per count baseline
 #define CELL_WARN_V 3.35f
 #define CELL_CRIT_V 3.15f
 #define BRIGHTNESS_MAX_SAFE   128
