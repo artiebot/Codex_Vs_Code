@@ -11,6 +11,29 @@ public struct DeveloperView: View {
     public var body: some View {
         NavigationView {
             List {
+                Section(header: Text("Backend")) {
+                    HStack {
+                        Text("Base URL")
+                        Spacer()
+                        Text(settingsStore.state.apiBaseURL?.absoluteString ?? "Not set")
+                            .foregroundColor(DesignSystem.textSecondary)
+                            .multilineTextAlignment(.trailing)
+                    }
+                    HStack {
+                        Text("Device ID")
+                        Spacer()
+                        Text(settingsStore.state.deviceID)
+                            .foregroundColor(DesignSystem.textSecondary)
+                    }
+                    HStack {
+                        Text("Manifest")
+                        Spacer()
+                        Text(settingsStore.state.manifestURL?.absoluteString ?? "Not set")
+                            .foregroundColor(DesignSystem.textSecondary)
+                            .multilineTextAlignment(.trailing)
+                    }
+                }
+
                 Section(header: Text("Power Diagnostics")) {
                     HStack {
                         Text("Voltage")
@@ -73,8 +96,12 @@ public struct DeveloperView: View {
                     }
                 }
                 
-                if !viewModel.logs.isEmpty {
-                    Section(header: Text("System Logs")) {
+                Section(header: Text("System Logs")) {
+                    if viewModel.logs.isEmpty {
+                        Text("No logs yet. Confirm /api/logs/summary is reachable.")
+                            .font(.caption)
+                            .foregroundColor(DesignSystem.textSecondary)
+                    } else {
                         ForEach(viewModel.logs) { log in
                             VStack(alignment: .leading) {
                                 HStack {
@@ -88,6 +115,14 @@ public struct DeveloperView: View {
                             }
                             .padding(.vertical, 4)
                         }
+                    }
+                }
+
+                if let error = viewModel.errorMessage {
+                    Section(header: Text("Errors")) {
+                        Text(error)
+                            .font(.caption)
+                            .foregroundColor(.red)
                     }
                 }
             }

@@ -48,12 +48,30 @@ platform :ios do
     profile_specifier = ENV["APP_PROVISIONING_PROFILE_SPECIFIER"] || ENV["SIGH_#{bundle_id.gsub('.', '_')}_PROFILE_NAME"] || "match AppStore #{bundle_id}"
 
     # Ensure build number monotonically increases to satisfy App Store Connect requirements.
-    # Prefer CI-provided values; fall back to timestamp to avoid collisions when running locally.
-    build_number = ENV["GITHUB_RUN_NUMBER"] || ENV["BUILD_NUMBER"] || Time.now.to_i.to_s
-    UI.message("Setting build number to #{build_number}")
+    # Strategy: use the latest TestFlight build number + 1 when available; otherwise bump the local project version by 1.
+    latest_store_build = nil
+    begin
+      latest_store_build = latest_testflight_build_number(
+        api_key: api_key,
+        app_identifier: bundle_id,
+        platform: "ios"
+      )
+      UI.message("Latest TestFlight build number: #{latest_store_build}")
+    rescue => e
+      UI.important("Could not fetch latest TestFlight build number (will fall back to local): #{e}")
+    end
+
+    local_build = get_build_number(xcodeproj: project_path).to_i
+    target_build = if latest_store_build
+      [latest_store_build.to_i, local_build].max + 1
+    else
+      local_build + 1
+    end
+
+    UI.message("Setting build number to #{target_build}")
     increment_build_number(
       xcodeproj: project_path,
-      build_number: build_number
+      build_number: target_build
     )
 
     xcargs = [

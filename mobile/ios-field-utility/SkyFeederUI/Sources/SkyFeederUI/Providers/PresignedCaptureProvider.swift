@@ -32,8 +32,11 @@ public final class PresignedCaptureProvider: CaptureProvider {
         var request = URLRequest(url: endpoint)
         request.httpMethod = "GET"
         let (data, response) = try await urlSession.data(for: request)
-        guard let httpResponse = response as? HTTPURLResponse, (200..<300).contains(httpResponse.statusCode) else {
-            throw CaptureProviderError.networkFailure("Unexpected response from manifest endpoint")
+        if let httpResponse = response as? HTTPURLResponse, !(200..<300).contains(httpResponse.statusCode) {
+            throw CaptureProviderError.networkFailure(
+                "Manifest request failed (\(httpResponse.statusCode)) at \(endpoint.absoluteString). " +
+                "Confirm Base URL points to presign-api (e.g., http://<host>:8080/gallery/<deviceId>/indices/latest.json)."
+            )
         }
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .iso8601
