@@ -8,17 +8,13 @@ struct SkyFeederRootView: View {
     var body: some View {
         TabView {
             DashboardView(
-                viewModel: DashboardViewModel(
-                    deviceService: MockDeviceService(),
-                    visitService: MockVisitService(),
-                    statsService: MockStatsService()
-                )
+                viewModel: DashboardViewModel(settingsStore: settingsStore)
             )
             .tabItem {
                 Label("Dashboard", systemImage: "house.fill")
             }
 
-            DeveloperView()
+            DeveloperView(settingsStore: settingsStore)
                 .tabItem {
                     Label("Developer", systemImage: "hammer.fill")
                 }

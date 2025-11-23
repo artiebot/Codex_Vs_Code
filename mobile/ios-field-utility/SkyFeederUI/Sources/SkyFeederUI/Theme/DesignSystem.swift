@@ -2,13 +2,14 @@ import SwiftUI
 
 public struct DesignSystem {
     // MARK: - Colors
-    public static let background = Color(hex: "#F5F6F8")
-    public static let primaryTeal = Color(hex: "#0F9A95")
-    public static let cardBackground = Color.white
-    public static let separator = Color(.systemGray4)
+    // Base theme tuned to match the dark dashboard reference
+    public static let background = Color(hex: "#0A0E27")
+    public static let cardBackground = Color(hex: "#141A33")
+    public static let primaryTeal = Color(hex: "#28C7E0")
+    public static let separator = Color(hex: "#22314F")
 
-    public static let textPrimary = Color(hex: "#111111")
-    public static let textSecondary = Color(hex: "#6F6F6F")
+    public static let textPrimary = Color(hex: "#F4F6FB")
+    public static let textSecondary = Color(hex: "#A7B1CC")
 
     public static let batteryGreen = Color(hex: "#34C759")
     public static let batteryYellow = Color(hex: "#FFCC00")

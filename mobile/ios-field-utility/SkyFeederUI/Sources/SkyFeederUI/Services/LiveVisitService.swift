@@ -13,46 +13,72 @@ public class LiveVisitService: VisitServiceProtocol {
         guard let baseURL = settingsState.apiBaseURL else {
             throw MediaProviderError.missingAPIBase
         }
-        
-        async let photos = provider.fetchPhotos(baseURL: baseURL, deviceId: settingsState.deviceID, limit: limit)
-        async let videos = provider.fetchVideos(baseURL: baseURL, deviceId: settingsState.deviceID, limit: limit)
-        
+
+        // Fetch enough media to create visit sessions
+        let fetchLimit = max(limit * 3, 30)
+        async let photos = provider.fetchPhotos(baseURL: baseURL, deviceId: settingsState.deviceID, limit: fetchLimit)
+        async let videos = provider.fetchVideos(baseURL: baseURL, deviceId: settingsState.deviceID, limit: fetchLimit)
+
         let allMedia = try await (photos + videos)
-        
-        let sorted = allMedia.sorted { ($0.timestamp ?? Date()) > ($1.timestamp ?? Date()) }
-        
-        return sorted.prefix(limit).map { item in
-            BirdVisit(
-                id: item.id,
-                speciesName: "Unknown", // Metadata not yet available in MediaItem
-                timestamp: item.timestamp ?? Date(),
-                weightGrams: nil, // Metadata not yet available
-                confidence: nil,
-                thumbnailUrl: item.url, // Using main URL as thumbnail for now
-                videoUrl: item.type == .clip ? item.url : nil,
-                isVideo: item.type == .clip
-            )
-        }
+        let grouped = groupMediaIntoVisits(allMedia)
+
+        return Array(grouped.prefix(limit))
     }
     
     public func getVideoGallery(limit: Int) async throws -> [BirdVisit] {
         guard let baseURL = settingsState.apiBaseURL else {
             throw MediaProviderError.missingAPIBase
         }
-        
+
         let videos = try await provider.fetchVideos(baseURL: baseURL, deviceId: settingsState.deviceID, limit: limit)
-        
-        return videos.map { item in
+        let visits = videos.map { media in
             BirdVisit(
-                id: item.id,
-                speciesName: "Unknown",
-                timestamp: item.timestamp ?? Date(),
+                id: media.id,
+                timestamp: media.timestamp ?? Date(),
                 weightGrams: nil,
-                confidence: nil,
-                thumbnailUrl: item.url,
-                videoUrl: item.url,
-                isVideo: true
+                media: [media]
             )
         }
+        return visits
+    }
+
+    // MARK: - Helpers
+
+    /// Group media captures into visit sessions using a rolling window.
+    private func groupMediaIntoVisits(_ media: [MediaItem]) -> [BirdVisit] {
+        let window: TimeInterval = 30 // seconds to coalesce into the same visit
+        let sorted = media.sorted { ($0.timestamp ?? .distantPast) < ($1.timestamp ?? .distantPast) }
+
+        var visits: [BirdVisit] = []
+        var currentSession: [MediaItem] = []
+
+        for item in sorted {
+            guard let ts = item.timestamp else { continue }
+            if let lastTs = currentSession.last?.timestamp, let last = lastTs, ts.timeIntervalSince(last) <= window {
+                currentSession.append(item)
+            } else {
+                if let first = currentSession.first {
+                    visits.append(BirdVisit(
+                        id: currentSession.map { $0.id }.joined(separator: "-"),
+                        timestamp: first.timestamp ?? Date(),
+                        weightGrams: nil,
+                        media: currentSession
+                    ))
+                }
+                currentSession = [item]
+            }
+        }
+
+        if let first = currentSession.first {
+            visits.append(BirdVisit(
+                id: currentSession.map { $0.id }.joined(separator: "-"),
+                timestamp: first.timestamp ?? Date(),
+                weightGrams: nil,
+                media: currentSession
+            ))
+        }
+
+        // Newest first for UI
+        return visits.sorted { $0.timestamp > $1.timestamp }
     }
 }

@@ -1,9 +1,12 @@
 import SwiftUI
 
 public struct DeveloperView: View {
-    @StateObject private var viewModel = DeveloperViewModel()
+    @EnvironmentObject private var settingsStore: SettingsStore
+    @StateObject private var viewModel: DevViewModel
     
-    public init() {}
+    public init(settingsStore: SettingsStore) {
+        _viewModel = StateObject(wrappedValue: DevViewModel(settingsStore: settingsStore))
+    }
     
     public var body: some View {
         NavigationView {
@@ -12,71 +15,67 @@ public struct DeveloperView: View {
                     HStack {
                         Text("Voltage")
                         Spacer()
-                        Text(String(format: "%.2f V", viewModel.batteryVoltage))
+                        Text(String(format: "%.2f V", viewModel.telemetry?.packVoltage ?? 0))
+                            .foregroundColor(DesignSystem.textSecondary)
                     }
                     HStack {
-                        Text("Current")
+                        Text("Solar")
                         Spacer()
-                        Text(String(format: "%.2f A", viewModel.batteryCurrent))
+                        Text(String(format: "%.1f W", viewModel.telemetry?.solarWatts ?? 0))
+                            .foregroundColor(DesignSystem.textSecondary)
                     }
                     HStack {
-                        Text("Remaining")
+                        Text("Load")
                         Spacer()
-                        Text("\(viewModel.remainingHours) h")
+                        Text(String(format: "%.1f W", viewModel.telemetry?.loadWatts ?? 0))
+                            .foregroundColor(DesignSystem.textSecondary)
                     }
                 }
                 
-                Section(header: Text("Network Diagnostics")) {
-                    HStack {
-                        Text("SSID")
-                        Spacer()
-                        Text(viewModel.ssid)
-                    }
-                    HStack {
-                        Text("RSSI")
-                        Spacer()
-                        Text("\(viewModel.rssi) dBm")
-                    }
-                    HStack {
-                        Text("Ping")
-                        Spacer()
-                        Text("\(viewModel.pingTimeMs) ms")
-                    }
-                    HStack {
-                        Text("Status")
-                        Spacer()
-                        Text(viewModel.isConnected ? "Connected" : "Disconnected")
-                            .foregroundColor(viewModel.isConnected ? DesignSystem.statusOnline : DesignSystem.statusOffline)
-                    }
-                }
-                
-                Section(header: Text("System Logs")) {
-                    ForEach(viewModel.logs) { log in
-                        VStack(alignment: .leading) {
-                            HStack {
-                                Text(log.timestamp.formatted(date: .omitted, time: .standard))
-                                    .font(.caption)
-                                    .foregroundColor(DesignSystem.textSecondary)
-                                Spacer()
-                                Text(log.level == .error ? "ERROR" : "INFO")
-                                    .font(.caption)
-                                    .foregroundColor(log.level == .error ? DesignSystem.batteryRed : DesignSystem.textSecondary)
-                            }
-                            Text(log.message)
-                                .font(.caption)
+                if let connectivity = viewModel.connectivity {
+                    Section(header: Text("Network Diagnostics")) {
+                        HStack {
+                            Text("SSID")
+                            Spacer()
+                            Text(connectivity.ssid)
+                                .foregroundColor(DesignSystem.textSecondary)
                         }
-                        .padding(.vertical, 4)
+                        HStack {
+                            Text("Ping")
+                            Spacer()
+                            Text("\(connectivity.pingMs) ms")
+                                .foregroundColor(DesignSystem.textSecondary)
+                        }
+                        HStack {
+                            Text("Status")
+                            Spacer()
+                            Text(connectivity.isConnected ? "Connected" : "Disconnected")
+                                .foregroundColor(connectivity.isConnected ? DesignSystem.statusOnline : DesignSystem.statusOffline)
+                        }
                     }
                 }
                 
-                Section {
-                    Button("Send Diagnostics Bundle") {
-                        viewModel.sendDiagnostics()
+                if !viewModel.logs.isEmpty {
+                    Section(header: Text("System Logs")) {
+                        ForEach(viewModel.logs) { log in
+                            VStack(alignment: .leading) {
+                                HStack {
+                                    Text(log.timestamp.formatted(date: .omitted, time: .standard))
+                                        .font(.caption)
+                                        .foregroundColor(DesignSystem.textSecondary)
+                                    Spacer()
+                                }
+                                Text(log.message)
+                                    .font(.caption)
+                            }
+                            .padding(.vertical, 4)
+                        }
                     }
-                    .foregroundColor(DesignSystem.primaryTeal)
                 }
             }
             .navigationTitle("Developer")
+            .task { await viewModel.refresh() }
+            .refreshable { await viewModel.refresh() }
         }
     }
 }

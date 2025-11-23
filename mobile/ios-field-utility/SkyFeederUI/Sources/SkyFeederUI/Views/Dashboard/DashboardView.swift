@@ -22,28 +22,24 @@ public struct DashboardView: View {
                 } else {
                     ScrollView {
                         VStack(spacing: 24) {
-                            // 1. Top Status Bar
                             topStatusBar
                             
-                            // 2. Video Gallery Card
                             VideoGalleryCard(
                                 item: viewModel.selectedGalleryItem,
                                 onPlay: {
-                                    if let item = viewModel.selectedGalleryItem, let url = item.videoUrl {
+                                    if let item = viewModel.selectedGalleryItem, item.videoUrl != nil {
                                         selectedVideo = item
                                     }
                                 },
                                 onNext: viewModel.selectNextGalleryItem,
                                 onPrevious: viewModel.selectPreviousGalleryItem,
                                 onSeeAll: {
-                                    // TODO: Navigate to full gallery
+                                    // TODO: full gallery route
                                 }
                             )
                             
-                            // 3. Visits Graph
                             VisitsGraphView(stats: viewModel.weeklyStats)
                             
-                            // 4. Recent Activity
                             RecentActivityList(
                                 visits: viewModel.recentVisits,
                                 onSelect: { visit in
@@ -68,7 +64,6 @@ public struct DashboardView: View {
                 }
             }
             .sheet(item: $selectedVisit) { visit in
-                // Simple detail view for now
                 if let url = visit.thumbnailUrl {
                     ZoomableImageView(url: url)
                 }
@@ -78,7 +73,6 @@ public struct DashboardView: View {
     
     private var topStatusBar: some View {
         HStack {
-            // Device Selector
             Button(action: { showingDevicePicker = true }) {
                 HStack(spacing: 4) {
                     Text(viewModel.currentDevice?.name ?? "Select Device")
@@ -92,21 +86,10 @@ public struct DashboardView: View {
             
             Spacer()
             
-            // Status Icons
             if let device = viewModel.currentDevice {
                 HStack(spacing: 12) {
-                    statusItem(
-                        icon: "battery.100", // Dynamic icon based on % would be better
-                        text: "\(device.batteryPercentage)%"
-                    )
-                    statusItem(
-                        icon: "wifi",
-                        text: "\(device.wifiSignalStrength)%" // Using % for simplicity as per design, though it's RSSI
-                    )
-                    statusItem(
-                        icon: "thermometer",
-                        text: "\(Int(device.temperatureCelsius))°C"
-                    )
+                    statusItem(icon: "battery.100", text: "\(device.batteryPercentage)%")
+                    statusItem(icon: "wifi", text: wifiBars(from: device.wifiSignalStrength))
                 }
             }
         }
@@ -121,5 +104,16 @@ public struct DashboardView: View {
                 .font(.caption)
         }
         .foregroundColor(DesignSystem.textSecondary)
+    }
+    
+    private func wifiBars(from rssi: Int) -> String {
+        switch rssi {
+        case ..<(-80):
+            return "Weak"
+        case -80..<(-65):
+            return "Fair"
+        default:
+            return "Good"
+        }
     }
 }

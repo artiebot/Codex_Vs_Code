@@ -78,6 +78,23 @@ The following validation items were skipped during simulation/software-only test
 - [ ] Video player opens and plays videos from real presigned URLs
 - [ ] Options settings persist across app launches on device
 - [ ] Capture type radio buttons switch correctly
+
+### A1.3.7 - iOS Dashboard Live Wiring (2025-11-22, Pending Manual Testing)
+**What changed:**
+- Dashboard now defaults to **LiveDevice/LiveVisit/LiveStats** services (no mocks). Battery% + Wi‑Fi bars come from `/api/telemetry`; temperature removed.
+- Recent Activity groups photos/clips into visit sessions (30 s window), removes species/AI labels, keeps timestamp/weight (if provided).
+- Video Gallery pulls from `/api/videos`; if no videos exist, only photos appear in Recent Activity.
+- Dark theme updated to match the reference mock (navy background, teal accents).
+- Developer tab now uses live connectivity/telemetry/logs; RSSI row removed; only supported metrics remain.
+- Settings tab restored to functional fields: API base URL, device ID, provider (presigned/filesystem), filesystem root, auto-save toggle, cache TTL.
+
+**Validation (manual):**
+- Set `API Base URL` + `Device ID` in Settings, relaunch app, confirm values persist.
+- Dashboard top row shows live battery% + Wi‑Fi bars from `/api/telemetry`.
+- Recent Activity lists real captures ordered newest→oldest; tapping opens media; no AI species shown.
+- Video hero shows latest clip from `/api/videos` (if clips exist); otherwise expect empty-state.
+- Visits graph reflects real counts from media timestamps (last 7 days).
+- Developer tab: voltage/solar/load from telemetry; SSID/ping/status from `/api/connectivity`; logs from `/api/logs`.
 - [ ] Quiet hours toggles update settings
 - [ ] Dev tab device search filters correctly for multiple devices
 - [ ] Dev tab action buttons trigger appropriate responses (force telemetry, snapshot, reboot, factory reset) once wired to real endpoints

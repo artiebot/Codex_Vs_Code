@@ -1,19 +1,13 @@
 import SwiftUI
 
 public struct RootView: View {
+    @StateObject private var settingsStore: SettingsStore
     @StateObject private var dashboardViewModel: DashboardViewModel
     
     public init() {
-        let settingsState = SettingsState(userDefaults: .standard)
-        let deviceService = LiveDeviceService(settingsState: settingsState)
-        let visitService = LiveVisitService(settingsState: settingsState)
-        let statsService = LiveStatsService(settingsState: settingsState)
-        
-        _dashboardViewModel = StateObject(wrappedValue: DashboardViewModel(
-            deviceService: deviceService,
-            visitService: visitService,
-            statsService: statsService
-        ))
+        let store = SettingsStore(userDefaults: .standard)
+        _settingsStore = StateObject(wrappedValue: store)
+        _dashboardViewModel = StateObject(wrappedValue: DashboardViewModel(settingsStore: store))
     }
     
     public var body: some View {
@@ -23,7 +17,7 @@ public struct RootView: View {
                     Label("Dashboard", systemImage: "house.fill")
                 }
             
-            DeveloperView()
+            DeveloperView(settingsStore: settingsStore)
                 .tabItem {
                     Label("Developer", systemImage: "hammer.fill")
                 }
@@ -33,6 +27,7 @@ public struct RootView: View {
                     Label("Settings", systemImage: "gearshape.fill")
                 }
         }
+        .environmentObject(settingsStore)
         .tint(DesignSystem.primaryTeal)
         .preferredColorScheme(.dark) // Force dark mode as per design requirement
     }

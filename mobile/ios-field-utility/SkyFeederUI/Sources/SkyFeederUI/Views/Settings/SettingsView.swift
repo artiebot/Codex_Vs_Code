@@ -1,64 +1,85 @@
 import SwiftUI
 
 public struct SettingsView: View {
-    @StateObject private var viewModel = SettingsViewModel()
+    @EnvironmentObject private var settingsStore: SettingsStore
+    @State private var baseURLString: String = ""
+    @State private var deviceId: String = ""
+    @State private var provider: CaptureProviderSelection = .presigned
+    @State private var filesystemRoot: String = ""
+    @State private var autoSave: Bool = false
+    @State private var cacheTTLHours: Double = 6
     
     public init() {}
     
     public var body: some View {
         NavigationView {
-            List {
-                Section(header: Text("Device")) {
-                    Picker("Default Device", selection: $viewModel.selectedDeviceId) {
-                        Text("SkyFeeder-01").tag("sf-01")
-                        Text("SkyFeeder-02").tag("sf-02")
-                    }
-                    
-                    Text("Timezone: Use device timezone")
-                        .foregroundColor(DesignSystem.textSecondary)
+            Form {
+                Section(header: Text("Connection")) {
+                    TextField("API Base URL", text: $baseURLString)
+                        .keyboardType(.URL)
+                        .autocapitalization(.none)
+                        .disableAutocorrection(true)
+                    TextField("Device ID", text: $deviceId)
+                        .autocapitalization(.none)
+                        .disableAutocorrection(true)
                 }
                 
-                Section(header: Text("Detection")) {
-                    VStack(alignment: .leading) {
-                        Text("Sensitivity")
-                        Slider(value: $viewModel.sensitivity)
-                            .tint(DesignSystem.primaryTeal)
+                Section(header: Text("Capture Provider")) {
+                    Picker("Provider", selection: $provider) {
+                        ForEach(CaptureProviderSelection.allCases) { option in
+                            Text(option.displayName).tag(option)
+                        }
                     }
-                    
-                    Toggle("Quiet Hours", isOn: $viewModel.quietHoursEnabled)
+                    if provider == .filesystem {
+                        TextField("Filesystem Root", text: $filesystemRoot)
+                            .autocapitalization(.none)
+                            .disableAutocorrection(true)
+                    }
+                }
+                
+                Section(header: Text("Caching")) {
+                    Toggle("Auto-save to Photos", isOn: $autoSave)
+                    HStack {
+                        Text("Cache TTL (hours)")
+                        Spacer()
+                        Text("\(Int(cacheTTLHours))h")
+                            .foregroundColor(DesignSystem.textSecondary)
+                    }
+                    Slider(value: $cacheTTLHours, in: 1...24, step: 1)
                         .tint(DesignSystem.primaryTeal)
-                    
-                    if viewModel.quietHoursEnabled {
-                        DatePicker("Start", selection: $viewModel.quietHoursStart, displayedComponents: .hourAndMinute)
-                        DatePicker("End", selection: $viewModel.quietHoursEnd, displayedComponents: .hourAndMinute)
-                    }
                 }
                 
-                Section(header: Text("Appearance")) {
-                    Picker("Theme", selection: $viewModel.theme) {
-                        Text("Light").tag(SettingsViewModel.AppTheme.light)
-                        Text("Dark").tag(SettingsViewModel.AppTheme.dark)
-                        Text("System").tag(SettingsViewModel.AppTheme.system)
+                Section {
+                    Button("Save Settings") {
+                        save()
                     }
-                }
-                
-                Section(header: Text("About")) {
-                    HStack {
-                        Text("Firmware Version")
-                        Spacer()
-                        Text("1.2.0")
-                            .foregroundColor(DesignSystem.textSecondary)
-                    }
-                    HStack {
-                        Text("Build Number")
-                        Spacer()
-                        Text("142")
-                            .foregroundColor(DesignSystem.textSecondary)
-                    }
-                    Link("Documentation", destination: URL(string: "https://example.com/docs")!)
+                    .foregroundColor(DesignSystem.primaryTeal)
                 }
             }
             .navigationTitle("Settings")
+            .onAppear(perform: load)
         }
+    }
+    
+    private func load() {
+        let state = settingsStore.state
+        baseURLString = state.baseURL?.absoluteString ?? ""
+        deviceId = state.deviceID
+        provider = state.provider
+        filesystemRoot = state.filesystemRootPath
+        autoSave = state.autoSaveToPhotos
+        cacheTTLHours = state.cacheTTL / 3600
+    }
+    
+    private func save() {
+        settingsStore.update { state in
+            state.deviceID = deviceId
+            state.provider = provider
+            state.filesystemRootPath = filesystemRoot
+            state.autoSaveToPhotos = autoSave
+            state.cacheTTL = cacheTTLHours * 3600
+            state.baseURL = URL(string: baseURLString)
+        }
+        settingsStore.save()
     }
 }

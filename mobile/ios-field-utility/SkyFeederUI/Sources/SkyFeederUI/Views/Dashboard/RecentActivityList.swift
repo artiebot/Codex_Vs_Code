@@ -30,7 +30,7 @@ struct RecentActivityList: View {
                             // Info
                             VStack(alignment: .leading, spacing: 4) {
                                 HStack {
-                                    Text(visit.speciesName ?? "Unidentified")
+                                    Text("Visit")
                                         .font(DesignSystem.headline())
                                         .foregroundColor(DesignSystem.textPrimary)
                                     Spacer()
@@ -41,7 +41,7 @@ struct RecentActivityList: View {
                                     }
                                 }
                                 
-                                Text("\(visit.timestamp.formatted(date: .abbreviated, time: .omitted))")
+                                Text("\(visit.timestamp.formatted(date: .abbreviated, time: .shortened))")
                                     .font(DesignSystem.caption())
                                     .foregroundColor(DesignSystem.textSecondary)
                                 
@@ -49,17 +49,9 @@ struct RecentActivityList: View {
                                     Circle()
                                         .fill(DesignSystem.primaryTeal)
                                         .frame(width: 8, height: 8)
-                                    Text(visit.confidence != nil ? "Confidence" : "Bird detected")
+                                    Text("Bird detected")
                                         .font(DesignSystem.caption())
                                         .foregroundColor(DesignSystem.textSecondary)
-                                    
-                                    Spacer()
-                                    
-                                    if let confidence = visit.confidence {
-                                        Text("\(Int(confidence * 100)) %")
-                                            .font(DesignSystem.caption())
-                                            .foregroundColor(DesignSystem.textSecondary)
-                                    }
                                 }
                             }
                         }

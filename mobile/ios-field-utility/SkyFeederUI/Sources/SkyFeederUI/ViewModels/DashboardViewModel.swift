@@ -24,6 +24,16 @@ public class DashboardViewModel: ObservableObject {
         self.visitService = visitService
         self.statsService = statsService
     }
+
+    /// Convenience initializer to use live services tied to the current settings.
+    public convenience init(settingsStore: SettingsStore) {
+        let state = settingsStore.state
+        self.init(
+            deviceService: LiveDeviceService(settingsState: state),
+            visitService: LiveVisitService(settingsState: state),
+            statsService: LiveStatsService(settingsState: state)
+        )
+    }
     
     public func loadData() async {
         isLoading = true
