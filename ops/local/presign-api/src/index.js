@@ -1832,7 +1832,14 @@ app.post("/v1/presign/put", async (req, res) => {
   }
 
   const resolvedKind = kind === "clips" ? "clips" : "photos";
-  const key = buildObjectKey(deviceId, objectKey, resolvedKind, contentType, weightG);
+  let key = buildObjectKey(deviceId, objectKey, resolvedKind, contentType, weightG);
+
+  // Fix: AMB82-Mini sometimes sends .bin extension for videos. Correct it based on content-type.
+  if (key.endsWith(".bin") && contentType === "video/avi") {
+    key = key.replace(/\.bin$/, ".avi");
+  } else if (key.endsWith(".bin") && contentType === "video/mp4") {
+    key = key.replace(/\.bin$/, ".mp4");
+  }
   const uploadToken = signUploadToken({
     deviceId,
     key,

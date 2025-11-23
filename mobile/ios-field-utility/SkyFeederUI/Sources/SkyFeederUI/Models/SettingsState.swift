@@ -92,7 +92,8 @@ extension SettingsState {
         guard provider == .presigned, let baseURL else { return nil }
         return baseURL
             .appendingPathComponent(deviceID, isDirectory: true)
-            .appendingPathComponent("captures_index.json", isDirectory: false)
+            .appendingPathComponent("indices", isDirectory: true)
+            .appendingPathComponent("latest.json", isDirectory: false)
     }
 
     public var apiBaseURL: URL? {
