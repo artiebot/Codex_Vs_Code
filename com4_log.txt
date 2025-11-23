@@ -2617,3 +2617,12 @@
 [20:53:38.202] DEBUG: Loop running
 [20:53:38.219] WiFi connected: YES
 [20:53:39.024] [visit] PIR ignored, weight delta=0.00g (too light)
+[20:53:43.699] [visit] PIR ignored, weight delta=0.00g (too light)
+[20:53:45.714] [visit] PIR ignored, weight delta=0.00g (too light)
+[20:53:48.208] DEBUG: Loop running
+[20:53:48.236] WiFi connected: YES
+[20:53:58.216] DEBUG: Loop running
+[20:53:58.232] WiFi connected: YES
+[20:53:59.773] [telem] push ok
+[20:54:03.805] [visit] PIR ignored, weight delta=0.00g (too light)
+[20:54:05.794] [visit] PIR ignored, weight delta=0.00g (too light)

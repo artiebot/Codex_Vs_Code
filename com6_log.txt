@@ -4782,3 +4782,282 @@
 [19:34:37.404] {"mini":"status","state":"sleep_deep","settled":false,"ip":"","rtsp":""}
 [19:34:37.418] GPIO IRQ init OK!
 [19:34:37.434] [sleep] entering deep sleep via PowerMode.start()
+[20:53:00.652] == Rtl8735b IoT Platform ==
+[20:53:00.682] [Normal mode]
+[20:53:00.712] BootFromNORFlash
+[20:53:00.729] [SPIF Err]Invalid ID
+[20:53:00.744] [Start Boot ROM...]
+[20:53:00.777] === Load PARTBL ===
+[20:53:00.793] === Load Done ===
+[20:53:00.812] === Load ISP_IQ ===
+[20:53:00.855] [fcs chk pass]
+[20:53:00.870] ISP_IQ @ 0x8461080, 0x2ff80, 0x0
+[20:53:00.886] mfcs_data version 0x00010001
+[20:53:00.901] fcs_data version 0x00010101
+[20:53:00.920] === Process ISP_IQ ===
+[20:53:00.932] === Load Done ===
+[20:53:00.948] === Load BL ===
+[20:53:00.964] [Image Start Table @ 0x18200]
+[20:53:00.979] === Load Done ===
+[20:53:01.010] == Boot Loader ==
+[20:53:01.026] May 27 2025:18:06:29
+[20:53:01.041] === Load FCS Para ===
+[20:53:01.057] === Load Done ===
+[20:53:01.072] [crc pass]
+[20:53:01.088] === Load ISP_IQ Sensor ===
+[20:53:01.103] ISP_IQ @ 0x8461080, 0x2ff80
+[20:53:01.120] === Process ISP_IQ ===
+[20:53:01.135] === Load Done ===
+[20:53:01.151] === Load FW1 ===
+[20:53:01.166] FW_ISP_IQ @ 0x8061080, 0x31f80
+[20:53:01.182] === Process FW_ISP_IQ ===
+[20:53:01.197] DRAM_TYPE is DDR2 128MB.
+[20:53:01.213] ddr_freq = 533
+[20:53:01.229] VOE flash @ 0x8093080, 0x80f80
+[20:53:01.245] FCS KM_status 0x00002081 err 0x0000200a
+[20:53:01.260] Wait KM fcs done 0 us
+[20:53:01.275] FCS TM_status 0x003f0000
+[20:53:01.291] store fcs data for application
+[20:53:01.307] It don't do the sensor initial process
+[20:53:01.322] RAM TM_STATUS 0x00bf1208 err 0x00001208
+[20:53:01.337]  read fcs_status 0x000000bf
+[20:53:01.354]  read fcs_status 0x000000bf
+[20:53:01.368] === Process VOE IMG ===
+[20:53:01.386] [Image Start Table @ 0x20106200]
+[20:53:01.432] RAM Load @ 0x8114100->0x20106200, 0x6874
+[20:53:01.448] DDR Load @ 0x811b080->0x70100000, 0x192c04
+[20:53:01.463] === FW Load Done ===
+[20:53:01.494] Boot Loader <==
+[20:53:01.524] == RAM Start ==
+[20:53:01.539] Build @ 18:02:31, May 27 2025
+[20:53:01.907] $8735b>
+[20:53:01.927] [boot] AMB82 MQTT Camera Bridge
+[20:53:01.943] [uart] Serial3 initialized on PE1(TX)/PE2(RX) @ 115200 baud
+[20:53:01.958] [boot] wake flags: 0x200
+[20:53:01.974] [wifi] connecting to wififordays
+[20:53:01.989] interface 0 is initialized
+[20:53:02.004] interface 1 is initialized
+[20:53:02.020] cfg_size_lib = 120, cfg_size_user = 120
+[20:53:02.114] Initializing WIFI ...[Driver]: [HALMAC]
+[20:53:02.161]  11692M HALMAC_MAJOR_VER = 1
+[20:53:02.208]  HALMAC_PROTOTYPE_VER = 4
+[20:53:02.223]  HALMAC_MINOR_VER = 20
+[20:53:02.238]  HALMAC_PATCH_VER =
+[20:53:02.254] [Driver]: The driver include MP
+[20:53:02.271] [Driver]: Ver = libwlan:2025.05.27.18.12_b9.6_1acc271a021c89298377c7ed1ac05e5263027e49
+[20:53:02.284] RFE type = 0
+[20:53:02.302] start_addr=(0x4000), end_addr=(0x8000), buffer_size=(0x4000), smp_number_max=(2048)
+[20:53:02.331] WIFI initialized
+[20:53:02.362] [Driver]: set ssid [wififordays]
+[20:53:06.169] [Driver]: rtw_joinbss_cmd MGMT_FRAME_PROTECTION_OPTIONAL no pmf.
+[20:53:06.356] [Driver]: OnBeacon rtw_get_sec_ie (ielen: 276, rsn_len: 0, wpa_len: 0), channel: 44
+[20:53:06.401] [Driver]: start auth to d4:6c:6d:4b:76:4b
+[20:53:06.433] [Driver]: auth success, start assoc
+[20:53:06.466] [Driver]: listen_interval: 10, bcn_interval: 100
+[20:53:06.496] [Driver]: association success(res=6)
+[20:53:06.577] [Driver]: set pairwise key to hw: alg:4(WEP40-1 WEP104-5 TKIP-2 AES-4)
+[20:53:06.624] [Driver]: set group key to hw: alg:4(WEP40-1 WEP104-5 TKIP-2 AES-4) keyid:1
+[20:53:06.655] (0) Scan: 1, Auth: 1, Assoc: 1, 4way: 1, connect: 1, reason: 0
+[20:53:06.979] Interface 0 IP address : 10.0.0.197
+[20:53:07.010] [wifi] connected: 10.0.0.197
+[20:53:07.026] [wifi] setting non-blocking mode...
+[20:53:07.043] [video_voe_presetting] fps:30  w:1920  h:1080
+[20:53:07.058] fwin(1),enc_en(0),IQ_OFFSET = 0x17b60
+[20:53:07.073]  fwin(1),enc_en(0),SENSOR_OFFSET = 0x2fba0
+[20:53:07.089] sensor id 1 iq_data 17b60 sensor_data 2fba0
+[20:53:07.120] VOE not init
+[20:53:07.135] VOE_OUT_CMD type 2 command fail -1
+[20:53:07.168] RTSP[0] port: 554
+[20:53:07.185] [rtsp] strconnect successful sta mode
+[20:53:07.214] rtsp stream enabledeaming ready on rtsp://10.0.0.197:554/live
+[20:53:07.229] hal_voe_ready 0x0 0xbf1208
+[20:53:07.246]  read fcs_status 0x000000bf
+[20:53:07.259] [video_init] uvcd iq is null, use default.
+[20:53:07.275] [video_init] uvcd SNR is null, use default.
+[20:53:07.289] IQ:FW size (98342)
+[20:53:07.306] sensor:date 2024/9/12 version:RTL8735B_VOE_1.5.7.0
+[20:53:07.335] sensor:FW size (5412)
+[20:53:07.351] sensor timestamp: 2024/09/12
+[20:53:07.367] iq timestamp: 2023/05/15 14:48:54
+[20:53:07.384] voe_heap malloc 0x7045d800, size 9625344
+[20:53:07.398] ISP:1 ENC:1 H265:1 NN:1
+[20:53:07.414] hal_voe_ready 0x0 0xbf1208
+[20:53:07.431] voe   :RTL8735B_VOE_1.6.2.0
+[20:53:07.461] sensor:RTL8735B_VOE_1.5.7.0
+[20:53:07.477] hal   :RTL8735B_VOE_1.6.2.0
+[20:53:07.495] load time sensor:151us iq:2712us itcm:0us dtcm:0us ddr:0us ddr2:0us
+[20:53:07.532] Set H264 default HIGH profile
+[20:53:07.555] rc_version RC_v1
+[20:53:07.571] [video_pre_init_procedure] START
+[20:53:07.588] hal_voe_send2voe too long 51848 cmd 0x00000206 p1 0x00000000 p2 0x00000000
+[20:53:07.616] [cam] started
+[20:53:07.635] {"mini":"status","state":"active","settled":false,"ip":"10.0.0.197","rtsp":"rtsp://10.0.0.197:554/live"}
+[20:53:07.680] [INFO] Create TCP socket successfully
+[20:53:07.696] [http] server listening on 80 (non-blocking)
+[20:53:07.710] === SETUP COMPLETE ===
+[20:53:07.725] [uart] Boot handshake complete
+[20:53:07.742] === ENTERING MAIN LOOP ===
+[20:53:07.757] [uart] Sent ping #0
+[20:53:07.774] [loop] #1 iterations=1 Serial3.avail=0 heap=81143424
+[20:53:07.790] [Driver]: TSFValue = 555699302425, tsf = 0, shift_set= 0x8000, bcn int = 100
+[20:53:08.149] {"mini":"status","state":"active","settled":true,"ip":"10.0.0.197","rtsp":"rtsp://10.0.0.197:554/live"}
+[20:53:08.177] [uart] RX byte: 0x7B '{'
+[20:53:08.193] [uart] RX byte: 0x22 '"'
+[20:53:08.208] [uart] RX byte: 0x6F 'o'
+[20:53:08.224] [uart] RX byte: 0x70 'p'
+[20:53:08.240] [uart] RX byte: 0x22 '"'
+[20:53:08.270] [uart] RX byte: 0x3A ':'
+[20:53:08.286] [uart] RX byte: 0x22 '"'
+[20:53:08.303] [uart] RX byte: 0x63 'c'
+[20:53:08.335] [uart] RX byte: 0x61 'a'
+[20:53:08.350] [uart] RX byte: 0x70 'p'
+[20:53:08.365] [uart] RX byte: 0x74 't'
+[20:53:08.379] [uart] RX byte: 0x75 'u'
+[20:53:08.397] [uart] RX byte: 0x72 'r'
+[20:53:08.413] [uart] RX byte: 0x65 'e'
+[20:53:08.425] [uart] RX byte: 0x5F '_'
+[20:53:08.443] [uart] RX byte: 0x73 's'
+[20:53:08.458] [uart] RX byte: 0x74 't'
+[20:53:08.471] [uart] RX byte: 0x61 'a'
+[20:53:08.489] [uart] RX byte: 0x72 'r'
+[20:53:08.505] [uart] RX byte: 0x74 't'
+[20:53:08.522] [uart] RX byte: 0x22 '"'
+[20:53:08.535] [uart] RX byte: 0x2C ','
+[20:53:08.553] [uart] RX byte: 0x22 '"'
+[20:53:08.568] [uart] RX byte: 0x74 't'
+[20:53:08.582] [uart] RX byte: 0x72 'r'
+[20:53:08.598] [uart] RX byte: 0x69 'i'
+[20:53:08.612] [uart] RX byte: 0x67 'g'
+[20:53:08.627] [uart] RX byte: 0x67 'g'
+[20:53:08.642] [uart] RX byte: 0x65 'e'
+[20:53:08.658] [uart] RX byte: 0x72 'r'
+[20:53:08.673] [uart] RX byte: 0x22 '"'
+[20:53:08.689] [uart] RX byte: 0x3A ':'
+[20:53:08.703] [uart] RX byte: 0x22 '"'
+[20:53:08.719] [uart] RX byte: 0x70 'p'
+[20:53:08.734] [uart] RX byte: 0x69 'i'
+[20:53:08.750] [uart] RX byte: 0x72 'r'
+[20:53:08.766] [uart] RX byte: 0x22 '"'
+[20:53:08.781] [uart] RX byte: 0x2C ','
+[20:53:08.796] [uart] RX byte: 0x22 '"'
+[20:53:08.812] [uart] RX byte: 0x77 'w'
+[20:53:08.828] [uart] RX byte: 0x65 'e'
+[20:53:08.843] [uart] RX byte: 0x69 'i'
+[20:53:08.859] [uart] RX byte: 0x67 'g'
+[20:53:08.875] [uart] RX byte: 0x68 'h'
+[20:53:08.890] [uart] RX byte: 0x74 't'
+[20:53:08.905] [uart] RX byte: 0x5F '_'
+[20:53:08.921] [uart] RX byte: 0x67 'g'
+[20:53:08.935] [uart] RX byte: 0x22 '"'
+[20:53:08.950] [uart] RX byte: 0x3A ':'
+[20:53:08.965] [uart] RX byte: 0x32 '2'
+[20:53:08.981] [uart] RX byte: 0x31 '1'
+[20:53:08.997] [uart] RX byte: 0x37 '7'
+[20:53:09.012] [uart] RX byte: 0x2E '.'
+[20:53:09.028] [uart] RX byte: 0x33 '3'
+[20:53:09.043] [uart] RX byte: 0x32 '2'
+[20:53:09.059] [uart] RX byte: 0x37 '7'
+[20:53:09.074] [uart] RX byte: 0x31 '1'
+[20:53:09.089] [uart] RX byte: 0x7D '}'
+[20:53:09.105] [uart] RX byte: 0xD ''
+[20:53:09.120] [uart] RX byte: 0xA '
+[20:53:09.135] '
+[20:53:09.152] [uart] RX complete line: {"op":"capture_start","trigger":"pir","weight_g":217.3271}
+[20:53:09.169] {"mini":"event","phase":"start","trigger":"pir","total":10,"seconds":5,"ok":true,"ts":7491}
+[20:53:09.183] [snap] attempting capture...
+[20:53:09.198] [snap] captured 19976 bytes
+[20:53:09.219] {"mini":"upload","upload":"thumb","status":"pending","r":0,"bytes":19976,"elapsed_ms":0,"ts":7550,"trigger":"pir","sha256":"133e43dfaaf73dbc74ffcd3f01467f15dae1055eef25abb127b561a48ceedd61"}
+[20:53:09.246] {"mini":"snapshot","ok":true,"bytes":19976,"sha256":"","path":"/snapshot.jpg","trigger":"pir"}
+[20:53:09.261] {"mini":"event","phase":"snapshot","trigger":"pir","total":10,"index":1,"ok":true,"ts":7595}
+[20:53:09.276] [capture] session start trigger=pir weight=217.3g
+[20:53:09.291] [uart] RX byte: 0x7B '{'
+[20:53:09.306] [uart] RX byte: 0x22 '"'
+[20:53:09.324] [uart] RX byte: 0x6F 'o'
+[20:53:09.337] [uart] RX byte: 0x70 'p'
+[20:53:09.352] [uart] RX byte: 0x22 '"'
+[20:53:09.367] [uart] RX byte: 0x3A ':'
+[20:53:09.383] [uart] RX byte: 0x22 '"'
+[20:53:09.399] [uart] RX byte: 0x63 'c'
+[20:53:09.414] [uart] RX byte: 0x61 'a'
+[20:53:09.446] [uart] RX byte: 0x70 'p'
+[20:53:09.477] [uart] RX byte: 0x74 't'
+[20:53:09.492] [uart] RX byte: 0x75 'u'
+[20:53:09.507] [uart] RX byte: 0x72 'r'
+[20:53:09.538] [uart] RX byte: 0x65 'e'
+[20:53:09.570] [uart] RX byte: 0x5F '_'
+[20:53:09.601] [uart] RX byte: 0x73 's'
+[20:53:09.615] [uart] RX byte: 0x74 't'
+[20:53:09.632] [uart] RX byte: 0x6F 'o'
+[20:53:09.648] [uart] RX byte: 0x70 'p'
+[20:53:09.664] [uart] RX byte: 0x22 '"'
+[20:53:09.679] [uart] RX byte: 0x2C ','
+[20:53:09.694] [uart] RX byte: 0x22 '"'
+[20:53:09.710] [uart] RX byte: 0x74 't'
+[20:53:09.725] [uart] RX byte: 0x6F 'o'
+[20:53:09.741] [uart] RX byte: 0x74 't'
+[20:53:09.757] [uart] RX byte: 0x61 'a'
+[20:53:09.773] [uart] RX byte: 0x6C 'l'
+[20:53:09.788] [uart] RX byte: 0x5F '_'
+[20:53:09.823] [uart] RX byte: 0x70 'p'
+[20:53:09.850] [uart] RX byte: 0x68 'h'
+[20:53:09.866] [uart] RX byte: 0x6F 'o'
+[20:53:09.882] [uart] RX byte: 0x74 't'
+[20:53:09.913] [uart] RX byte: 0x6F 'o'
+[20:53:09.944] [uart] RX byte: 0x73 's'
+[20:53:09.960] [uart] RX byte: 0x22 '"'
+[20:53:09.976] [uart] RX byte: 0x3A ':'
+[20:53:09.991] [uart] RX byte: 0x31 '1'
+[20:53:10.007] [uart] RX byte: 0x7D '}'
+[20:53:10.025] [uart] RX byte: 0xD ''
+[20:53:10.073] [uart] RX byte: 0xA '
+[20:53:10.099] '
+[20:53:10.118] [uart] RX complete line: {"op":"capture_stop","total_photos":1}
+[20:53:10.131] [capture] forcing video capture before stop
+[20:53:10.165] {"mini":"event","phase":"video_start","trigger":"pir","total":10,"seconds":5,"ok":true,"ts":7712}
+[20:53:13.702] {"mini":"upload","upload":"clips","status":"pending","r":0,"bytes":785226,"elapsed_ms":0,"ts":12852,"trigger":"pir","sha256":"6efccf31fc4f16289a89bce87d62c60b1280907d683e9ae073f91ab343a0eef9"}
+[20:53:13.725] {"mini":"event","phase":"video_end","trigger":"pir","total":10,"seconds":5,"ok":true,"ts":12883}
+[20:53:13.749] {"mini":"event","phase":"done","trigger":"pir","total":1,"seconds":5,"ok":true,"ts":12897}
+[20:53:13.772] [capture] session complete photos=1
+[20:53:13.812] {"mini":"upload","upload":"thumb","status":"start","r":1,"bytes":19976,"elapsed_ms":0,"ts":12913,"trigger":"pir","sha256":"133e43dfaaf73dbc74ffcd3f01467f15dae1055eef25abb127b561a48ceedd61"}
+[20:53:13.849] [upload] Starting upload: kind=thumb bytes=19976
+[20:53:13.926] [INFO] Connect to Server successfully!
+[20:53:13.945] [http] Empty HTTP response
+[20:53:13.976] [http] Presign API response timeout
+[20:53:14.008] [upload] ERROR: Failed to get presigned URL
+[20:53:14.066] {"mini":"upload","upload":"thumb","status":"retry","r":1,"bytes":19976,"elapsed_ms":80,"eta_ms":60000,"ts":13024,"trigger":"pir","sha256":"133e43dfaaf73dbc74ffcd3f01467f15dae1055eef25abb127b561a48ceedd61"}
+[20:53:14.079] [uart] Sent ping #1
+[20:53:14.102] [loop] #2 iterations=982 Serial3.avail=21 heap=80318080
+[20:53:14.127] [uart] RX byte: 0x7B '{'
+[20:53:14.159] [uart] RX byte: 0x22 '"'
+[20:53:14.186] [uart] RX byte: 0x6F 'o'
+[20:53:14.202] [uart] RX byte: 0x70 'p'
+[20:53:14.234] [uart] RX byte: 0x22 '"'
+[20:53:14.283] [uart] RX byte: 0x3A ':'
+[20:53:14.312] [uart] RX byte: 0x22 '"'
+[20:53:14.371] [uart] RX byte: 0x73 's'
+[20:53:14.387] [uart] RX byte: 0x6C 'l'
+[20:53:14.443] [uart] RX byte: 0x65 'e'
+[20:53:14.489] [uart] RX byte: 0x65 'e'
+[20:53:14.512] [uart] RX byte: 0x70 'p'
+[20:53:14.526] [uart] RX byte: 0x5F '_'
+[20:53:14.543] [uart] RX byte: 0x64 'd'
+[20:53:14.558] [uart] RX byte: 0x65 'e'
+[20:53:14.588] [uart] RX byte: 0x65 'e'
+[20:53:14.603] [uart] RX byte: 0x70 'p'
+[20:53:14.633] [uart] RX byte: 0x22 '"'
+[20:53:14.663] [uart] RX byte: 0x7D '}'
+[20:53:14.694] [uart] RX byte: 0xD ''
+[20:53:14.710] [uart] RX byte: 0xA '
+[20:53:14.725] '
+[20:53:14.741] [uart] RX complete line: {"op":"sleep_deep"}
+[20:53:14.757] [sleep] preparing deep sleep
+[20:53:14.772] [rtsp] stopped
+[20:53:14.789] finish output task
+[20:53:14.805] hal_video_output_task closed
+[20:53:14.839] rtsp service stophal_voe_send2voe too long 92471 cmd 0x00000207 p1 0x00000000 p2 0x00000000
+[20:53:14.871] hal_voe_ready 0x0 0x1718
+[20:53:14.913] hal_voe_ready 0x0 0x800000
+[20:53:14.928] [cam] stopped
+[20:53:14.975] {"mini":"status","state":"sleep_deep","settled":false,"ip":"","rtsp":""}
+[20:53:14.989] GPIO IRQ init OK!
+[20:53:15.006] [sleep] entering deep sleep via PowerMode.start()
