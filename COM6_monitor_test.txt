@@ -1,0 +1,144 @@
+Opening COM6 at 115200 baud...
+Connected. Reading serial output (Ctrl+C to stop)...
+
+[uart] RX byte: 0x74 't'
+[uart] RX byte: 0x61 'a'
+[uart] RX byte: 0x74 't'
+[uart] RX byte: 0x75 'u'
+[uart] RX byte: 0x73 's'
+[uart] RX byte: 0x22 '"'
+[uart] RX byte: 0x7D '}'
+[uart] RX byte: 0xD ''
+[uart] RX byte: 0xA '
+'
+[uart] RX complete line: {"op":"status"}
+{"mini":"status","state":"active","settled":true,"ip":"10.0.0.197","rtsp":"rtsp://10.0.0.197:554/live"}
+[loop] #74 iterations=145459 Serial3.avail=0 heap=81143424
+[uart] Sent ping #74
+[loop] #75 iterations=147456 Serial3.avail=0 heap=81143424
+[uart] Sent ping #75
+[loop] #76 iterations=149453 Serial3.avail=0 heap=81143424
+[loop] After handleSerialInput, iteration 150000
+[loop] After serviceStream, iteration 150000
+[loop] #77 iterations=151445 Serial3.avail=0 heap=81143424
+[uart] Sent ping #77
+[loop] #78 iterations=153442 Serial3.avail=0 heap=81143424
+[uart] Sent ping #78
+[loop] #79 iterations=155439 Serial3.avail=0 heap=81143424
+[loop] #80 iterations=157437 Serial3.avail=0 heap=81143424
+[uart] Sent ping #80
+[loop] #81 iterations=159434 Serial3.avail=0 heap=81143424
+[loop] After handleSerialInput, iteration 160000
+[loop] After serviceStream, iteration 160000
+[uart] Sent ping #81
+[loop] #82 iterations=161425 Serial3.avail=0 heap=81143424
+[loop] #83 iterations=163423 Serial3.avail=0 heap=81143424
+[uart] Sent ping #83
+[loop] #84 iterations=165420 Serial3.avail=0 heap=81143424
+[uart] Sent ping #84
+[loop] #85 iterations=167417 Serial3.avail=0 heap=81143424
+[loop] #86 iterations=169415 Serial3.avail=0 heap=81143424
+[loop] After handleSerialInput, iteration 170000
+[loop] After serviceStream, iteration 170000
+[uart] Sent ping #86
+[loop] #87 iterations=171406 Serial3.avail=0 heap=81143424
+[uart] Sent ping #87
+[loop] #88 iterations=173402 Serial3.avail=0 heap=81143424
+[loop] #89 iterations=175400 Serial3.avail=0 heap=81143424
+[uart] Sent ping #89
+[loop] #90 iterations=177397 Serial3.avail=0 heap=81143424
+[uart] Sent ping #90
+[loop] #91 iterations=179394 Serial3.avail=0 heap=81143424
+[loop] After handleSerialInput, iteration 180000
+[loop] After serviceStream, iteration 180000
+[loop] #92 iterations=181386 Serial3.avail=0 heap=81143424
+[uart] Sent ping #92
+[loop] #93 iterations=183383 Serial3.avail=0 heap=81143424
+[uart] Sent ping #93
+[loop] #94 iterations=185380 Serial3.avail=0 heap=81143424
+[loop] #95 iterations=187378 Serial3.avail=0 heap=81143424
+[uart] Sent ping #95
+[loop] #96 iterations=189375 Serial3.avail=0 heap=81143424
+[loop] After handleSerialInput, iteration 190000
+[loop] After serviceStream, iteration 190000
+[uart] Sent ping #96
+[loop] #97 iterations=191366 Serial3.avail=0 heap=81143424
+[loop] #98 iterations=193364 Serial3.avail=0 heap=81143424
+[uart] Sent ping #98
+[loop] #99 iterations=195361 Serial3.avail=0 heap=81143424
+[uart] Sent ping #99
+[loop] #100 iterations=197358 Serial3.avail=0 heap=81143424
+[loop] #101 iterations=199356 Serial3.avail=0 heap=81143424
+[loop] After handleSerialInput, iteration 200000
+[loop] After serviceStream, iteration 200000
+[uart] Sent ping #101
+[loop] #102 iterations=201346 Serial3.avail=0 heap=81143424
+[uart] Sent ping #102
+[loop] #103 iterations=203343 Serial3.avail=0 heap=81143424
+[loop] #104 iterations=205341 Serial3.avail=0 heap=81143424
+[uart] Sent ping #104
+[loop] #105 iterations=207338 Serial3.avail=0 heap=81143424
+[uart] Sent ping #105
+[loop] #106 iterations=209335 Serial3.avail=0 heap=81143424
+[loop] After handleSerialInput, iteration 210000
+[loop] After serviceStream, iteration 210000
+[loop] #107 iterations=211326 Serial3.avail=0 heap=81143424
+[uart] Sent ping #107
+[loop] #108 iterations=213322 Serial3.avail=0 heap=81143424
+[uart] Sent ping #108
+[loop] #109 iterations=215319 Serial3.avail=0 heap=81143424
+[loop] #110 iterations=217317 Serial3.avail=0 heap=81143424
+[uart] Sent ping #110
+[loop] #111 iterations=219314 Serial3.avail=0 heap=81143424
+[loop] After handleSerialInput, iteration 220000
+[loop] After serviceStream, iteration 220000
+[uart] Sent ping #111
+[loop] #112 iterations=221304 Serial3.avail=0 heap=81143424
+[loop] #113 iterations=223302 Serial3.avail=0 heap=81143424
+[uart] Sent ping #113
+[loop] #114 iterations=225299 Serial3.avail=0 heap=81143424
+[uart] Sent ping #114
+[loop] #115 iterations=227296 Serial3.avail=0 heap=81143424
+[loop] #116 iterations=229294 Serial3.avail=0 heap=81143424
+[loop] After handleSerialInput, iteration 230000
+[loop] After serviceStream, iteration 230000
+[uart] Sent ping #116
+[loop] #117 iterations=231285 Serial3.avail=0 heap=81143424
+[uart] Sent ping #117
+[loop] #118 iterations=233282 Serial3.avail=0 heap=81143424
+[uart] RX byte: 0x7B '{'
+[uart] RX byte: 0x22 '"'
+[uart] RX byte: 0x6F 'o'
+[uart] RX byte: 0x70 'p'
+[uart] RX byte: 0x22 '"'
+[uart] RX byte: 0x3A ':'
+[uart] RX byte: 0x22 '"'
+[uart] RX byte: 0x73 's'
+[uart] RX byte: 0x6C 'l'
+[uart] RX byte: 0x65 'e'
+[uart] RX byte: 0x65 'e'
+[uart] RX byte: 0x70 'p'
+[uart] RX byte: 0x5F '_'
+[uart] RX byte: 0x64 'd'
+[uart] RX byte: 0x65 'e'
+[uart] RX byte: 0x65 'e'
+[uart] RX byte: 0x70 'p'
+[uart] RX byte: 0x22 '"'
+[uart] RX byte: 0x7D '}'
+[uart] RX byte: 0xD ''
+[uart] RX byte: 0xA '
+'
+[uart] RX complete line: {"op":"sleep_deep"}
+[sleep] preparing deep sleep
+[rtsp] stopped
+finish output task
+hal_video_output_task closed
+hal_voe_send2voe too long 111481 cmd 0x00000207 p1 0x00000000 p2 0x00000000
+hal_voe_ready 0x0 0x1718
+hal_voe_ready 0x0 0x800000
+[cam] stopped
+{"mini":"status","state":"sleep_deep","settled":false,"ip":"","rtsp":""}
+GPIO IRQ init OK!
+[sleep] entering deep sleep via PowerMode.start()
+
+[Timeout reached]

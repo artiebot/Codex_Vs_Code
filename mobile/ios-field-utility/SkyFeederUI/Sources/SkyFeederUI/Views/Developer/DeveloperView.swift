@@ -18,6 +18,22 @@ public struct DeveloperView: View {
                         Text(String(format: "%.2f V", viewModel.telemetry?.packVoltage ?? 0))
                             .foregroundColor(DesignSystem.textSecondary)
                     }
+                    if let battery = viewModel.telemetry?.batteryPercent {
+                        HStack {
+                            Text("Battery Level")
+                            Spacer()
+                            Text("\(battery)%")
+                                .foregroundColor(battery > 20 ? DesignSystem.textSecondary : .red)
+                        }
+                    }
+                    if let isCharging = viewModel.telemetry?.isChargingViaSolar {
+                        HStack {
+                            Text("Charging Status")
+                            Spacer()
+                            Text(isCharging ? "Charging" : "Discharging")
+                                .foregroundColor(isCharging ? .green : DesignSystem.textSecondary)
+                        }
+                    }
                     HStack {
                         Text("Solar")
                         Spacer()

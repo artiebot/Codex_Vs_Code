@@ -1313,9 +1313,27 @@ const parseDeviceFilter = (value) => {
   return raw.split(",").map((id) => sanitizeDeviceId(id)).filter(Boolean);
 };
 
+const calculateBatteryPercent = (voltage) => {
+  if (!voltage || typeof voltage !== 'number') return null;
+  // Assume 1S Li-ion: 3.0V (0%) to 4.2V (100%)
+  // If voltage > 5.0, assume 2S or more, adjust accordingly (e.g. 6.0V-8.4V)
+  let minV = 3.0;
+  let maxV = 4.2;
+
+  if (voltage > 5.0) {
+    minV = 6.0;
+    maxV = 8.4;
+  }
+
+  const pct = Math.max(0, Math.min(100, ((voltage - minV) / (maxV - minV)) * 100));
+  return Math.round(pct);
+};
+
 const buildDeviceSummaryRecord = (deviceId, healthSnapshot, wsHealth) => {
   const power = healthSnapshot?.storage?.photos || {};
-  const batteryPercent = null; // Placeholder until firmware exposes battery stats via telemetry.
+  const cached = deviceTelemetry.get(deviceId);
+  const batteryPercent = cached ? calculateBatteryPercent(cached.packVoltage) : null;
+
   const status =
     wsHealth?.status === "healthy"
       ? "online"
@@ -1359,9 +1377,17 @@ app.get("/api/devices", async (req, res) => {
 app.get("/api/telemetry", async (req, res) => {
   const deviceId = sanitizeDeviceId(req.query.deviceId || defaultDeviceId);
   const cached = deviceTelemetry.get(deviceId);
+
+  // If we have cached telemetry, return it with calculated fields
   if (cached) {
-    return res.json(cached);
+    const enriched = {
+      ...cached,
+      batteryPercent: calculateBatteryPercent(cached.packVoltage),
+      isChargingViaSolar: (cached.solarWatts || 0) > 0.5 // Simple threshold
+    };
+    return res.json(enriched);
   }
+
   try {
     const healthResponse = await fetch(
       `${normalizedPublicBase}/api/health?deviceId=${encodeURIComponent(deviceId)}`

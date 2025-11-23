@@ -1,0 +1,297 @@
+Opening COM6 at 115200 baud...
+Connected. Reading serial output (Ctrl+C to stop)...
+
+== Rtl8735b IoT Platform ==
+[Normal mode]
+BootFromNORFlash
+[SPIF Err]Invalid ID
+[Start Boot ROM...]
+=== Load PARTBL ===
+=== Load Done ===
+=== Load ISP_IQ ===
+[fcs chk pass]
+ISP_IQ @ 0x8461080, 0x2ff80, 0x0
+mfcs_data version 0x00010001
+fcs_data version 0x00010101
+=== Process ISP_IQ ===
+=== Load Done ===
+=== Load BL ===
+[Image Start Table @ 0x18200]
+=== Load Done ===
+== Boot Loader ==
+May 27 2025:18:06:29
+=== Load FCS Para ===
+=== Load Done ===
+[crc pass]
+=== Load ISP_IQ Sensor ===
+ISP_IQ @ 0x8461080, 0x2ff80
+=== Process ISP_IQ ===
+=== Load Done ===
+=== Load FW1 ===
+FW_ISP_IQ @ 0x8061080, 0x31f80
+=== Process FW_ISP_IQ ===
+DRAM_TYPE is DDR2 128MB.
+ddr_freq = 533
+VOE flash @ 0x8093080, 0x80f80
+FCS KM_status 0x00002081 err 0x0000200a
+Wait KM fcs done 0 us
+FCS TM_status 0x003f0000
+store fcs data for application
+It don't do the sensor initial process
+RAM TM_STATUS 0x00bf1208 err 0x00001208
+ read fcs_status 0x000000bf
+ read fcs_status 0x000000bf
+=== Process VOE IMG ===
+[Image Start Table @ 0x20106200]
+RAM Load @ 0x8114100->0x20106200, 0x6874
+DDR Load @ 0x811b080->0x70100000, 0x192bc4
+=== FW Load Done ===
+Boot Loader <==
+== RAM Start ==
+Build @ 18:02:31, May 27 2025
+$8735b>
+[boot] AMB82 MQTT Camera Bridge
+[uart] Serial3 initialized on PE1(TX)/PE2(RX) @ 115200 baud
+[boot] wake flags: 0x200
+[wifi] connecting to wififordays
+interface 0 is initialized
+interface 1 is initialized
+cfg_size_lib = 120, cfg_size_user = 120
+Initializing WIFI ...[Driver]: [HALMAC]
+ 11692M HALMAC_MAJOR_VER = 1
+ HALMAC_PROTOTYPE_VER = 4
+ HALMAC_MINOR_VER = 20
+ HALMAC_PATCH_VER =
+[Driver]: The driver include MP
+[Driver]: Ver = libwlan:2025.05.27.18.12_b9.6_1acc271a021c89298377c7ed1ac05e5263027e49
+RFE type = 0
+start_addr=(0x4000), end_addr=(0x8000), buffer_size=(0x4000), smp_number_max=(2048)
+WIFI initialized
+[Driver]: set ssid [wififordays]
+[Driver]: rtw_joinbss_cmd MGMT_FRAME_PROTECTION_OPTIONAL no pmf.
+[Driver]: OnBeacon rtw_get_sec_ie (ielen: 276, rsn_len: 0, wpa_len: 0), channel: 44
+[Driver]: start auth to d4:6c:6d:4b:76:4b
+[Driver]: auth success, start assoc
+[Driver]: listen_interval: 10, bcn_interval: 100
+[Driver]: association success(res=6)
+[Driver]: set pairwise key to hw: alg:4(WEP40-1 WEP104-5 TKIP-2 AES-4)
+[Driver]: set group key to hw: alg:4(WEP40-1 WEP104-5 TKIP-2 AES-4) keyid:1
+(0) Scan: 1, Auth: 1, Assoc: 1, 4way: 1, connect: 1, reason: 0
+[Driver]: TSFValue = 547030016020, tsf = 0, shift_set= 0x8000, bcn int = 100
+Interface 0 IP address : 10.0.0.197
+[wifi] connected: 10.0.0.197
+[wifi] setting non-blocking mode...
+[video_voe_presetting] fps:30  w:1920  h:1080
+fwin(1),enc_en(0),IQ_OFFSET = 0x17b60
+ fwin(1),enc_en(0),SENSOR_OFFSET = 0x2fba0
+sensor id 1 iq_data 17b60 sensor_data 2fba0
+VOE not init
+VOE_OUT_CMD type 2 command fail -1
+RTSP[0] port: 554
+[rtsp] strconnect successful sta mode
+rtsp stream enabledeaming ready on rtsp://10.0.0.197:554/live
+hal_voe_ready 0x0 0xbf1208
+ read fcs_status 0x000000bf
+[video_init] uvcd iq is null, use default.
+[video_init] uvcd SNR is null, use default.
+IQ:FW size (98342)
+sensor:date 2024/9/12 version:RTL8735B_VOE_1.5.7.0
+sensor:FW size (5412)
+sensor timestamp: 2024/09/12
+iq timestamp: 2023/05/15 14:48:54
+voe_heap malloc 0x7045d7c0, size 9625344
+ISP:1 ENC:1 H265:1 NN:1
+hal_voe_ready 0x0 0xbf1208
+voe   :RTL8735B_VOE_1.6.2.0
+sensor:RTL8735B_VOE_1.5.7.0
+hal   :RTL8735B_VOE_1.6.2.0
+load time sensor:151us iq:2709us itcm:0us dtcm:0us ddr:0us ddr2:0us
+Set H264 default HIGH profile
+rc_version RC_v1
+[video_pre_init_procedure] START
+hal_voe_send2voe too long 51673 cmd 0x00000206 p1 0x00000000 p2 0x00000000
+[cam] started
+{"mini":"status","state":"active","settled":false,"ip":"10.0.0.197","rtsp":"rtsp://10.0.0.197:554/live"}
+[INFO] Create TCP socket successfully
+[http] server listening on 80 (non-blocking)
+=== SETUP COMPLETE ===
+[uart] Boot handshake complete
+=== ENTERING MAIN LOOP ===
+[uart] Sent ping #0
+[loop] #1 iterations=1 Serial3.avail=0 heap=81143488
+{"mini":"status","state":"active","settled":true,"ip":"10.0.0.197","rtsp":"rtsp://10.0.0.197:554/live"}
+[uart] RX byte: 0x7B '{'
+[uart] RX byte: 0x22 '"'
+[uart] RX byte: 0x6F 'o'
+[uart] RX byte: 0x70 'p'
+[uart] RX byte: 0x22 '"'
+[uart] RX byte: 0x3A ':'
+[uart] RX byte: 0x22 '"'
+[uart] RX byte: 0x63 'c'
+[uart] RX byte: 0x61 'a'
+[uart] RX byte: 0x70 'p'
+[uart] RX byte: 0x74 't'
+[uart] RX byte: 0x75 'u'
+[uart] RX byte: 0x72 'r'
+[uart] RX byte: 0x65 'e'
+[uart] RX byte: 0x5F '_'
+[uart] RX byte: 0x73 's'
+[uart] RX byte: 0x74 't'
+[uart] RX byte: 0x61 'a'
+[uart] RX byte: 0x72 'r'
+[uart] RX byte: 0x74 't'
+[uart] RX byte: 0x22 '"'
+[uart] RX byte: 0x2C ','
+[uart] RX byte: 0x22 '"'
+[uart] RX byte: 0x74 't'
+[uart] RX byte: 0x72 'r'
+[uart] RX byte: 0x69 'i'
+[uart] RX byte: 0x67 'g'
+[uart] RX byte: 0x67 'g'
+[uart] RX byte: 0x65 'e'
+[uart] RX byte: 0x72 'r'
+[uart] RX byte: 0x22 '"'
+[uart] RX byte: 0x3A ':'
+[uart] RX byte: 0x22 '"'
+[uart] RX byte: 0x70 'p'
+[uart] RX byte: 0x69 'i'
+[uart] RX byte: 0x72 'r'
+[uart] RX byte: 0x22 '"'
+[uart] RX byte: 0x2C ','
+[uart] RX byte: 0x22 '"'
+[uart] RX byte: 0x77 'w'
+[uart] RX byte: 0x65 'e'
+[uart] RX byte: 0x69 'i'
+[uart] RX byte: 0x67 'g'
+[uart] RX byte: 0x68 'h'
+[uart] RX byte: 0x74 't'
+[uart] RX byte: 0x5F '_'
+[uart] RX byte: 0x67 'g'
+[uart] RX byte: 0x22 '"'
+[uart] RX byte: 0x3A ':'
+[uart] RX byte: 0x39 '9'
+[uart] RX byte: 0x37 '7'
+[uart] RX byte: 0x2E '.'
+[uart] RX byte: 0x37 '7'
+[uart] RX byte: 0x38 '8'
+[uart] RX byte: 0x36 '6'
+[uart] RX byte: 0x36 '6'
+[uart] RX byte: 0x38 '8'
+[uart] RX byte: 0x7D '}'
+[uart] RX byte: 0xD ''
+[uart] RX byte: 0xA '
+'
+[uart] RX complete line: {"op":"capture_start","trigger":"pir","weight_g":97.78668}
+{"mini":"event","phase":"start","trigger":"pir","total":10,"seconds":5,"ok":true,"ts":10041}
+[snap] attempting capture...
+[snap] captured 18012 bytes
+{"mini":"upload","upload":"thumb","status":"pending","r":0,"bytes":18012,"elapsed_ms":0,"ts":10080,"trigger":"pir","sha256":"57faddf08fc0b6c1492afdaf8f8f5af36b33faf3cfa6a9f60450bf1d9e80b894"}
+{"mini":"snapshot","ok":true,"bytes":18012,"sha256":"","path":"/snapshot.jpg","trigger":"pir"}
+{"mini":"event","phase":"snapshot","trigger":"pir","total":10,"index":1,"ok":true,"ts":10125}
+[capture] session start trigger=pir weight=97.8g
+{"mini":"upload","upload":"thumb","status":"start","r":1,"bytes":18012,"elapsed_ms":0,"ts":10143,"trigger":"pir","sha256":"57faddf08fc0b6c1492afdaf8f8f5af36b33faf3cfa6a9f60450bf1d9e80b894"}
+[upload] Starting upload: kind=thumb bytes=18012
+[INFO] Connect to Server successfully!
+[http] Empty HTTP response
+[http] Presign API response timeout
+[upload] ERROR: Failed to get presigned URL
+{"mini":"upload","upload":"thumb","status":"retry","r":1,"bytes":18012,"elapsed_ms":80,"eta_ms":60000,"ts":10253,"trigger":"pir","sha256":"57faddf08fc0b6c1492afdaf8f8f5af36b33faf3cfa6a9f60450bf1d9e80b894"}
+[loop] #2 iterations=1594 Serial3.avail=0 heap=81107392
+[uart] RX byte: 0x7B '{'
+[uart] RX byte: 0x22 '"'
+[uart] RX byte: 0x6F 'o'
+[uart] RX byte: 0x70 'p'
+[uart] RX byte: 0x22 '"'
+[uart] RX byte: 0x3A ':'
+[uart] RX byte: 0x22 '"'
+[uart] RX byte: 0x63 'c'
+[uart] RX byte: 0x61 'a'
+[uart] RX byte: 0x70 'p'
+[uart] RX byte: 0x74 't'
+[uart] RX byte: 0x75 'u'
+[uart] RX byte: 0x72 'r'
+[uart] RX byte: 0x65 'e'
+[uart] RX byte: 0x5F '_'
+[uart] RX byte: 0x73 's'
+[uart] RX byte: 0x74 't'
+[uart] RX byte: 0x6F 'o'
+[uart] RX byte: 0x70 'p'
+[uart] RX byte: 0x22 '"'
+[uart] RX byte: 0x2C ','
+[uart] RX byte: 0x22 '"'
+[uart] RX byte: 0x74 't'
+[uart] RX byte: 0x6F 'o'
+[uart] RX byte: 0x74 't'
+[uart] RX byte: 0x61 'a'
+[uart] RX byte: 0x6C 'l'
+[uart] RX byte: 0x5F '_'
+[uart] RX byte: 0x70 'p'
+[uart] RX byte: 0x68 'h'
+[uart] RX byte: 0x6F 'o'
+[uart] RX byte: 0x74 't'
+[uart] RX byte: 0x6F 'o'
+[uart] RX byte: 0x73 's'
+[uart] RX byte: 0x22 '"'
+[uart] RX byte: 0x3A ':'
+[uart] RX byte: 0x31 '1'
+[uart] RX byte: 0x7D '}'
+[uart] RX byte: 0xD ''
+[uart] RX byte: 0xA '
+'
+[uart] RX complete line: {"op":"capture_stop","total_photos":1}
+[capture] forcing video capture before stop
+{"mini":"event","phase":"video_start","trigger":"pir","total":10,"seconds":5,"ok":true,"ts":11572}
+{"mini":"upload","upload":"clip","status":"pending","r":0,"bytes":609836,"elapsed_ms":0,"ts":16712,"trigger":"pir","sha256":"b2839a2432fad0e5c21d8fdbc891b5741e2732b95b8bdb067b31ffa15e752342"}
+{"mini":"event","phase":"video_end","trigger":"pir","total":10,"seconds":5,"ok":true,"ts":16743}
+{"mini":"event","phase":"done","trigger":"pir","total":1,"seconds":5,"ok":true,"ts":16757}
+[capture] session complete photos=1
+{"mini":"upload","upload":"clip","status":"start","r":1,"bytes":609836,"elapsed_ms":0,"ts":16773,"trigger":"pir","sha256":"b2839a2432fad0e5c21d8fdbc891b5741e2732b95b8bdb067b31ffa15e752342"}
+[upload] Starting upload: kind=clip bytes=609836
+[INFO] Connect to Server successfully!
+[http] Presign status: HTTP/1.1 200 OK
+[http] Got presigned URL: http://10.0.0.4:8080/fput/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkZXZpY2VJZCI6ImRldjEiLCJrZXkiOiJkZXYxLzIwMjUtMTEtMjNUMDItMjgtNDgtMTU0Wi0wLW9MeUMuanBnIiwiY29udGVudFR5cGUiOiJpbWFnZS9qcGVnIiwia2luZCI6InBob3RvcyIsImlhdCI6MTc2Mzg2NDkyOCwiZXhwIjoxNzYzODY1ODI4fQ.IG5vtgRXQbSNzm59bizPKy3nftLeODTi6szv5V8Z0Wo
+[http] Uploading to 10.0.0.4:8080/fput/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkZXZpY2VJZCI6ImRldjEiLCJrZXkiOiJkZXYxLzIwMjUtMTEtMjNUMDItMjgtNDgtMTU0Wi0wLW9MeUMuanBnIiwiY29udGVudFR5cGUiOiJpbWFnZS9qcGVnIiwia2luZCI6InBob3RvcyIsImlhdCI6MTc2Mzg2NDkyOCwiZXhwIjoxNzYzODY1ODI4fQ.IG5vtgRXQbSNzm59bizPKy3nftLeODTi6szv5V8Z0Wo (609836 bytes)
+[INFO] Connect to Server successfully!
+[http] Wrote 609836 bytes
+[http] Empty HTTP response
+[http] Upload host closed without response; assuming success (204)
+[upload] SUCCESS
+{"mini":"upload","upload":"clip","status":"ok","r":1,"bytes":609836,"elapsed_ms":1696,"ts":18500,"trigger":"pir","sha256":"b2839a2432fad0e5c21d8fdbc891b5741e2732b95b8bdb067b31ffa15e752342"}
+[uart] Sent ping #2
+[loop] #3 iterations=2217 Serial3.avail=21 heap=81107392
+[uart] RX byte: 0x7B '{'
+[uart] RX byte: 0x22 '"'
+[uart] RX byte: 0x6F 'o'
+[uart] RX byte: 0x70 'p'
+[uart] RX byte: 0x22 '"'
+[uart] RX byte: 0x3A ':'
+[uart] RX byte: 0x22 '"'
+[uart] RX byte: 0x73 's'
+[uart] RX byte: 0x6C 'l'
+[uart] RX byte: 0x65 'e'
+[uart] RX byte: 0x65 'e'
+[uart] RX byte: 0x70 'p'
+[uart] RX byte: 0x5F '_'
+[uart] RX byte: 0x64 'd'
+[uart] RX byte: 0x65 'e'
+[uart] RX byte: 0x65 'e'
+[uart] RX byte: 0x70 'p'
+[uart] RX byte: 0x22 '"'
+[uart] RX byte: 0x7D '}'
+[uart] RX byte: 0xD ''
+[uart] RX byte: 0xA '
+'
+[uart] RX complete line: {"op":"sleep_deep"}
+[sleep] preparing deep sleep
+[rtsp] stopped
+finish output task
+hal_video_output_task closed
+rtsp service stophal_voe_send2voe too long 92473 cmd 0x00000207 p1 0x00000000 p2 0x00000000
+hal_voe_ready 0x0 0x1718
+hal_voe_ready 0x0 0x800000
+[cam] stopped
+{"mini":"status","state":"sleep_deep","settled":false,"ip":"","rtsp":""}
+GPIO IRQ init OK!
+[sleep] entering deep sleep via PowerMode.start()
+
+[Timeout reached]

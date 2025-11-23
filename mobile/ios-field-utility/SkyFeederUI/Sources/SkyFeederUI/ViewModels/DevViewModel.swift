@@ -93,7 +93,9 @@ public class DevViewModel: ObservableObject {
                 solarWatts: telemetryResult.solarWatts,
                 loadWatts: telemetryResult.loadWatts,
                 internalTempC: telemetryResult.internalTempC,
-                signalStrengthDbm: telemetryResult.signalStrengthDbm
+                signalStrengthDbm: telemetryResult.signalStrengthDbm,
+                batteryPercent: telemetryResult.batteryPercent,
+                isChargingViaSolar: telemetryResult.isChargingViaSolar
             )
             retentionPolicy = RetentionPolicy(
                 photoRetentionDays: settingsResult.photoRetentionDays,

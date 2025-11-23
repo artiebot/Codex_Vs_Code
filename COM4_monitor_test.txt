@@ -1,0 +1,307 @@
+Opening COM4 at 115200 baud...
+Connected. Reading serial output (Ctrl+C to stop)...
+
+:71}
+:71}
+:71}
+:71}
+:71}
+:71}
+:71}
+:71}
+:71}
+:71}
+:71}
+:71}
+:71}
+:71}
+:71}
+:71}
+:71}
+:71}
+:71}
+:71}
+:71}
+:71}
+:71}
+:71}
+:71}
+:71}
+:71}
+:71}
+:71}
+:71}
+:71}
+:71}
+:71}
+:71}
+:71}
+:71}
+:71}
+:71}
+:71}
+:71}
+:71}
+:71}
+:71}
+:71}
+:71}
+:71}
+:71}
+:71}
+:71}
+:71}
+:71}
+:71}
+:71}
+:71}
+:71}
+:71}
+:71}
+:71}
+:71}
+:71}
+:71}
+:71}
+:71}
+:71}
+ets Jul 29 2019 12:21:46
+rst:ets Jul 29 2019 12:21:46
+rst:ets Jul 29 2019 12:21:46
+rst:ets Jul 29 2019 12:21:46
+rst:ets Jul 29 2019 12:21:46
+rst:ets Jul 29 2019 12:21:46
+rst:ets Jul 29 2019 12:21:46
+rst:ets Jul 29 2019 12:21:46
+rst:ets Jul 29 2019 12:21:46
+rst:ets Jul 29 2019 12:21:46
+rst:ets Jul 29 2019 12:21:46
+rst:ets Jul 29 2019 12:21:46
+rst:ets Jul 29 2019 12:21:46
+rst:ets Jul 29 2019 12:21:46
+rst:ets Jul 29 2019 12:21:46
+rst:ets Jul 29 2019 12:21:46
+rst:ets Jul 29 2019 12:21:46
+rst:ets Jul 29 2019 12:21:46
+rst:ets Jul 29 2019 12:21:46
+rst:ets Jul 29 2019 12:21:46
+rst:ets Jul 29 2019 12:21:46
+rst:ets Jul 29 2019 12:21:46
+rst:ets Jul 29 2019 12:21:46
+rst:ets Jul 29 2019 12:21:46
+rst:ets Jul 29 2019 12:21:46
+rst:ets Jul 29 2019 12:21:46
+rst:ets Jul 29 2019 12:21:46
+rst:ets Jul 29 2019 12:21:46
+rst:ets Jul 29 2019 12:21:46
+rst:ets Jul 29 2019 12:21:46
+rst:ets Jul 29 2019 12:21:46
+rst:ets Jul 29 2019 12:21:46
+rst:ets Jul 29 2019 12:21:46
+rst:ets Jul 29 2019 12:21:46
+rst:ets Jul 29 2019 12:21:46
+rst:ets Jul 29 2019 12:21:46
+rst:ets Jul 29 2019 12:21:46
+rst:ets Jul 29 2019 12:21:46
+rst:ets Jul 29 2019 12:21:46
+rst:ets Jul 29 2019 12:21:46
+rst:ets Jul 29 2019 12:21:46
+rst:ets Jul 29 2019 12:21:46
+rst:ets Jul 29 2019 12:21:46
+rst:ets Jul 29 2019 12:21:46
+rst:ets Jul 29 2019 12:21:46
+rst:ets Jul 29 2019 12:21:46
+rst:ets Jul 29 2019 12:21:46
+rst:ets Jul 29 2019 12:21:46
+rst:ets Jul 29 2019 12:21:46
+rst:ets Jul 29 2019 12:21:46
+rst:0x1 (POWERON_RESET),boot:0x13 (S0x1 (POWERON_RESET),boot:0x13 (S0x1 (POWERON_RESET),boot:0x13 (S0x1 (POWERON_RESET),boot:0x13 (S0x1 (POWERON_RESET),boot:0x13 (S0x1 (POWERON_RESET),boot:0x13 (S0x1 (POWERON_RESET),boot:0x13 (S0x1 (POWERON_RESET),boot:0x13 (S0x1 (POWERON_RESET),boot:0x13 (S0x1 (POWERON_RESET),boot:0x13 (S0x1 (POWERON_RESET),boot:0x13 (S0x1 (POWERON_RESET),boot:0x13 (S0x1 (POWERON_RESET),boot:0x13 (S0x1 (POWERON_RESET),boot:0x13 (S0x1 (POWERON_RESET),boot:0x13 (S0x1 (POWERON_RESET),boot:0x13 (S0x1 (POWERON_RESET),boot:0x13 (S0x1 (POWERON_RESET),boot:0x13 (S0x1 (POWERON_RESET),boot:0x13 (S0x1 (POWERON_RESET),boot:0x13 (S0x1 (POWERON_RESET),boot:0x13 (S0x1 (POWERON_RESET),boot:0x13 (S0x1 (POWERON_RESET),boot:0x13 (S0x1 (POWERON_RESET),boot:0x13 (S0x1 (POWERON_RESET),boot:0x13 (S0x1 (POWERON_RESET),boot:0x13 (S0x1 (POWERON_RESET),boot:0x13 (S0x1 (POWERON_RESET),boot:0x13 (S0x1 (POWERON_RESET),boot:0x13 (S0x1 (POWERON_RESET),boot:0x13 (S0x1 (POWERON_RESET),boot:0x13 (S0x1 (POWERON_RESET),boot:0x13 (S0x1 (POWERON_RESET),boot:0x13 (S0x1 (POWERON_RESET),boot:0x13 (S0x1 (POWERON_RESET),boot:0x13 (S0x1 (POWERON_RESET),boot:0x13 (S0x1 (POWERON_RESET),boot:0x13 (S0x1 (POWERON_RESET),boot:0x13 (S0x1 (POWERON_RESET),boot:0x13 (S0x1 (POWERON_RESET),boot:0x13 (S0x1 (POWERON_RESET),boot:0x13 (S0x1 (POWERON_RESET),boot:0x13 (S0x1 (POWERON_RESET),boot:0x13 (S0x1 (POWERON_RESET),boot:0x13 (S0x1 (POWERON_RESET),boot:0x13 (S0x1 (POWERON_RESET),boot:0x13 (S0x1 (POWERON_RESET),boot:0x13 (S0x1 (POWERON_RESET),boot:0x13 (S0x1 (POWERON_RESET),boot:0x13 (S0x1 (POWERON_RESET),boot:0x13 (S0x1 (POWERON_RESET),boot:0x13 (SPI_FAST_FLASH_BOOT)
+configsip: 0, SPIWP:0xee
+clk_drv:0x00,q_drv:0x00,d_drv:0x00,cs0_drv:0x00,hd_drv:0x00,wp_drv:0x00
+mode:DIO, clock div:1
+load:0x3fff0030,len:4980
+load:0x40078000,len:16612
+load:0x40080400,len:3480
+entry 0x400805b4
+=== SKYFEEDER BOOT DEBUG ===
+setup() reached!
+Free heap: 263244
+CPU Freq: 240
+Initializing logging...
+Logging initialized!
+Initializing OTA Manager...
+OTA Manager initialized!
+Initializing Boot Health...
+Boot Health initialized!
+Configuring task watchdog...
+E (200) task_wdt: esp_task_wdt_init(517): TWDT already initialized
+Task watchdog configured!
+Initializing LED services...
+LED services initialized!
+Initializing power manager...
+Power manager initialized!
+Initializing weight service...
+Weight service initialized!
+Initializing motion service...
+Motion service initialized!
+Initializing visit service...
+Visit service initialized!
+Initializing AMB mini link...
+[mini] >> {"op":"status"}
+Requested initial Mini status
+AMB mini link initialized!
+Initializing camera service...
+Camera service initialized!
+Configuring OTA service...
+OTA service configured!
+Initializing provisioning...
+Provisioning initialized!
+Initializing telemetry service...
+Telemetry service initialized!
+Provisioning ready - ensuring Wi-Fi (HTTP/WS mode)...
+=== SETUP COMPLETE ===
+[mini] << {"mini":"status","state":"active","settled":true,"ip":"10.0.0.197","rtsp":"rtsp://10.0.0.197:554/live"}
+[mini] state=active settled=true ip=10.0.0.197 rtsp=rtsp://10.0.0.197:554/live
+[telem] push ok
+[mini] << {"mini":"ping","count":74}
+[mini] << {"mini":"ping","count":75}
+[mini] << {"mini":"ping","count":77}
+DEBUG: Loop running
+WiFi connected: YES
+[mini] << {"mini":"ping","count":78}
+[mini] << {"mini":"ping","count":80}
+[mini] << {"mini":"ping","count":81}
+DEBUG: Loop running
+WiFi connected: YES
+[mini] << {"mini":"ping","count":83}
+[mini] << {"mini":"ping","count":84}
+[mini] << {"mini":"ping","count":86}
+[mini] << {"mini":"ping","count":87}
+DEBUG: Loop running
+WiFi connected: YES
+[telem] push ok
+[visit] PIR ignored, weight delta=0.11g (too light)
+[mini] << {"mini":"ping","count":89}
+[visit] PIR ignored, weight delta=0.09g (too light)
+[mini] << {"mini":"ping","count":90}
+[mini] << {"mini":"ping","count":92}
+DEBUG: Loop running
+WiFi connected: YES
+[mini] << {"mini":"ping","count":93}
+[mini] << {"mini":"ping","count":95}
+[mini] << {"mini":"ping","count":96}
+DEBUG: Loop running
+WiFi connected: YES
+[mini] << {"mini":"ping","count":98}
+[mini] << {"mini":"ping","count":99}
+[mini] << {"mini":"ping","count":101}
+[mini] << {"mini":"ping","count":102}
+DEBUG: Loop running
+WiFi connected: YES
+[telem] push ok
+[mini] << {"mini":"ping","count":104}
+[mini] << {"mini":"ping","count":105}
+[mini] << {"mini":"ping","count":107}
+DEBUG: Loop running
+WiFi connected: YES
+[mini] << {"mini":"ping","count":108}
+[mini] << {"mini":"ping","count":110}
+[mini] << {"mini":"ping","count":111}
+DEBUG: Loop running
+WiFi connected: YES
+[mini] << {"mini":"ping","count":113}
+[mini] << {"mini":"ping","count":114}
+[mini] << {"mini":"ping","count":116}
+[mini] << {"mini":"ping","count":117}
+DEBUG: Loop running
+WiFi connected: YES
+[mini] >> {"op":"sleep_deep"}
+[mini] << {"mini":"status","state":"sleep_deep","settled":false,"ip":"","rtsp":""}
+[mini] state=sleep_deep settled=false ip= rtsp=(none)
+[telem] push ok
+[visit] PIR ignored, weight delta=0.11g (too light)
+[visit] PIR ignored, weight delta=0.20g (too light)
+DEBUG: Loop running
+WiFi connected: YES
+DEBUG: Loop running
+WiFi connected: YES
+DEBUG: Loop running
+WiFi connected: YES
+[telem] push ok
+[visit] PIR ignored, weight delta=0.08g (too light)
+[visit] PIR ignored, weight delta=0.01g (too light)
+DEBUG: Loop running
+WiFi connected: YES
+DEBUG: Loop running
+WiFi connected: YES
+[visit] PIR ignored, weight delta=0.61g (too light)
+[visit] PIR ignored, weight delta=0.35g (too light)
+[visit] PIR ignored, weight delta=0.29g (too light)
+[visit] PIR ignored, weight delta=0.32g (too light)
+DEBUG: Loop running
+WiFi connected: YES
+[telem] push ok
+DEBUG: Loop running
+WiFi connected: YES
+DEBUG: Loop running
+WiFi connected: YES
+DEBUG: Loop running
+WiFi connected: YES
+[telem] push ok
+DEBUG: Loop running
+WiFi connected: YES
+DEBUG: Loop running
+WiFi connected: YES
+DEBUG: Loop running
+WiFi connected: YES
+[telem] push ok
+DEBUG: Loop running
+WiFi connected: YES
+DEBUG: Loop running
+WiFi connected: YES
+DEBUG: Loop running
+WiFi connected: YES
+[telem] push ok
+[visit] PIR ignored, weight delta=0.50g (too light)
+DEBUG: Loop running
+WiFi connected: YES
+[visit] PIR ignored, weight delta=0.17g (too light)
+DEBUG: Loop running
+WiFi connected: YES
+[visit] PIR ignored, weight delta=1.13g (too light)
+DEBUG: Loop running
+WiFi connected: YES
+[visit] PIR ignored, weight delta=0.25g (too light)
+[telem] push ok
+DEBUG: Loop running
+WiFi connected: YES
+[visit] PIR ignored, weight delta=0.00g (too light)
+[visit] PIR ignored, weight delta=0.02g (too light)
+DEBUG: Loop running
+WiFi connected: YES
+DEBUG: Loop running
+WiFi connected: YES
+[telem] push ok
+DEBUG: Loop running
+WiFi connected: YES
+DEBUG: Loop running
+WiFi connected: YES
+[visit] PIR ignored, weight delta=0.06g (too light)
+[visit] PIR ignored, weight delta=0.17g (too light)
+DEBUG: Loop running
+WiFi connected: YES
+[telem] push ok
+DEBUG: Loop running
+WiFi connected: YES
+[visit] PIR ignored, weight delta=0.02g (too light)
+[visit] PIR ignored, weight delta=0.09g (too light)
+DEBUG: Loop running
+WiFi connected: YES
+[visit] PIR ignored, weight delta=0.17g (too light)
+[visit] PIR ignored, weight delta=0.26g (too light)
+DEBUG: Loop running
+WiFi connected: YES
+[telem] push ok
+DEBUG: Loop running
+WiFi connected: YES
+[visit] PIR ignored, weight delta=0.23g (too light)

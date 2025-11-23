@@ -15,8 +15,8 @@ public enum TelemetryProviderError: LocalizedError {
 }
 
 public struct TelemetryResponse: Decodable {
-    public let batteryPercent: Int
-    public let isChargingViaSolar: Bool
+    public let batteryPercent: Int?
+    public let isChargingViaSolar: Bool?
     public let packVoltage: Double
     public let solarWatts: Double
     public let loadWatts: Double

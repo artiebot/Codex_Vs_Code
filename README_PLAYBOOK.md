@@ -41,6 +41,9 @@ _Last updated: 2025-11-16_
 
 The following validation items were skipped during simulation/software-only testing and require hardware or manual validation before field deployment:
 
+**Open tasks (hardware):**
+- [ ] Recalibrate the weight sensor; current readings are very off and will skew triggers/telemetry until corrected.
+
 ### A1.3 - iOS Gallery Validation (Pending Manual Testing)
 **What was validated:** Local-first gallery implementation (providers, caching, offline banner, settings, badge updates) compiles and runs with sample data on iOS 17+/18 devices.
 **What was NOT validated:**

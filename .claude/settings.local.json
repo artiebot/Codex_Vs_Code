@@ -5,7 +5,14 @@
       "Bash(git commit:*)",
       "Bash(git push:*)",
       "Bash(gh run list:*)",
-      "Bash(gh run view:*)"
+      "Bash(gh run view:*)",
+      "Bash(powershell -Command:*)",
+      "Bash(docker logs:*)",
+      "Bash(docker-compose restart:*)",
+      "Bash(pio run:*)",
+      "Bash(platformio run)",
+      "Bash(bash scripts/build.sh:*)",
+      "Bash(taskkill:*)"
     ],
     "deny": [],
     "ask": []

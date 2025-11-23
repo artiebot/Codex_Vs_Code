@@ -1,0 +1,636 @@
+Opening COM4 at 115200 baud...
+Connected. Reading serial output (Ctrl+C to stop)...
+
+ets Jul 29 2019 12:21:46
+rst:0x1 (POWERON_RESET),boot:0x13 (SPI_FAST_FLASH_BOOT)
+configsip: 0, SPIWP:0xee
+clk_drv:0x00,q_drv:0x00,d_drv:0x00,cs0_drv:0x00,hd_drv:0x00,wp_drv:0x00
+mode:DIO, clock div:1
+load:0x3fff0030,len:4980
+load:0x40078000,len:16612
+load:0x40080400,len:3480
+entry 0x400805b4
+=== SKYFEEDER BOOT DEBUG ===
+setup() reached!
+Free heap: 263244
+CPU Freq: 240
+Initializing logging...
+Logging initialized!
+Initializing OTA Manager...
+OTA Manager initialized!
+Initializing Boot Health...
+Boot Health initialized!
+Configuring task watchdog...
+E (200) task_wdt: esp_task_wdt_init(517): TWDT already initialized
+Task watchdog configured!
+Initializing LED services...
+LED services initialized!
+Initializing power manager...
+Power manager initialized!
+Initializing weight service...
+Weight service initialized!
+Initializing motion service...
+Motion service initialized!
+Initializing visit service...
+Visit service initialized!
+Initializing AMB mini link...
+[mini] >> {"op":"status"}
+Requested initial Mini status
+AMB mini link initialized!
+Initializing camera service...
+Camera service initialized!
+Configuring OTA service...
+OTA service configured!
+Initializing provisioning...
+Provisioning initialized!
+Initializing telemetry service...
+Telemetry service initialized!
+Provisioning ready - ensuring Wi-Fi (HTTP/WS mode)...
+=== SETUP COMPLETE ===
+[telem] push ok
+DEBUG: Loop running
+WiFi connected: YES
+DEBUG: Loop running
+WiFi connected: YES
+DEBUG: Loop running
+WiFi connected: YES
+[telem] push ok
+DEBUG: Loop running
+WiFi connected: YES
+DEBUG: Loop running
+WiFi connected: YES
+DEBUG: Loop running
+WiFi connected: YES
+[telem] push ok
+DEBUG: Loop running
+WiFi connected: YES
+DEBUG: Loop running
+WiFi connected: YES
+DEBUG: Loop running
+WiFi connected: YES
+[telem] push ok
+DEBUG: Loop running
+WiFi connected: YES
+DEBUG: Loop running
+WiFi connected: YES
+DEBUG: Loop running
+WiFi connected: YES
+[telem] push ok
+DEBUG: Loop running
+WiFi connected: YES
+DEBUG: Loop running
+WiFi connected: YES
+DEBUG: Loop running
+WiFi connected: YES
+[telem] push ok
+DEBUG: Loop running
+WiFi connected: YES
+DEBUG: Loop running
+WiFi connected: YES
+[visit] PIR ignored, weight delta=49.20g (too light)
+[visit] {"ts":178,"type":"arm"}
+[mini] wake pulse 80 ms
+[sys] {"ts":178,"state":"mini_wake_pulse"}
+[visit] {"ts":178,"type":"start","delta":15.14087}
+[visit] PIR capture triggered, weight delta=99.05g
+[event] capture_start aborted (mini unavailable)
+[visit] capture_start failed
+DEBUG: Loop running
+WiFi connected: YES
+[visit] PIR ignored, weight delta=17.01g (too light)
+[telem] push ok
+[visit] {"ts":183,"type":"start","delta":91.24606}
+[visit] PIR capture triggered, weight delta=380.55g
+[event] capture_start aborted (mini unavailable)
+[visit] capture_start failed
+[mini] wake pulse 80 ms
+[sys] {"ts":186,"state":"mini_wake_retry"}
+[mini] << {"mini":"ping","count":0}
+[mini] << {"mini":"status","state":"active","settled":true,"ip":"10.0.0.197","rtsp":"rtsp://10.0.0.197:554/live"}
+[mini] state=active settled=true ip=10.0.0.197 rtsp=rtsp://10.0.0.197:554/live
+[visit] PIR ignored, weight delta=0.00g (too light)
+DEBUG: Loop running
+WiFi connected: YES
+[mini] << {"mini":"ping","count":2}
+[visit] PIR ignored, weight delta=0.00g (too light)
+[mini] << {"mini":"ping","count":3}
+[mini] wake pulse 80 ms
+[sys] {"ts":194,"state":"mini_wake_retry"}
+[visit] PIR ignored, weight delta=1.01g (too light)
+[mini] << {"mini":"ping","count":5}
+[visit] PIR ignored, weight delta=54.98g (too light)
+[visit] PIR ignored, weight delta=4.95g (too light)
+[mini] << {"mini":"ping","count":6}
+DEBUG: Loop running
+WiFi connected: YES
+[mini] << {"mini":"ping","count":8}
+[visit] {"ts":202,"type":"capture","reason":"no_capture_ready"}
+[mini] << {"mini":"ping","count":9}
+[visit] PIR ignored, weight delta=0.22g (too light)
+[visit] PIR ignored, weight delta=17.08g (too light)
+[mini] << {"mini":"ping","count":11}
+DEBUG: Loop running
+WiFi connected: YES
+[mini] << {"mini":"ping","count":12}
+[telem] push ok
+[visit] {"ts":212,"type":"arm"}
+[mini] wake pulse 80 ms
+[sys] {"ts":212,"state":"mini_wake_pulse"}
+[visit] {"ts":212,"type":"start","delta":20.93982}
+[visit] PIR ignored, weight delta=72.79g (too light)
+[mini] << {"mini":"ping","count":14}
+[visit] PIR ignored, weight delta=17.41g (too light)
+[mini] << {"mini":"ping","count":15}
+DEBUG: Loop running
+WiFi connected: YES
+[mini] << {"mini":"ping","count":17}
+[mini] wake pulse 80 ms
+[sys] {"ts":220,"state":"mini_wake_retry"}
+[visit] PIR ignored, weight delta=3.69g (too light)
+[mini] << {"mini":"ping","count":18}
+[visit] PIR ignored, weight delta=0.57g (too light)
+[mini] << {"mini":"ping","count":20}
+[mini] wake pulse 80 ms
+[sys] {"ts":228,"state":"mini_wake_retry"}
+[mini] << {"mini":"ping","count":21}
+DEBUG: Loop running
+WiFi connected: YES
+[mini] << {"mini":"ping","count":23}
+[mini] << {"mini":"ping","count":24}
+[visit] {"ts":235,"type":"start","delta":19.22906}
+[visit] PIR ignored, weight delta=2.01g (too light)
+[visit] {"ts":236,"type":"capture","reason":"no_capture_ready"}
+[visit] PIR ignored, weight delta=11.03g (too light)
+[mini] << {"mini":"ping","count":26}
+DEBUG: Loop running
+WiFi connected: YES
+[mini] << {"mini":"ping","count":27}
+[telem] push ok
+[visit] PIR ignored, weight delta=10.48g (too light)
+[mini] << {"mini":"ping","count":29}
+[visit] PIR ignored, weight delta=1.35g (too light)
+[mini] << {"mini":"ping","count":30}
+[visit] PIR ignored, weight delta=6.34g (too light)
+DEBUG: Loop running
+WiFi connected: YES
+[mini] << {"mini":"ping","count":32}
+[visit] PIR ignored, weight delta=16.25g (too light)
+[mini] << {"mini":"ping","count":33}
+[visit] PIR ignored, weight delta=16.26g (too light)
+[mini] << {"mini":"ping","count":35}
+[visit] PIR ignored, weight delta=1.62g (too light)
+[mini] << {"mini":"ping","count":36}
+DEBUG: Loop running
+WiFi connected: YES
+[mini] << {"mini":"ping","count":38}
+[mini] << {"mini":"ping","count":39}
+[visit] PIR ignored, weight delta=0.24g (too light)
+[visit] PIR ignored, weight delta=0.34g (too light)
+[mini] << {"mini":"ping","count":41}
+DEBUG: Loop running
+WiFi connected: YES
+[mini] << {"mini":"ping","count":42}
+[telem] push ok
+[mini] << {"mini":"ping","count":44}
+[mini] << {"mini":"ping","count":45}
+DEBUG: Loop running
+WiFi connected: YES
+[mini] << {"mini":"ping","count":47}
+[mini] << {"mini":"ping","count":48}
+[mini] << {"mini":"ping","count":50}
+[mini] << {"mini":"ping","count":51}
+DEBUG: Loop running
+WiFi connected: YES
+[mini] << {"mini":"ping","count":53}
+[mini] << {"mini":"ping","count":54}
+[visit] {"ts":296,"type":"end","dur_ms":61277,"delta":127.4847,"reason":"no_capture_ready"}
+[mini] >> {"op":"sleep_deep"}
+[sys] {"ts":296,"state":"mini_disarm_sleep"}
+[mini] << {"mini":"status","state":"sleep_deep","settled":false,"ip":"","rtsp":""}
+[mini] state=sleep_deep settled=false ip= rtsp=(none)
+DEBUG: Loop running
+WiFi connected: YES
+[telem] push ok
+DEBUG: Loop running
+WiFi connected: YES
+DEBUG: Loop running
+WiFi connected: YES
+DEBUG: Loop running
+WiFi connected: YES
+[telem] push ok
+DEBUG: Loop running
+WiFi connected: YES
+DEBUG: Loop running
+WiFi connected: YES
+DEBUG: Loop running
+WiFi connected: YES
+[telem] push ok
+DEBUG: Loop running
+WiFi connected: YES
+DEBUG: Loop running
+WiFi connected: YES
+DEBUG: Loop running
+WiFi connected: YES
+[telem] push ok
+DEBUG: Loop running
+WiFi connected: YES
+DEBUG: Loop running
+WiFi connected: YES
+DEBUG: Loop running
+WiFi connected: YES
+[telem] push ok
+DEBUG: Loop running
+WiFi connected: YES
+DEBUG: Loop running
+WiFi connected: YES
+DEBUG: Loop running
+WiFi connected: YES
+[telem] push ok
+[visit] PIR ignored, weight delta=0.07g (too light)
+[visit] PIR ignored, weight delta=0.05g (too light)
+DEBUG: Loop running
+WiFi connected: YES
+DEBUG: Loop running
+WiFi connected: YES
+DEBUG: Loop running
+WiFi connected: YES
+[telem] push ok
+[visit] PIR ignored, weight delta=0.09g (too light)
+[visit] PIR ignored, weight delta=0.46g (too light)
+DEBUG: Loop running
+WiFi connected: YES
+DEBUG: Loop running
+WiFi connected: YES
+DEBUG: Loop running
+WiFi connected: YES
+[telem] push ok
+[visit] PIR ignored, weight delta=0.00g (too light)
+[visit] PIR ignored, weight delta=0.44g (too light)
+DEBUG: Loop running
+WiFi connected: YES
+DEBUG: Loop running
+WiFi connected: YES
+DEBUG: Loop running
+WiFi connected: YES
+[telem] push ok
+[visit] PIR ignored, weight delta=0.07g (too light)
+[visit] PIR ignored, weight delta=0.34g (too light)
+DEBUG: Loop running
+WiFi connected: YES
+DEBUG: Loop running
+WiFi connected: YES
+DEBUG: Loop running
+WiFi connected: YES
+[telem] push ok
+[visit] PIR ignored, weight delta=0.41g (too light)
+[visit] PIR ignored, weight delta=0.63g (too light)
+DEBUG: Loop running
+WiFi connected: YES
+DEBUG: Loop running
+WiFi connected: YES
+DEBUG: Loop running
+WiFi connected: YES
+[telem] push ok
+[visit] PIR ignored, weight delta=0.01g (too light)
+[visit] PIR ignored, weight delta=0.06g (too light)
+DEBUG: Loop running
+WiFi connected: YES
+DEBUG: Loop running
+WiFi connected: YES
+DEBUG: Loop running
+WiFi connected: YES
+[telem] push ok
+[visit] PIR ignored, weight delta=0.09g (too light)
+[visit] PIR ignored, weight delta=0.21g (too light)
+DEBUG: Loop running
+WiFi connected: YES
+DEBUG: Loop running
+WiFi connected: YES
+DEBUG: Loop running
+WiFi connected: YES
+[telem] push ok
+[visit] PIR ignored, weight delta=0.03g (too light)
+[visit] PIR ignored, weight delta=0.31g (too light)
+DEBUG: Loop running
+WiFi connected: YES
+[visit] PIR ignored, weight delta=0.10g (too light)
+[visit] PIR ignored, weight delta=0.08g (too light)
+[visit] PIR ignored, weight delta=0.01g (too light)
+[visit] PIR ignored, weight delta=7.87g (too light)
+DEBUG: Loop running
+WiFi connected: YES
+[visit] PIR ignored, weight delta=2.70g (too light)
+[visit] PIR ignored, weight delta=0.71g (too light)
+DEBUG: Loop running
+WiFi connected: YES
+[visit] PIR ignored, weight delta=0.86g (too light)
+[telem] push ok
+[visit] PIR ignored, weight delta=0.24g (too light)
+DEBUG: Loop running
+WiFi connected: YES
+[visit] PIR ignored, weight delta=0.14g (too light)
+[visit] PIR ignored, weight delta=3.80g (too light)
+[visit] PIR ignored, weight delta=9.45g (too light)
+DEBUG: Loop running
+WiFi connected: YES
+[visit] PIR ignored, weight delta=0.63g (too light)
+DEBUG: Loop running
+WiFi connected: YES
+[telem] push ok
+[visit] PIR ignored, weight delta=0.21g (too light)
+[visit] {"ts":726,"type":"arm"}
+[mini] wake pulse 80 ms
+[sys] {"ts":726,"state":"mini_wake_pulse"}
+[visit] {"ts":726,"type":"start","delta":17.296}
+[visit] PIR ignored, weight delta=36.75g (too light)
+DEBUG: Loop running
+WiFi connected: YES
+[mini] wake pulse 80 ms
+[sys] {"ts":735,"state":"mini_wake_retry"}
+[mini] << #
+[mini] << {"mini":"ping","count":0}
+[mini] << {"mini":"status","state":"active","settled":true,"ip":"10.0.0.197","rtsp":"rtsp://10.0.0.197:554/live"}
+[mini] state=active settled=true ip=10.0.0.197 rtsp=rtsp://10.0.0.197:554/live
+[visit] PIR capture triggered, weight delta=97.79g
+[event] capture_start
+[mini] >> {"op":"capture_start","trigger":"pir","weight_g":97.78668}
+[visit] {"ts":736,"type":"capture","reason":"pir"}
+[visit] capture session started (97.8g)
+[mini] << {"mini":"event","phase":"start","trigger":"pir","total":10,"seconds":5,"ok":true,"ts":10041}
+[mini] event phase=start trigger=pir total=10 seconds=5 ok=true
+[mini] << {"mini":"upload","upload":"thumb","status":"pending","r":0,"bytes":18012,"elapsed_ms":0,"ts":10080,"trigger":"pir","sha256":"57faddf08fc0b6c1492afdaf8f8f5af36b33faf3cfa6a9f60450bf1d9e80b894"}
+[mini] << {"mini":"snapshot","ok":true,"bytes":18012,"sha256":"","path":"/snapshot.jpg","trigger":"pir"}
+[mini] snapshot ok=true bytes=18012
+[mini] << {"mini":"event","phase":"snapshot","trigger":"pir","total":10,"index":1,"ok":true,"ts":10125}
+[mini] event phase=snapshot trigger=pir total=10 index=1 ok=true
+[mini] << {"mini":"upload","upload":"thumb","status":"start","r":1,"bytes":18012,"elapsed_ms":0,"ts":10143,"trigger":"pir","sha256":"57faddf08fc0b6c1492afdaf8f8f5af36b33faf3cfa6a9f60450bf1d9e80b894"}
+[mini] << {"mini":"upload","upload":"thumb","status":"retry","r":1,"bytes":18012,"elapsed_ms":80,"eta_ms":60000,"ts":10253,"trigger":"pir","sha256":"57faddf08fc0b6c1492afdaf8f8f5af36b33faf3cfa6a9f60450bf1d9e80b894"}
+[visit] capture: bird departure detected
+[mini] >> {"op":"capture_stop","total_photos":1}
+[visit] capture session stopped
+[mini] << {"mini":"event","phase":"video_start","trigger":"pir","total":10,"seconds":5,"ok":true,"ts":11572}
+[mini] event phase=video_start trigger=pir total=10 seconds=5 ok=true
+[visit] PIR ignored, weight delta=10.19g (too light)
+DEBUG: Loop running
+WiFi connected: YES
+[mini] << {"mini":"upload","upload":"clip","status":"pending","r":0,"bytes":609836,"elapsed_ms":0,"ts":16712,"trigger":"pir","sha256":"b2839a2432fad0e5c21d8fdbc891b5741e2732b95b8bdb067b31ffa15e752342"}
+[mini] << {"mini":"event","phase":"video_end","trigger":"pir","total":10,"seconds":5,"ok":true,"ts":16743}
+[mini] event phase=video_end trigger=pir total=10 seconds=5 ok=true
+[mini] << {"mini":"event","phase":"done","trigger":"pir","total":1,"seconds":5,"ok":true,"ts":16757}
+[mini] event phase=done trigger=pir total=1 seconds=5 ok=true
+[visit] {"ts":743,"type":"capture_done"}
+[mini] >> {"op":"sleep_deep"}
+[sys] {"ts":743,"state":"mini_disarm_sleep"}
+[mini] << {"mini":"upload","upload":"clip","status":"start","r":1,"bytes":609836,"elapsed_ms":0,"ts":16773,"trigger":"pir","sha256":"b2839a2432fad0e5c21d8fdbc891b5741e2732b95b8bdb067b31ffa15e752342"}
+[mini] << {"mini":"upload","upload":"clip","status":"ok","r":1,"bytes":609836,"elapsed_ms":1696,"ts":18500,"trigger":"pir","sha256":"b2839a2432fad0e5c21d8fdbc891b5741e2732b95b8bdb067b31ffa15e752342"}
+[mini] << {"mini":"ping","count":2}
+[mini] << {"mini":"status","state":"sleep_deep","settled":false,"ip":"","rtsp":""}
+[mini] state=sleep_deep settled=false ip= rtsp=(none)
+DEBUG: Loop running
+WiFi connected: YES
+[telem] push ok
+[visit] PIR ignored, weight delta=0.00g (too light)
+[visit] PIR ignored, weight delta=0.00g (too light)
+DEBUG: Loop running
+WiFi connected: YES
+DEBUG: Loop running
+WiFi connected: YES
+DEBUG: Loop running
+WiFi connected: YES
+[telem] push ok
+[visit] PIR ignored, weight delta=0.38g (too light)
+[visit] PIR ignored, weight delta=0.34g (too light)
+DEBUG: Loop running
+WiFi connected: YES
+DEBUG: Loop running
+WiFi connected: YES
+DEBUG: Loop running
+WiFi connected: YES
+[telem] push ok
+[visit] {"ts":817,"type":"end","dur_ms":90471,"delta":52.7961,"reason":"pir"}
+DEBUG: Loop running
+WiFi connected: YES
+DEBUG: Loop running
+WiFi connected: YES
+DEBUG: Loop running
+WiFi connected: YES
+[telem] push ok
+DEBUG: Loop running
+WiFi connected: YES
+DEBUG: Loop running
+WiFi connected: YES
+DEBUG: Loop running
+WiFi connected: YES
+[telem] push ok
+DEBUG: Loop running
+WiFi connected: YES
+DEBUG: Loop running
+WiFi connected: YES
+DEBUG: Loop running
+WiFi connected: YES
+[telem] push ok
+DEBUG: Loop running
+WiFi connected: YES
+DEBUG: Loop running
+WiFi connected: YES
+DEBUG: Loop running
+WiFi connected: YES
+[telem] push ok
+[visit] PIR ignored, weight delta=0.03g (too light)
+[visit] PIR ignored, weight delta=0.04g (too light)
+DEBUG: Loop running
+WiFi connected: YES
+DEBUG: Loop running
+WiFi connected: YES
+DEBUG: Loop running
+WiFi connected: YES
+[telem] push ok
+DEBUG: Loop running
+WiFi connected: YES
+DEBUG: Loop running
+WiFi connected: YES
+DEBUG: Loop running
+WiFi connected: YES
+[telem] push ok
+DEBUG: Loop running
+WiFi connected: YES
+DEBUG: Loop running
+WiFi connected: YES
+DEBUG: Loop running
+WiFi connected: YES
+[telem] push ok
+DEBUG: Loop running
+WiFi connected: YES
+DEBUG: Loop running
+WiFi connected: YES
+DEBUG: Loop running
+WiFi connected: YES
+[telem] push ok
+DEBUG: Loop running
+WiFi connected: YES
+DEBUG: Loop running
+WiFi connected: YES
+DEBUG: Loop running
+WiFi connected: YES
+[telem] push ok
+DEBUG: Loop running
+WiFi connected: YES
+DEBUG: Loop running
+WiFi connected: YES
+DEBUG: Loop running
+WiFi connected: YES
+[telem] push ok
+DEBUG: Loop running
+WiFi connected: YES
+DEBUG: Loop running
+WiFi connected: YES
+DEBUG: Loop running
+WiFi connected: YES
+[telem] push ok
+DEBUG: Loop running
+WiFi connected: YES
+DEBUG: Loop running
+WiFi connected: YES
+DEBUG: Loop running
+WiFi connected: YES
+[telem] push ok
+DEBUG: Loop running
+WiFi connected: YES
+DEBUG: Loop running
+WiFi connected: YES
+DEBUG: Loop running
+WiFi connected: YES
+[telem] push ok
+DEBUG: Loop running
+WiFi connected: YES
+DEBUG: Loop running
+WiFi connected: YES
+DEBUG: Loop running
+WiFi connected: YES
+[telem] push ok
+DEBUG: Loop running
+WiFi connected: YES
+DEBUG: Loop running
+WiFi connected: YES
+DEBUG: Loop running
+WiFi connected: YES
+[telem] push ok
+DEBUG: Loop running
+WiFi connected: YES
+DEBUG: Loop running
+WiFi connected: YES
+DEBUG: Loop running
+WiFi connected: YES
+[telem] push ok
+DEBUG: Loop running
+WiFi connected: YES
+DEBUG: Loop running
+WiFi connected: YES
+DEBUG: Loop running
+WiFi connected: YES
+[telem] push ok
+DEBUG: Loop running
+WiFi connected: YES
+DEBUG: Loop running
+WiFi connected: YES
+DEBUG: Loop running
+WiFi connected: YES
+[telem] push ok
+DEBUG: Loop running
+WiFi connected: YES
+DEBUG: Loop running
+WiFi connected: YES
+DEBUG: Loop running
+WiFi connected: YES
+[telem] push ok
+DEBUG: Loop running
+WiFi connected: YES
+DEBUG: Loop running
+WiFi connected: YES
+DEBUG: Loop running
+WiFi connected: YES
+[telem] push ok
+DEBUG: Loop running
+WiFi connected: YES
+DEBUG: Loop running
+WiFi connected: YES
+DEBUG: Loop running
+WiFi connected: YES
+[telem] push ok
+DEBUG: Loop running
+WiFi connected: YES
+DEBUG: Loop running
+WiFi connected: YES
+DEBUG: Loop running
+WiFi connected: YES
+[telem] push ok
+DEBUG: Loop running
+WiFi connected: YES
+DEBUG: Loop running
+WiFi connected: YES
+DEBUG: Loop running
+WiFi connected: YES
+[telem] push ok
+DEBUG: Loop running
+WiFi connected: YES
+DEBUG: Loop running
+WiFi connected: YES
+DEBUG: Loop running
+WiFi connected: YES
+[telem] push ok
+DEBUG: Loop running
+WiFi connected: YES
+DEBUG: Loop running
+WiFi connected: YES
+DEBUG: Loop running
+WiFi connected: YES
+[telem] push ok
+[visit] PIR ignored, weight delta=0.10g (too light)
+[visit] PIR ignored, weight delta=0.09g (too light)
+DEBUG: Loop running
+WiFi connected: YES
+DEBUG: Loop running
+WiFi connected: YES
+DEBUG: Loop running
+WiFi connected: YES
+[telem] push ok
+DEBUG: Loop running
+WiFi connected: YES
+DEBUG: Loop running
+WiFi connected: YES
+DEBUG: Loop running
+WiFi connected: YES
+[telem] push ok
+DEBUG: Loop running
+WiFi connected: YES
+DEBUG: Loop running
+WiFi connected: YES
+DEBUG: Loop running
+WiFi connected: YES
+[telem] push ok
+DEBUG: Loop running
+WiFi connected: YES
+DEBUG: Loop running
+WiFi connected: YES
+DEBUG: Loop running
+WiFi connected: YES
+[telem] push ok
+DEBUG: Loop running
+WiFi connected: YES
+DEBUG: Loop running
+WiFi connected: YES
+DEBUG: Loop running
+WiFi connected: YES
+[telem] push ok
+DEBUG: Loop running
+WiFi connected: YES
+DEBUG: Loop running
+WiFi connected: YES
+DEBUG: Loop running
+WiFi connected: YES
+[telem] push ok
+[visit] PIR ignored, weight delta=8.02g (too light)
+[visit] PIR ignored, weight delta=0.43g (too light)
+ets Jul 29 2019 12:21:46
+rst:0x1 (POWERON_RESET),boot:0x3 (DOWNLOAD_BOOT(UART0/UART1/SDIO_REI_REO_V2))
+waiting for download

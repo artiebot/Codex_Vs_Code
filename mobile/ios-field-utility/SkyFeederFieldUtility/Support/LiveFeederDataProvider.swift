@@ -34,8 +34,8 @@ struct LiveFeederDataProvider: FeederDataProviding {
         )
 
         return BatteryStatus(
-            percentage: telemetry.batteryPercent,
-            isChargingViaSolar: telemetry.isChargingViaSolar,
+            percentage: telemetry.batteryPercent ?? 0,
+            isChargingViaSolar: telemetry.isChargingViaSolar ?? false,
             isOnline: true
         )
     }
