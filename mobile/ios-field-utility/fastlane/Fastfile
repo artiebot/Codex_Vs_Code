@@ -47,6 +47,15 @@ platform :ios do
 
     profile_specifier = ENV["APP_PROVISIONING_PROFILE_SPECIFIER"] || ENV["SIGH_#{bundle_id.gsub('.', '_')}_PROFILE_NAME"] || "match AppStore #{bundle_id}"
 
+    # Ensure build number monotonically increases to satisfy App Store Connect requirements.
+    # Prefer CI-provided values; fall back to timestamp to avoid collisions when running locally.
+    build_number = ENV["GITHUB_RUN_NUMBER"] || ENV["BUILD_NUMBER"] || Time.now.to_i.to_s
+    UI.message("Setting build number to #{build_number}")
+    increment_build_number(
+      xcodeproj: project_path,
+      build_number: build_number
+    )
+
     xcargs = [
       "CODE_SIGN_STYLE=Manual",
       "CODE_SIGN_IDENTITY='Apple Distribution'",
