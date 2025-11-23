@@ -206,6 +206,9 @@ const contentTypeToExtension = (contentType = "") => {
       return "png";
     case "video/mp4":
       return "mp4";
+    case "video/avi":
+    case "video/x-msvideo":
+      return "avi";
     default:
       return "bin";
   }

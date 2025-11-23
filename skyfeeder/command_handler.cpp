@@ -122,7 +122,7 @@ unsigned long gEventCaptureStartMs = 0;
 
 constexpr unsigned long kMiniIdleSleepMs = 90000;  // 90s to allow upload retries
 constexpr unsigned long kMiniWakeTimeoutMs = 15000;
-constexpr unsigned long kMiniSettleTimeoutMs = 1500;
+constexpr unsigned long kMiniSettleTimeoutMs = 15000;  // AMB mini can take 8-12s to fully wake and settle
 constexpr unsigned long kMiniSnapshotTimeoutMs = 5000;
 constexpr unsigned long kMiniEventTimeoutMs = 15000;
 constexpr unsigned long kMiniWakePulseIntervalMs = 2000;

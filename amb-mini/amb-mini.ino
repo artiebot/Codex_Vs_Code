@@ -505,7 +505,11 @@ static bool requestPresignedUrl(const char* kind, char* urlOut, size_t maxLen, c
   StaticJsonDocument<160> reqDoc;
   reqDoc["deviceId"] = DEVICE_ID;
   reqDoc["kind"] = kind;
-  reqDoc["contentType"] = "image/jpeg";
+
+  // Set correct content type based on kind
+  bool isClip = (strcmp(kind, "clips") == 0 || strcmp(kind, "clip") == 0);
+  reqDoc["contentType"] = isClip ? "video/avi" : "image/jpeg";
+
   if (weightG > 0.0f) {
     reqDoc["weightG"] = static_cast<int>(weightG + 0.5f);  // Round to nearest gram
   }
@@ -524,7 +528,7 @@ static bool requestPresignedUrl(const char* kind, char* urlOut, size_t maxLen, c
   client.print(body);
 
   HttpResponse response;
-  if (!readHttpResponse(client, response, 5000)) {
+  if (!readHttpResponse(client, response, 10000)) {
     Serial.println("[http] Presign API response timeout");
     client.stop();
     return false;
@@ -919,7 +923,7 @@ bool queueThumbnailUpload(const uint8_t* data, size_t len, const char* trigger, 
 }
 
 bool queueClipUpload(const uint8_t* data, size_t len, const char* trigger) {
-  return enqueueUploadInternal(data, len, "clip", true, trigger, 0.0f);
+  return enqueueUploadInternal(data, len, "clips", true, trigger, 0.0f);
 }
 
 void serviceUploadQueue() {
