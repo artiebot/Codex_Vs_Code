@@ -35,22 +35,24 @@ public struct DeveloperView: View {
                 if let connectivity = viewModel.connectivity {
                     Section(header: Text("Network Diagnostics")) {
                         HStack {
-                            Text("SSID")
-                            Spacer()
-                            Text(connectivity.ssid)
-                                .foregroundColor(DesignSystem.textSecondary)
-                        }
-                        HStack {
-                            Text("Ping")
-                            Spacer()
-                            Text("\(connectivity.pingMs) ms")
-                                .foregroundColor(DesignSystem.textSecondary)
-                        }
-                        HStack {
                             Text("Status")
                             Spacer()
-                            Text(connectivity.isConnected ? "Connected" : "Disconnected")
-                                .foregroundColor(connectivity.isConnected ? DesignSystem.statusOnline : DesignSystem.statusOffline)
+                            Text(connectivity.statusText)
+                                .foregroundColor(connectivity.statusText.lowercased() == "healthy" ? DesignSystem.statusOnline : DesignSystem.statusOffline)
+                        }
+                        if let avgPing = connectivity.averageRoundtripMs {
+                            HStack {
+                                Text("Avg Ping")
+                                Spacer()
+                                Text("\(avgPing) ms")
+                                    .foregroundColor(DesignSystem.textSecondary)
+                            }
+                        }
+                        HStack {
+                            Text("Recent Failures")
+                            Spacer()
+                            Text("\(connectivity.recentFailures)")
+                                .foregroundColor(DesignSystem.textSecondary)
                         }
                     }
                 }

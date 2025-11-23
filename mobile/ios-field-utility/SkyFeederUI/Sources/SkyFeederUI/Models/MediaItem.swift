@@ -1,7 +1,7 @@
 import Foundation
 
-public struct MediaItem: Identifiable, Decodable, Equatable {
-    public enum MediaType: String, Decodable {
+public struct MediaItem: Identifiable, Codable, Equatable {
+    public enum MediaType: String, Codable {
         case photo
         case clip
     }

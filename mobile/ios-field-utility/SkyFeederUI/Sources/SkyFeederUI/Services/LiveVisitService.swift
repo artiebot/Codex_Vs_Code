@@ -54,7 +54,7 @@ public class LiveVisitService: VisitServiceProtocol {
 
         for item in sorted {
             guard let ts = item.timestamp else { continue }
-            if let lastTs = currentSession.last?.timestamp, let last = lastTs, ts.timeIntervalSince(last) <= window {
+            if let lastTs = currentSession.last?.timestamp, ts.timeIntervalSince(lastTs) <= window {
                 currentSession.append(item)
             } else {
                 if let first = currentSession.first {
